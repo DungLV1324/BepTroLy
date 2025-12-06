@@ -1,0 +1,61 @@
+name: beptroly
+description: "A new Flutter project."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.9.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  provider: ^6.1.1
+  flutter_dotenv: ^5.1.0
+
+  flutter_local_notifications: ^17.0.0
+  timezone: ^0.9.0 # Để lên lịch thông báo theo giờ cụ thể
+
+  # Quản lý trạng thái và Dependency Injection (Riverpod)
+  flutter_riverpod: ^2.5.1
+  riverpod_annotation: ^2.3.5 # Dùng cho DI và tạo Provider an toàn
+
+  # Utilities: Thường dùng để xử lý dữ liệu bất đồng bộ
+  freezed_annotation: ^2.4.1 # Dùng để tạo Models/State không thay đổi (immutable)
+  json_annotation: ^4.8.1    # Dùng cho các Model có fromJson/toJson
+  
+  # Firebase
+  firebase_core: ^2.27.1
+
+  firebase_auth: ^4.17.9
+  cloud_firestore: ^4.15.9
+  firebase_storage: ^11.6.10
+  firebase_messaging: ^14.8.9
+  google_sign_in: ^6.1.6
+
+  # HTTP Client
+  http: ^1.2.1
+  # Routing: Quản lý điều hướng (Rất quan trọng cho MVVM/Clean)
+  go_router: ^14.0.0
+
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  # The "flutter_lints" package below contains a set of recommended lints to
+  # encourage good coding practices.
+  flutter_lints: ^5.0.0
+  # Tự động sinh code (Cần thiết cho Riverpod, Freezed, JSON)
+  build_runner: ^2.4.9
+  riverpod_generator: ^2.4.5
+  freezed: ^2.5.2
+  json_serializable: ^6.7.1
+
+flutter:
+  uses-material-design: true
+  assets:
+    - .env
+

@@ -1,0 +1,115 @@
+import '../../kho_nguyen_lieu/models/ingredient_model.dart'; // Đảm bảo đường dẫn đúng
+
+class RecipeModel {
+  final String id;
+  final String name;
+  final String description;
+  final int cookingTimeMinutes;
+  final List<String> instructions;
+  final List<IngredientModel> ingredients;
+  final String imageUrl;
+
+  // Các trường hỗ trợ hiển thị logic
+  final int missedIngredientCount;
+  final int usedIngredientCount;
+
+  RecipeModel({
+    required this.id,
+    required this.name,
+    required this.description,
+    required this.cookingTimeMinutes,
+    required this.instructions,
+    required this.ingredients,
+    required this.imageUrl,
+    this.missedIngredientCount = 0,
+    this.usedIngredientCount = 0,
+  });
+
+  /// Convert từ JSON (Lưu trong máy) -> Object
+  factory RecipeModel.fromJson(Map<String, dynamic> json) {
+    return RecipeModel(
+      id: json['id'] as String? ?? '',
+      name: json['name'] as String? ?? 'No Name',
+      description: json['description'] as String? ?? '',
+      cookingTimeMinutes: json['cookingTimeMinutes'] as int? ?? 0,
+
+      instructions: json['instructions'] != null
+          ? List<String>.from(json['instructions'])
+          : [],
+
+      ingredients: json['ingredients'] != null
+          ? (json['ingredients'] as List)
+          .map((e) => IngredientModel.fromJson(e))
+          .toList()
+          : [],
+
+      imageUrl: json['imageUrl'] as String? ?? '',
+      missedIngredientCount: json['missedIngredientCount'] as int? ?? 0,
+      usedIngredientCount: json['usedIngredientCount'] as int? ?? 0,
+    );
+  }
+
+  /// Convert từ Object -> JSON (Để lưu xuống máy)
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'description': description,
+      'cookingTimeMinutes': cookingTimeMinutes,
+      'instructions': instructions,
+      // Khi lưu List Object, phải gọi toJson() của từng phần tử con
+      'ingredients': ingredients.map((e) => e.toJson()).toList(),
+      'imageUrl': imageUrl,
+      'missedIngredientCount': missedIngredientCount,
+      'usedIngredientCount': usedIngredientCount,
+    };
+  }
+
+  factory RecipeModel.fromSpoonacularSearch(Map<String, dynamic> json) {
+    return RecipeModel(
+      id: json['id'].toString(),
+      name: json['title'] ?? 'No Name',
+      description: '',
+      cookingTimeMinutes: 0,
+      instructions: [],
+      ingredients: [],
+      imageUrl: json['image'] ?? '',
+      missedIngredientCount: json['missedIngredientCount'] ?? 0,
+      usedIngredientCount: json['usedIngredientCount'] ?? 0,
+    );
+  }
+
+  factory RecipeModel.fromSpoonacularDetail(Map<String, dynamic> json) {
+    List<String> steps = [];
+    if (json['analyzedInstructions'] != null &&
+        (json['analyzedInstructions'] as List).isNotEmpty) {
+      var stepList = json['analyzedInstructions'][0]['steps'] as List;
+      steps = stepList.map((e) => e['step'] as String).toList();
+    } else {
+      steps = (json['instructions'] as String? ?? '').split('. ');
+    }
+
+    List<IngredientModel> ingrList = [];
+    if (json['extendedIngredients'] != null) {
+      ingrList = (json['extendedIngredients'] as List)
+          .map((e) => IngredientModel.fromSpoonacularJson(e))
+          .toList();
+    }
+
+    return RecipeModel(
+      id: json['id'].toString(),
+      name: json['title'],
+      description: json['summary'] != null
+          ? _removeHtmlTags(json['summary'])
+          : '',
+      cookingTimeMinutes: json['readyInMinutes'] ?? 0,
+      instructions: steps,
+      ingredients: ingrList,
+      imageUrl: json['image'] ?? '',
+    );
+  }
+
+  static String _removeHtmlTags(String htmlString) {
+    return htmlString.replaceAll(RegExp(r'<[^>]*>'), '');
+  }
+}
