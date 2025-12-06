@@ -10,6 +10,7 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
+
   Future<void> _signInAnonymously() async {
     setState(() => _isLoading = true);
     try {

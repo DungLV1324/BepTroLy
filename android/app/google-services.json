@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "928261089448",
-    "project_id": "appmaterials2025",
-    "storage_bucket": "appmaterials2025.firebasestorage.app"
+    "project_number": "513391357564",
+    "project_id": "bep-tro-ly",
+    "storage_bucket": "bep-tro-ly.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:928261089448:android:a48ac1a0326f41f7313a9d",
+        "mobilesdk_app_id": "1:513391357564:android:988541e177cc199c87e3f9",
         "android_client_info": {
           "package_name": "btl.tlu.beptroly"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBJIqE3S_iAyrUrK4pjqHMrjZqlTNCNrRE"
+          "current_key": "AIzaSyDRHirYpIRICvKgBru_sE4ogOZLiHYQ4PQ"
         }
       ],
       "services": {
@@ -26,15 +26,15 @@
     },
     {
       "client_info": {
-        "mobilesdk_app_id": "1:928261089448:android:3b8e953a7805220c313a9d",
+        "mobilesdk_app_id": "1:513391357564:android:b2c15783c069a69187e3f9",
         "android_client_info": {
-          "package_name": "com.tmn.appmaterials2025"
+          "package_name": "tlu.btl.app_bep_tro_ly"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBJIqE3S_iAyrUrK4pjqHMrjZqlTNCNrRE"
+          "current_key": "AIzaSyDRHirYpIRICvKgBru_sE4ogOZLiHYQ4PQ"
         }
       ],
       "services": {

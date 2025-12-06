@@ -43,40 +43,40 @@ class DefaultFirebaseOptions {
     }
   }
 
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyDnQaC8bXsb6UgrITmko78nhmNsrVgP3zI',
+    appId: '1:513391357564:web:fe5475be3dd0f3f187e3f9',
+    messagingSenderId: '513391357564',
+    projectId: 'bep-tro-ly',
+    authDomain: 'bep-tro-ly.firebaseapp.com',
+    storageBucket: 'bep-tro-ly.firebasestorage.app',
+    measurementId: 'G-DR203W78TL',
+  );
+
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyBJIqE3S_iAyrUrK4pjqHMrjZqlTNCNrRE',
-    appId: '1:928261089448:android:a48ac1a0326f41f7313a9d',
-    messagingSenderId: '928261089448',
-    projectId: 'appmaterials2025',
-    storageBucket: 'appmaterials2025.firebasestorage.app',
+    apiKey: 'AIzaSyDRHirYpIRICvKgBru_sE4ogOZLiHYQ4PQ',
+    appId: '1:513391357564:android:988541e177cc199c87e3f9',
+    messagingSenderId: '513391357564',
+    projectId: 'bep-tro-ly',
+    storageBucket: 'bep-tro-ly.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyB-njDgIfDo7bStTkobnJLZVi22y0ZUGIo',
-    appId: '1:928261089448:ios:b84e927bb0ddf57c313a9d',
-    messagingSenderId: '928261089448',
-    projectId: 'appmaterials2025',
-    storageBucket: 'appmaterials2025.firebasestorage.app',
+    apiKey: 'AIzaSyDSARJ-OAZmKEdTXcjB7IiwdKJuiTfclhQ',
+    appId: '1:513391357564:ios:7aed0fbfa9cc1e1c87e3f9',
+    messagingSenderId: '513391357564',
+    projectId: 'bep-tro-ly',
+    storageBucket: 'bep-tro-ly.firebasestorage.app',
     iosBundleId: 'btl.tlu.beptroly',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyB-njDgIfDo7bStTkobnJLZVi22y0ZUGIo',
-    appId: '1:928261089448:ios:b84e927bb0ddf57c313a9d',
-    messagingSenderId: '928261089448',
-    projectId: 'appmaterials2025',
-    storageBucket: 'appmaterials2025.firebasestorage.app',
+    apiKey: 'AIzaSyDSARJ-OAZmKEdTXcjB7IiwdKJuiTfclhQ',
+    appId: '1:513391357564:ios:7aed0fbfa9cc1e1c87e3f9',
+    messagingSenderId: '513391357564',
+    projectId: 'bep-tro-ly',
+    storageBucket: 'bep-tro-ly.firebasestorage.app',
     iosBundleId: 'btl.tlu.beptroly',
-  );
-
-  static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyD2DpZM_pcV6M2KHrg8aMxPNgtKJvJsf1c',
-    appId: '1:928261089448:web:676d45d9d9af2544313a9d',
-    messagingSenderId: '928261089448',
-    projectId: 'appmaterials2025',
-    authDomain: 'appmaterials2025.firebaseapp.com',
-    storageBucket: 'appmaterials2025.firebasestorage.app',
-    measurementId: 'G-MRDRQV2YW5',
   );
 
 }

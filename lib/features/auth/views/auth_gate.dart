@@ -18,14 +18,12 @@ class AuthGate extends StatelessWidget {
         }
 
         if (snapshot.hasData) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (GoRouterState.of(context).uri.toString() == '/') {
-              context.go('/recipe');
-            }
+          Future.microtask(() {
+            if (context.mounted) context.go('/home');
           });
 
           return const Scaffold(
-            body: Center(child: CircularProgressIndicator(color: Colors.green)),
+            body: Center(child: CircularProgressIndicator()),
           );
         }
 
