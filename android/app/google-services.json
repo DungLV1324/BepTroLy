@@ -23,25 +23,6 @@
           "other_platform_oauth_client": []
         }
       }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:513391357564:android:b2c15783c069a69187e3f9",
-        "android_client_info": {
-          "package_name": "tlu.btl.app_bep_tro_ly"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyDRHirYpIRICvKgBru_sE4ogOZLiHYQ4PQ"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
     }
   ],
   "configuration_version": "1"
