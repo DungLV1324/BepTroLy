@@ -1,7 +1,11 @@
 import 'package:beptroly/shared/layout/main_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'features/auth/views/login_screen.dart';
+import 'features/auth/views/register_screen.dart';
+import 'features/goi_y_mon_an/views/recipe_feed_screen.dart';
 import 'features/home/views/home_screen.dart';
+import 'features/kho_nguyen_lieu/views/pantry_screen.dart';
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorHomeKey = GlobalKey<NavigatorState>(debugLabel: 'shellHome');
 final _shellNavigatorPantryKey = GlobalKey<NavigatorState>(debugLabel: 'shellPantry');
@@ -10,8 +14,23 @@ final _shellNavigatorShoppingKey = GlobalKey<NavigatorState>(debugLabel: 'shellS
 
 final appRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
-  initialLocation: '/home',
+  initialLocation: '/login',
   routes: [
+    GoRoute(
+      path: '/login',
+      builder: (context, state) => const LoginScreen(),
+    ),
+
+    GoRoute(
+      path: '/register',
+      builder: (context, state) => const RegisterScreen(),
+    ),
+
+    GoRoute(
+      path: '/recipes',
+      builder: (context, state) => const RecipeFeedScreen(),
+    ),
+
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
         return MainScaffold(navigationShell: navigationShell);
@@ -32,7 +51,7 @@ final appRouter = GoRouter(
           routes: [
             GoRoute(
               path: '/pantry',
-              builder: (context, state) => const Scaffold(body: Center(child: Text("Màn hình Tủ lạnh"))),
+              builder: (context, state) => const PantryScreen(),
             ),
           ],
         ),

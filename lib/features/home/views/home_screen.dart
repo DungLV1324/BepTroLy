@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 // Đảm bảo import đúng đường dẫn file của bạn
@@ -44,13 +45,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   _buildSearchBar(),
                   const SizedBox(height: 30),
 
-                  _buildSectionHeader('Sắp hết hạn', () {}),
+                  _buildSectionHeader('Sắp hết hạn', () {
+                    context.push('/pantry');
+                  }),
                   const SizedBox(height: 15),
                   _buildExpiringList(viewModel.expiringIngredients),
 
                   const SizedBox(height: 30),
 
-                  _buildSectionHeader('Gợi ý cho bạn', () {}),
+                  _buildSectionHeader('Gợi ý cho bạn', () {
+                    context.push('/recipes');
+                  }),
                   const SizedBox(height: 15),
                   _buildRecipeList(viewModel.recommendedRecipes),
 
@@ -143,7 +148,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // --- ĐÃ SỬA: Hỗ trợ hiện ảnh từ Assets ---
   Widget _buildExpiringList(List<IngredientModel> ingredients) {
     if (ingredients.isEmpty) {
       return const Padding(

@@ -44,7 +44,7 @@ class HomeViewModel extends ChangeNotifier {
         quantity: 1,
         unit: MeasureUnit.l,
         expiryDate: now.add(const Duration(days: 4)),
-        imageUrl: 'lib/assets/images/bruschetta.jpg',
+        imageUrl: 'assets/images/bruschetta.jpg',
         addedDate: now.subtract(const Duration(days: 10)),
       ),
     ];
