@@ -1,13 +1,7 @@
-// lib/ke_hoach/views/meal_planner_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-// Loại bỏ import 'package:intl/intl.dart';
+import '../viewmodels/meal_planner_view_model.dart';import '../../../../core/constants/app_enums.dart';
 
-import '../viewmodels/meal_planner_view_model.dart';
-import '../models/meal_plan_model.dart';
-import '../../../../core/constants/app_enums.dart';
-
-// --- Khai báo màu sắc chung ---
 class AppColors {
   static const Color primaryGreen = Color(0xFF4CAF50);
   static const Color primaryRed = Color(0xFFE53935);
