@@ -6,6 +6,7 @@ class MealPlannerScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      //app bả này lỏ
       appBar: AppBar(title: const Text('MealPlannerScreen')),
 
 
