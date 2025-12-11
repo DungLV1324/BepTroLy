@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:go_router/go_router.dart'; // Import GoRouter
 import 'package:provider/provider.dart';
 import '../../goi_y_mon_an/models/recipe_model.dart';
 import '../../kho_nguyen_lieu/models/ingredient_model.dart';
-import '../../thongbao/view/notification_screen.dart';
 import '../viewmodels/home_view_model.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -71,7 +70,6 @@ class _HomeScreenState extends State<HomeScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        // Bọc InkWell để bấm được
         InkWell(
           onTap: () => context.push('/settings'), // Chuyển sang Cài đặt
           borderRadius: BorderRadius.circular(30),
@@ -240,6 +238,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // --- ĐÃ SỬA: Hỗ trợ cả Network và Assets cho Recipe ---
   Widget _buildRecipeList(List<RecipeModel> recipes) {
     if (recipes.isEmpty) {
       return const Text("Chưa có gợi ý nào.");
@@ -254,6 +253,7 @@ class _HomeScreenState extends State<HomeScreen> {
         itemBuilder: (context, index) {
           final item = recipes[index];
 
+          // Logic kiểm tra ảnh: Nếu chứa 'http' dùng Network, ngược lại dùng Asset
           ImageProvider imageProvider;
           if (item.imageUrl.startsWith('http')) {
             imageProvider = NetworkImage(item.imageUrl);

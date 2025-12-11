@@ -5,7 +5,6 @@ import '../viewmodels/setting_view_model.dart';
 
 class SettingScreen extends StatelessWidget {
   const SettingScreen({super.key});
-  //
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
@@ -77,7 +76,6 @@ class SettingScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
 
-                  // 2. Settings Group
                   Container(
                     decoration: _boxDecoration(),
                     child: Column(
