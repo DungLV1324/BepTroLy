@@ -1,3 +1,4 @@
+import 'features/ke_hoach/views/meal_planner_screen.dart';
 import 'package:beptroly/shared/layout/main_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -61,7 +62,7 @@ final appRouter = GoRouter(
           routes: [
             GoRoute(
               path: '/planner',
-              builder: (context, state) => const Scaffold(body: Center(child: Text("Màn hình Lên lịch"))),
+              builder: (context, state) => const MealPlannerScreen(),
             ),
           ],
         ),
