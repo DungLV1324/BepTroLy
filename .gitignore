@@ -1,47 +1,67 @@
-# Built application files
-*.apk
-*.ap_
-*.aab
-
-# Files for the dex VM
-*.dex
-
-# Java class files
+# Miscellaneous
 *.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.buildlog/
+.history
+.svn/
 
-# Generated files
-bin/
-gen/
-out/
-build/
-.dart_tool/
-
-# Flutter/Dart
-.packages
-.pub/
-.pub-cache/
-.flutter-plugins
-.flutter-plugins-dependencies
-pubspec.lock  # hoặc *.lock nếu muốn ignore tất cả
-
-# Local configuration
-local.properties
-
-# IDE
+# IntelliJ / Android Studio
 *.iml
+*.ipr
+*.iws
 .idea/
 !.idea/copyright
 !.idea/codeStyles/
 
-# Gradle
-.gradle/
+# Visual Studio Code
+.vscode/
 
-# Misc
-.DS_Store
-_sandbox/
-captures/
-.env
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+build/
+.pub-cache/
+.pub/
 
-# Android/Kotlin
-android/.kotlin/
+# Android
+android/local.properties
+android/.gradle
 android/app/release/
+android/key.properties
+**/*.jks
+**/*.keystore
+
+# iOS (Rất quan trọng)
+ios/Flutter/App.framework
+ios/Flutter/Flutter.framework
+ios/Flutter/Generated.xcconfig
+ios/Flutter/app.flx
+ios/Flutter/app.zip
+ios/ServiceDefinitions.json
+ios/Runner/GeneratedPluginRegistrant.*
+
+# iOS - CocoaPods (Thư viện bên iOS)
+ios/Pods/
+ios/Podfile.lock
+
+# macOS
+macos/Flutter/ephemeral/
+macos/Pods/
+macos/Podfile.lock
+
+# Web
+web/build/
+
+# Windows
+windows/flutter/ephemeral/
+
+# Linux
+linux/flutter/ephemeral/
+
+# Environment variables (Bảo mật)
+.env

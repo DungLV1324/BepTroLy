@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:go_router/go_router.dart'; // Import GoRouter
 import 'package:provider/provider.dart';
 
-// Đảm bảo import đúng đường dẫn file của bạn
 import '../../goi_y_mon_an/models/recipe_model.dart';
 import '../../kho_nguyen_lieu/models/ingredient_model.dart';
 import '../viewmodels/home_view_model.dart';
@@ -18,7 +17,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    // Gọi load data sau khi frame đầu tiên được render
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<HomeViewModel>().loadHomeData();
     });
@@ -40,21 +38,25 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildHeader(),
+                  _buildHeader(context), // Truyền context để điều hướng
                   const SizedBox(height: 20),
                   _buildSearchBar(),
                   const SizedBox(height: 30),
 
+                  // Section: Sắp hết hạn
                   _buildSectionHeader('Sắp hết hạn', () {
-                    context.push('/pantry');
+                    // Điều hướng sang màn hình Tủ lạnh
+                    context.go('/pantry');
                   }),
                   const SizedBox(height: 15),
                   _buildExpiringList(viewModel.expiringIngredients),
 
                   const SizedBox(height: 30),
 
+                  // Section: Gợi ý món ăn
                   _buildSectionHeader('Gợi ý cho bạn', () {
-                    context.push('/recipes');
+                    // Điều hướng sang màn hình Danh sách món ăn
+                    context.go('/home/recipes');
                   }),
                   const SizedBox(height: 15),
                   _buildRecipeList(viewModel.recommendedRecipes),
@@ -69,32 +71,40 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Row(
-          children: [
-            const CircleAvatar(
-              radius: 24,
-              // Ảnh avatar tạm thời dùng mạng, bạn có thể đổi thành AssetImage nếu muốn
-              backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=11'),
-            ),
-            const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                Text(
-                  'Chào buổi sáng,',
-                  style: TextStyle(color: Colors.grey, fontSize: 14),
+        // Sự kiện ấn vào Avatar -> Mở Cài đặt
+        InkWell(
+          onTap: () {
+            context.push('/settings');
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: Row(
+            children: [
+              const CircleAvatar(
+                radius: 24,
+                backgroundImage: NetworkImage(
+                  'https://i.pravatar.cc/150?img=11',
                 ),
-                Text(
-                  'Tên User!',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                ),
-              ],
-            ),
-          ],
+              ),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  Text(
+                    'Chào buổi sáng,',
+                    style: TextStyle(color: Colors.grey, fontSize: 14),
+                  ),
+                  Text(
+                    'Tên User!',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
         IconButton(
           onPressed: () {},
@@ -148,6 +158,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // List: Nguyên liệu sắp hết hạn (Sử dụng code mới - hỗ trợ Asset Image)
   Widget _buildExpiringList(List<IngredientModel> ingredients) {
     if (ingredients.isEmpty) {
       return const Padding(
@@ -183,7 +194,6 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Container chứa ảnh
                 Container(
                   height: 60,
                   width: 60,
@@ -191,24 +201,23 @@ class _HomeScreenState extends State<HomeScreen> {
                     shape: BoxShape.circle,
                     color: Color(0xFFFFF0E0),
                   ),
-                  // ClipOval để cắt ảnh thành hình tròn
+                  // Logic hiển thị ảnh từ Code Mới (Upstream)
                   child: ClipOval(
                     child: (item.imageUrl != null && item.imageUrl!.isNotEmpty)
                         ? Image.asset(
-                            item.imageUrl!, // Load từ Assets
+                            item.imageUrl!, // Load từ Assets local
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) {
-                              // Fallback nếu sai đường dẫn
                               return const Icon(
-                                Icons.broken_image,
+                                Icons.eco,
                                 color: Colors.orange,
+                                size: 30,
                               );
                             },
                           )
                         : const Icon(Icons.eco, color: Colors.orange, size: 30),
                   ),
                 ),
-
                 const SizedBox(height: 10),
                 Text(
                   item.name,
@@ -234,7 +243,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // --- ĐÃ SỬA: Hỗ trợ cả Network và Assets cho Recipe ---
+  // List: Gợi ý món ăn (Merge: Logic ảnh mới + Logic điều hướng cũ)
   Widget _buildRecipeList(List<RecipeModel> recipes) {
     if (recipes.isEmpty) {
       return const Text("Chưa có gợi ý nào.");
@@ -249,7 +258,7 @@ class _HomeScreenState extends State<HomeScreen> {
         itemBuilder: (context, index) {
           final item = recipes[index];
 
-          // Logic kiểm tra ảnh: Nếu chứa 'http' dùng Network, ngược lại dùng Asset
+          // 1. Logic kiểm tra ảnh (Từ code mới)
           ImageProvider imageProvider;
           if (item.imageUrl.startsWith('http')) {
             imageProvider = NetworkImage(item.imageUrl);
@@ -257,115 +266,118 @@ class _HomeScreenState extends State<HomeScreen> {
             imageProvider = AssetImage(item.imageUrl);
           }
 
-          return Container(
-            width: 220,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  flex: 3,
-                  child: Stack(
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(20),
-                          ),
-                          image: DecorationImage(
-                            image: imageProvider,
-                            // Sử dụng provider đã xử lý ở trên
-                            fit: BoxFit.cover,
-                            onError: (e, s) => const Icon(Icons.broken_image),
-                          ),
-                          color: Colors.grey[200],
-                        ),
-                      ),
-                      const Positioned(
-                        top: 10,
-                        right: 10,
-                        child: CircleAvatar(
-                          backgroundColor: Colors.white,
-                          radius: 14,
-                          child: Icon(
-                            Icons.favorite_border,
-                            size: 16,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ),
-                    ],
+          // 2. Logic điều hướng (Từ code cũ - Stashed)
+          return GestureDetector(
+            onTap: () {
+              // Chuyển sang màn hình chi tiết món ăn
+              context.push('/home/recipe_detail', extra: item);
+            },
+            child: Container(
+              width: 220,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
                   ),
-                ),
-
-                Expanded(
-                  flex: 2,
-                  child: Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: Stack(
                       children: [
-                        Text(
-                          item.name,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                        Container(
+                          decoration: BoxDecoration(
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(20),
+                            ),
+                            image: DecorationImage(
+                              image: imageProvider, // Sử dụng provider đã xử lý
+                              fit: BoxFit.cover,
+                              onError: (e, s) => const Icon(Icons.broken_image),
+                            ),
+                            color: Colors.grey[200],
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
                         ),
-
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.access_time,
-                              size: 14,
+                        const Positioned(
+                          top: 10,
+                          right: 10,
+                          child: CircleAvatar(
+                            backgroundColor: Colors.white,
+                            radius: 14,
+                            child: Icon(
+                              Icons.favorite_border,
+                              size: 16,
                               color: Colors.grey,
                             ),
-                            const SizedBox(width: 4),
-                            Text(
-                              '${item.cookingTimeMinutes} phút',
-                              style: const TextStyle(
-                                color: Colors.grey,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        if (item.missedIngredientCount > 0)
-                          Text(
-                            'Thiếu ${item.missedIngredientCount} nguyên liệu',
-                            style: const TextStyle(
-                              color: Colors.redAccent,
-                              fontSize: 12,
-                            ),
-                          )
-                        else
-                          const Text(
-                            'Đủ nguyên liệu!',
-                            style: TextStyle(
-                              color: Colors.green,
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                            ),
                           ),
+                        ),
                       ],
                     ),
                   ),
-                ),
-              ],
+                  Expanded(
+                    flex: 2,
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            item.name,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.access_time,
+                                size: 14,
+                                color: Colors.grey,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '${item.cookingTimeMinutes} phút',
+                                style: const TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (item.missedIngredientCount > 0)
+                            Text(
+                              'Thiếu ${item.missedIngredientCount} nguyên liệu',
+                              style: const TextStyle(
+                                color: Colors.redAccent,
+                                fontSize: 12,
+                              ),
+                            )
+                          else
+                            const Text(
+                              'Đủ nguyên liệu!',
+                              style: TextStyle(
+                                color: Colors.green,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         },
