@@ -1,4 +1,5 @@
 import 'features/ke_hoach/views/meal_planner_screen.dart';
+import 'features/ke_hoach/views/shopping_list_screen.dart'; // Đã thêm
 import 'package:beptroly/shared/layout/main_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -7,6 +8,7 @@ import 'features/auth/views/register_screen.dart';
 import 'features/goi_y_mon_an/views/recipe_feed_screen.dart';
 import 'features/home/views/home_screen.dart';
 import 'features/kho_nguyen_lieu/views/pantry_screen.dart';
+
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorHomeKey = GlobalKey<NavigatorState>(debugLabel: 'shellHome');
 final _shellNavigatorPantryKey = GlobalKey<NavigatorState>(debugLabel: 'shellPantry');
@@ -21,17 +23,14 @@ final appRouter = GoRouter(
       path: '/login',
       builder: (context, state) => const LoginScreen(),
     ),
-
     GoRoute(
       path: '/register',
       builder: (context, state) => const RegisterScreen(),
     ),
-
     GoRoute(
       path: '/recipes',
       builder: (context, state) => const RecipeFeedScreen(),
     ),
-
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
         return MainScaffold(navigationShell: navigationShell);
@@ -46,7 +45,6 @@ final appRouter = GoRouter(
             ),
           ],
         ),
-
         StatefulShellBranch(
           navigatorKey: _shellNavigatorPantryKey,
           routes: [
@@ -56,7 +54,6 @@ final appRouter = GoRouter(
             ),
           ],
         ),
-
         StatefulShellBranch(
           navigatorKey: _shellNavigatorPlannerKey,
           routes: [
@@ -66,13 +63,12 @@ final appRouter = GoRouter(
             ),
           ],
         ),
-
         StatefulShellBranch(
           navigatorKey: _shellNavigatorShoppingKey,
           routes: [
             GoRoute(
               path: '/shopping',
-              builder: (context, state) => const Scaffold(body: Center(child: Text("Màn hình Mua sắm"))),
+              builder: (context, state) => const ShoppingListScreen(),
             ),
           ],
         ),

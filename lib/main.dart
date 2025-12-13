@@ -1,3 +1,4 @@
+import 'features/ke_hoach/viewmodels/shopping_list_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
@@ -20,6 +21,7 @@ class BepTroLyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => HomeViewModel()),
         ChangeNotifierProvider(create: (_) => RecipeViewModel()),
+        ChangeNotifierProvider(create: (_) => ShoppingListViewModel()),
       ],
       child: MaterialApp.router(
         title: 'Bếp Trợ Lý',
