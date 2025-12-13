@@ -1,3 +1,7 @@
+import 'features/goi_y_mon_an/models/recipe_model.dart';
+import 'features/goi_y_mon_an/views/recipe_detail_screen.dart';
+import 'features/ke_hoach/views/meal_planner_screen.dart';
+import 'package:beptroly/shared/layout/main_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'features/auth/views/login_screen.dart';
@@ -6,6 +10,9 @@ import 'features/goi_y_mon_an/views/recipe_feed_screen.dart';
 import 'features/home/views/home_screen.dart';
 import 'features/ke_hoach/views/shopping_list_screen.dart';
 import 'features/kho_nguyen_lieu/views/pantry_screen.dart';
+import 'features/setting/views/edit_profile_screen.dart';
+import 'features/setting/views/setting_screen.dart';
+
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorHomeKey = GlobalKey<NavigatorState>(debugLabel: 'shellHome');
 final _shellNavigatorPantryKey = GlobalKey<NavigatorState>(debugLabel: 'shellPantry');
