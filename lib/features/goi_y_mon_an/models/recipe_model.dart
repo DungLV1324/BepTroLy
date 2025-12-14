@@ -39,8 +39,8 @@ class RecipeModel {
 
       ingredients: json['ingredients'] != null
           ? (json['ingredients'] as List)
-          .map((e) => IngredientModel.fromJson(e))
-          .toList()
+                .map((e) => IngredientModel.fromJson(e))
+                .toList()
           : [],
 
       imageUrl: json['imageUrl'] as String? ?? '',
