@@ -56,7 +56,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   // Section: Gợi ý món ăn
                   _buildSectionHeader('Gợi ý cho bạn', () {
                     // Điều hướng sang màn hình Danh sách món ăn
-                    context.go('/home/recipes');
+                    context.go('/recipes');
                   }),
                   const SizedBox(height: 15),
                   _buildRecipeList(viewModel.recommendedRecipes),
@@ -270,7 +270,7 @@ class _HomeScreenState extends State<HomeScreen> {
           return GestureDetector(
             onTap: () {
               // Chuyển sang màn hình chi tiết món ăn
-              context.push('/home/recipe_detail', extra: item);
+              context.push('/recipe_detail', extra: item);
             },
             child: Container(
               width: 220,
