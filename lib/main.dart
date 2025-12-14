@@ -1,3 +1,4 @@
+import 'features/home/viewmodels/splash_view_model.dart';
 import 'features/ke_hoach/viewmodels/shopping_list_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -22,6 +23,7 @@ class BepTroLyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => HomeViewModel()),
         ChangeNotifierProvider(create: (_) => RecipeViewModel()),
         ChangeNotifierProvider(create: (_) => ShoppingListViewModel()),
+        ChangeNotifierProvider(create: (_) => SplashViewModel()), // Đã thêm
       ],
       child: MaterialApp.router(
         title: 'Bếp Trợ Lý',

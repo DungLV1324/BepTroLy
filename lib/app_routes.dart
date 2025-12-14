@@ -1,5 +1,6 @@
+import 'package:beptroly/features/home/views/splash_screen.dart';
 import 'features/ke_hoach/views/meal_planner_screen.dart';
-import 'features/ke_hoach/views/shopping_list_screen.dart'; // Đã thêm
+import 'features/ke_hoach/views/shopping_list_screen.dart';
 import 'package:beptroly/shared/layout/main_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -17,8 +18,12 @@ final _shellNavigatorShoppingKey = GlobalKey<NavigatorState>(debugLabel: 'shellS
 
 final appRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
-  initialLocation: '/login',
+  initialLocation: '/',
   routes: [
+    GoRoute(
+      path: '/',
+      builder: (context, state) => const SplashScreen(),
+    ),
     GoRoute(
       path: '/login',
       builder: (context, state) => const LoginScreen(),
