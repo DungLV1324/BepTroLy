@@ -215,7 +215,7 @@ class _RecipeFeedScreenState extends State<RecipeFeedScreen> {
                       return GestureDetector(
                         onTap: () {
                           // Điều hướng sang chi tiết
-                          context.push('/home/recipe_detail', extra: recipe);
+                          context.push('/recipe_detail', extra: recipe);
                         },
                         child: _RecipeCard(
                           title: recipe.name,
