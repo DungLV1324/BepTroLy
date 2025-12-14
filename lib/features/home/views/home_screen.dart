@@ -38,7 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildHeader(context),
+                  _buildHeader(context), // Truyền context để điều hướng
                   const SizedBox(height: 20),
                   _buildSearchBar(),
                   const SizedBox(height: 30),
