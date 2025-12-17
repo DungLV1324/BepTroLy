@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../goi_y_mon_an/models/recipe_model.dart';
 import '../../kho_nguyen_lieu/models/ingredient_model.dart';
+import '../../thong_bao/view/notification_screen.dart';
 import '../viewmodels/home_view_model.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -107,8 +108,14 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         IconButton(
-          onPressed: () {},
-          icon: const Icon(Icons.notifications_outlined, size: 28),
+          icon: const Icon(Icons.notifications_outlined),
+          onPressed: () {
+            // --- HÀM ĐIỀU HƯỚNG ---
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const NotificationScreen()),
+            );
+          },
         ),
       ],
     );

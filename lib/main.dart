@@ -23,7 +23,7 @@ class BepTroLyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => HomeViewModel()),
         ChangeNotifierProvider(create: (_) => RecipeViewModel()),
         ChangeNotifierProvider(create: (_) => ShoppingListViewModel()),
-        ChangeNotifierProvider(create: (_) => SplashViewModel()), // Đã thêm
+        ChangeNotifierProvider(create: (_) => SplashViewModel()),
       ],
       child: MaterialApp.router(
         title: 'Bếp Trợ Lý',
