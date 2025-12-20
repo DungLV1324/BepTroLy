@@ -20,6 +20,54 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     text: "0987654321",
   );
 
+  // --- HÀM HIỂN THỊ OPTIONS CHỌN ẢNH ---
+  void _showImagePickerOptions() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                "Thay đổi ảnh đại diện",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 20),
+              ListTile(
+                leading: const CircleAvatar(
+                  backgroundColor: Color(0xFFFFF0ED),
+                  child: Icon(Icons.photo_library, color: Colors.deepOrange),
+                ),
+                title: const Text("Chọn từ thư viện"),
+                onTap: () {
+                  // TODO: Thư viện image_picker xử lý tại đây
+                  context.pop();
+                },
+              ),
+              ListTile(
+                leading: const CircleAvatar(
+                  backgroundColor: Color(0xFFFFF0ED),
+                  child: Icon(Icons.camera_alt, color: Colors.deepOrange),
+                ),
+                title: const Text("Chụp ảnh mới"),
+                onTap: () {
+                  // TODO: Thư viện image_picker xử lý tại đây
+                  context.pop();
+                },
+              ),
+              const SizedBox(height: 10),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -29,7 +77,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.black, size: 20),
-          onPressed: () => context.pop(), // Quay lại
+          onPressed: () => context.pop(),
         ),
         centerTitle: true,
         title: const Text(
@@ -46,48 +94,55 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         child: Column(
           children: [
             const SizedBox(height: 20),
-            // 1. Avatar có nút Camera edit
+
+            // 1. Avatar có nút Camera edit (Đã bao bọc GestureDetector)
             Center(
-              child: Stack(
-                children: [
-                  Container(
-                    width: 100,
-                    height: 100,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 4),
-                      boxShadow: [
-                        BoxShadow(
-                          spreadRadius: 2,
-                          blurRadius: 10,
-                          color: Colors.black.withOpacity(0.1),
-                        ),
-                      ],
-                      image: const DecorationImage(
-                        fit: BoxFit.cover,
-                        image: NetworkImage('https://i.pravatar.cc/150?img=5'),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: Container(
-                      height: 35,
-                      width: 35,
+              child: GestureDetector(
+                onTap:
+                    _showImagePickerOptions, // Nhấn vào cả vùng này để chọn ảnh
+                child: Stack(
+                  children: [
+                    Container(
+                      width: 100,
+                      height: 100,
                       decoration: BoxDecoration(
-                        color: Colors.deepOrange,
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
-                      ),
-                      child: const Icon(
-                        Icons.camera_alt,
-                        color: Colors.white,
-                        size: 18,
+                        border: Border.all(color: Colors.white, width: 4),
+                        boxShadow: [
+                          BoxShadow(
+                            spreadRadius: 2,
+                            blurRadius: 10,
+                            color: Colors.black.withOpacity(0.1),
+                          ),
+                        ],
+                        image: const DecorationImage(
+                          fit: BoxFit.cover,
+                          image: NetworkImage(
+                            'https://i.pravatar.cc/150?img=5',
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: Container(
+                        height: 35,
+                        width: 35,
+                        decoration: BoxDecoration(
+                          color: Colors.deepOrange,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
+                        ),
+                        child: const Icon(
+                          Icons.camera_alt,
+                          color: Colors.white,
+                          size: 18,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 40),
@@ -104,7 +159,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               "email@example.com",
               _emailController,
               true,
-            ), // ReadOnly = true
+            ),
             _buildTextField(
               "Số điện thoại",
               "Nhập số điện thoại",
@@ -120,13 +175,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               height: 50,
               child: ElevatedButton(
                 onPressed: () {
-                  // TODO: Gọi API cập nhật thông tin user
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Đã cập nhật thông tin thành công!'),
                     ),
                   );
-                  context.pop(); // Quay lại màn hình Setting
+                  context.pop();
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.deepOrange,
@@ -151,7 +205,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  // Widget con để vẽ ô nhập liệu cho gọn code
   Widget _buildTextField(
     String label,
     String placeholder,
@@ -174,7 +227,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           const SizedBox(height: 8),
           TextField(
             controller: controller,
-            readOnly: isReadOnly, // Nếu là email thì không cho sửa
+            readOnly: isReadOnly,
             decoration: InputDecoration(
               hintText: placeholder,
               filled: true,
@@ -189,14 +242,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none, // Không viền khi bình thường
+                borderSide: BorderSide.none,
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: const BorderSide(
                   color: Colors.deepOrange,
                   width: 1.5,
-                ), // Viền cam khi focus
+                ),
               ),
             ),
           ),
