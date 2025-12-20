@@ -14,7 +14,7 @@ class RecipeFeedScreen extends StatefulWidget {
 }
 
 class _RecipeFeedScreenState extends State<RecipeFeedScreen> {
-  // 1. TỦ LẠNH GIẢ LẬP (Đồng bộ với màn hình chi tiết)
+  // 1. TỦ LẠNH GIẢ LẬP
   final List<String> _myPantryIngredients = [
     'chicken',
     'egg',
@@ -264,7 +264,7 @@ class _RecipeFeedScreenState extends State<RecipeFeedScreen> {
   }
 }
 
-// --- WIDGET CARD (ĐÃ LÀM ĐẸP: CHỈ CÒN THÔNG BÁO CHÍNH) ---
+// --- WIDGET CARD ) ---
 class _RecipeCard extends StatelessWidget {
   final String title;
   final String imageUrl;
@@ -367,7 +367,7 @@ class _RecipeCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
 
-                // BADGE TRẠNG THÁI (ĐÃ TINH GỌN CHỈ CÒN 1 DÒNG)
+                // BADGE TRẠNG THÁI
                 Row(
                   children: [
                     Expanded(

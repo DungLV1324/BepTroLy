@@ -42,7 +42,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   @override
   void initState() {
     super.initState();
-    // Không cần khởi tạo TabController nữa
+
     _fullRecipe = widget.recipe;
     _loadFullDetails();
   }
