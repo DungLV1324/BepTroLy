@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
-import 'dart:async'; // Import để dùng Timer
+import 'dart:async';
 
 import 'package:beptroly/features/goi_y_mon_an/viewmodels/recipe_view_model.dart';
 import 'package:beptroly/features/goi_y_mon_an/models/recipe_model.dart';
@@ -14,17 +14,25 @@ class RecipeFeedScreen extends StatefulWidget {
 }
 
 class _RecipeFeedScreenState extends State<RecipeFeedScreen> {
-  // Giả lập nguyên liệu trong kho
+  // 1. TỦ LẠNH GIẢ LẬP (Đồng bộ với màn hình chi tiết)
   final List<String> _myPantryIngredients = [
     'chicken',
     'egg',
     'tomato',
     'onion',
     'rice',
+    'bananas',
+    'oatmeal',
+    'peanut butter',
+    'sundried tomatoes',
+    'parsley',
+    'olive oil',
+    'basil',
+    'eggs',
   ];
 
   int _selectedFilterIndex = 0;
-  Timer? _debounce; // Khai báo biến Timer
+  Timer? _debounce;
 
   final List<Map<String, dynamic>> _filters = [
     {'label': 'Trending', 'icon': Icons.whatshot, 'type': 'trending'},
@@ -46,14 +54,13 @@ class _RecipeFeedScreenState extends State<RecipeFeedScreen> {
 
   @override
   void dispose() {
-    _debounce?.cancel(); // Hủy Timer khi thoát màn hình để tránh leak memory
+    _debounce?.cancel();
     super.dispose();
   }
 
   void _loadDataForFilter(int index) {
     final viewModel = context.read<RecipeViewModel>();
     final type = _filters[index]['type'];
-
     if (type == 'pantry') {
       viewModel.fetchSuggestedRecipes(_myPantryIngredients);
     } else if (type == 'time') {
@@ -61,6 +68,14 @@ class _RecipeFeedScreenState extends State<RecipeFeedScreen> {
     } else {
       viewModel.fetchRecipesWithFilter(query: '');
     }
+  }
+
+  bool _checkInPantry(String name) {
+    return _myPantryIngredients.any(
+      (item) =>
+          name.toLowerCase().contains(item.toLowerCase()) ||
+          item.toLowerCase().contains(name.toLowerCase()),
+    );
   }
 
   @override
@@ -85,7 +100,7 @@ class _RecipeFeedScreenState extends State<RecipeFeedScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // --- HEADER & SEARCH ---
+            // HEADER & SEARCH BAR
             Container(
               color: Colors.white,
               padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
@@ -101,11 +116,9 @@ class _RecipeFeedScreenState extends State<RecipeFeedScreen> {
                     ),
                   ),
                   const SizedBox(height: 20),
-
                   TextField(
                     onChanged: (value) {
                       if (_debounce?.isActive ?? false) _debounce!.cancel();
-
                       _debounce = Timer(const Duration(milliseconds: 1000), () {
                         context.read<RecipeViewModel>().fetchRecipesWithFilter(
                           query: value,
@@ -128,8 +141,6 @@ class _RecipeFeedScreenState extends State<RecipeFeedScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-
-                  // Horizontal Filter List
                   SizedBox(
                     height: 40,
                     child: ListView.builder(
@@ -138,7 +149,6 @@ class _RecipeFeedScreenState extends State<RecipeFeedScreen> {
                       itemBuilder: (context, index) {
                         final filter = _filters[index];
                         final isSelected = _selectedFilterIndex == index;
-
                         return Padding(
                           padding: const EdgeInsets.only(right: 10),
                           child: FilterChip(
@@ -188,23 +198,20 @@ class _RecipeFeedScreenState extends State<RecipeFeedScreen> {
               ),
             ),
 
-            // --- RECIPE LIST ---
+            // RECIPE LIST
             Expanded(
               child: Builder(
                 builder: (context) {
-                  if (viewModel.state == RecipeViewState.loading) {
+                  if (viewModel.state == RecipeViewState.loading)
                     return const Center(
                       child: CircularProgressIndicator(color: Colors.orange),
                     );
-                  }
-                  if (viewModel.state == RecipeViewState.error) {
+                  if (viewModel.state == RecipeViewState.error)
                     return Center(
                       child: Text('Lỗi: ${viewModel.errorMessage}'),
                     );
-                  }
-                  if (viewModel.recipes.isEmpty) {
+                  if (viewModel.recipes.isEmpty)
                     return const Center(child: Text("Không tìm thấy món nào!"));
-                  }
 
                   return ListView.builder(
                     padding: const EdgeInsets.all(16),
@@ -212,11 +219,27 @@ class _RecipeFeedScreenState extends State<RecipeFeedScreen> {
                     itemBuilder: (context, index) {
                       final recipe = viewModel.recipes[index];
 
+                      // Logic tính toán thiếu/đủ nguyên liệu
+                      List<String> actualMissed = [];
+                      if (recipe.ingredients.isNotEmpty) {
+                        actualMissed = recipe.ingredients
+                            .where((ing) => !_checkInPantry(ing.name))
+                            .map((ing) => ing.name)
+                            .toList();
+                      } else if (recipe.missedIngredients.isNotEmpty) {
+                        actualMissed = recipe.missedIngredients
+                            .where((name) => !_checkInPantry(name))
+                            .toList();
+                      }
+
+                      bool isFull =
+                          actualMissed.isEmpty &&
+                          (recipe.ingredients.isNotEmpty ||
+                              recipe.usedIngredientCount > 0);
+
                       return GestureDetector(
-                        onTap: () {
-                          // Điều hướng sang chi tiết
-                          context.push('/recipe_detail', extra: recipe);
-                        },
+                        onTap: () =>
+                            context.push('/recipe_detail', extra: recipe),
                         child: _RecipeCard(
                           title: recipe.name,
                           imageUrl: recipe.imageUrl,
@@ -224,10 +247,9 @@ class _RecipeFeedScreenState extends State<RecipeFeedScreen> {
                               ? '${recipe.cookingTimeMinutes} phút'
                               : 'Chi tiết xem sau',
                           difficulty: 'Trung bình',
-                          usedCount: recipe.usedIngredientCount,
-                          totalCount:
-                              recipe.usedIngredientCount +
-                              recipe.missedIngredientCount,
+                          hasAllIngredients: isFull,
+                          onBuyIngredients: () =>
+                              context.push('/shopping', extra: actualMissed),
                         ),
                       );
                     },
@@ -242,27 +264,43 @@ class _RecipeFeedScreenState extends State<RecipeFeedScreen> {
   }
 }
 
-// Widget Card hiển thị món ăn
+// --- WIDGET CARD (ĐÃ LÀM ĐẸP: CHỈ CÒN THÔNG BÁO CHÍNH) ---
 class _RecipeCard extends StatelessWidget {
   final String title;
   final String imageUrl;
   final String time;
   final String difficulty;
-  final int usedCount;
-  final int totalCount;
+  final bool hasAllIngredients;
+  final VoidCallback? onBuyIngredients;
 
   const _RecipeCard({
+    super.key,
     required this.title,
     required this.imageUrl,
     required this.time,
     required this.difficulty,
-    this.usedCount = 0,
-    this.totalCount = 0,
+    this.hasAllIngredients = false,
+    this.onBuyIngredients,
   });
 
   @override
   Widget build(BuildContext context) {
-    final bool hasAllIngredients = totalCount > 0 && usedCount == totalCount;
+    String statusText;
+    Color statusColor;
+    Color statusBg;
+    IconData statusIcon;
+
+    if (hasAllIngredients) {
+      statusText = 'Đủ nguyên liệu!';
+      statusColor = Colors.green[700]!;
+      statusBg = Colors.green[50]!;
+      statusIcon = Icons.check_circle;
+    } else {
+      statusText = 'Cần mua nguyên liệu';
+      statusColor = Colors.orange[700]!;
+      statusBg = Colors.orange[50]!;
+      statusIcon = Icons.shopping_basket;
+    }
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -328,44 +366,59 @@ class _RecipeCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: hasAllIngredients
-                        ? Colors.green[50]
-                        : Colors.orange[50],
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        hasAllIngredients
-                            ? Icons.check_circle
-                            : Icons.shopping_basket,
-                        size: 16,
-                        color: hasAllIngredients
-                            ? Colors.green[700]
-                            : Colors.orange[700],
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        hasAllIngredients
-                            ? 'Đủ nguyên liệu!'
-                            : 'Có sẵn $usedCount/$totalCount nguyên liệu',
-                        style: TextStyle(
-                          color: hasAllIngredients
-                              ? Colors.green[700]
-                              : Colors.orange[700],
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13,
+
+                // BADGE TRẠNG THÁI (ĐÃ TINH GỌN CHỈ CÒN 1 DÒNG)
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ), // Tăng padding dọc cho đẹp
+                        decoration: BoxDecoration(
+                          color: statusBg,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          // Dùng Row thay cho Column để icon và chữ nằm trên 1 hàng duy nhất
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(statusIcon, size: 18, color: statusColor),
+                            const SizedBox(width: 8),
+                            Text(
+                              statusText,
+                              style: TextStyle(
+                                color: statusColor,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                    if (!hasAllIngredients)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 8),
+                        child: InkWell(
+                          onTap: onBuyIngredients,
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.deepOrange,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(
+                              Icons.add_shopping_cart,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ],
             ),

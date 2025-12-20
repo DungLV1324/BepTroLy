@@ -1,5 +1,3 @@
-// File: lib/features/goi_y_mon_an/views/recipe_detail_screen.dart
-
 import 'package:flutter/material.dart';
 import '../../kho_nguyen_lieu/models/ingredient_model.dart';
 import '../models/recipe_model.dart';
@@ -14,29 +12,44 @@ class RecipeDetailScreen extends StatefulWidget {
   State<RecipeDetailScreen> createState() => _RecipeDetailScreenState();
 }
 
-class _RecipeDetailScreenState extends State<RecipeDetailScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
+  // --- 1. BIẾN QUẢN LÝ TAB TỰ CHẾ (Thay cho TabController) ---
+  int _selectedTabIndex = 0; // 0: Ingredients, 1: Steps
+
   late RecipeModel _fullRecipe;
   bool _isLoading = true;
   final RecipeServices _recipeService = RecipeServices();
 
-  // 1. Controller để điều khiển việc kéo thả Sheet
   final DraggableScrollableController _sheetController =
       DraggableScrollableController();
+
+  // --- 2. TỦ LẠNH GIẢ LẬP ---
+  final List<String> _myPantry = [
+    'chicken',
+    'egg',
+    'tomato',
+    'onion',
+    'rice',
+    'bananas',
+    'oatmeal',
+    'peanut butter',
+    'sundried tomatoes',
+    'parsley',
+    'olive oil',
+    'basil',
+  ];
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    // Không cần khởi tạo TabController nữa
     _fullRecipe = widget.recipe;
     _loadFullDetails();
   }
 
   @override
   void dispose() {
-    _sheetController.dispose(); // Nhớ dispose controller
-    _tabController.dispose();
+    _sheetController.dispose();
     super.dispose();
   }
 
@@ -57,15 +70,60 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
     }
   }
 
-  // 2. Hàm kích hoạt mở rộng Sheet lên full màn hình
   void _expandSheet() {
     if (_sheetController.isAttached) {
       _sheetController.animateTo(
-        1.0, // 1.0 tương đương 100% màn hình
+        1.0,
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
     }
+  }
+
+  String _cleanUnit(dynamic unit) {
+    String text = unit.toString();
+    if (text.contains('.')) text = text.split('.').last;
+    if (text.toLowerCase() == 'unknown' || text.toLowerCase() == 'undefined')
+      return '';
+    return text;
+  }
+
+  bool _checkIngredientInPantry(String ingredientName) {
+    return _myPantry.any(
+      (pantryItem) =>
+          ingredientName.toLowerCase().contains(pantryItem.toLowerCase()) ||
+          pantryItem.toLowerCase().contains(ingredientName.toLowerCase()),
+    );
+  }
+
+  // --- 3. HÀM VẼ NÚT TAB ---
+  Widget _buildCustomTabButton(String title, int index, Color activeColor) {
+    bool isActive = _selectedTabIndex == index;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _selectedTabIndex = index),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(
+                color: isActive ? activeColor : Colors.transparent,
+                width: 3,
+              ),
+            ),
+          ),
+          child: Text(
+            title,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: isActive ? Colors.black : Colors.grey,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -76,22 +134,19 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-          // 1. ẢNH HEADER (Nằm cố định phía sau)
+          // ẢNH NỀN
           Positioned(
             top: 0,
             left: 0,
             right: 0,
-            height:
-                MediaQuery.of(context).size.height *
-                0.6, // Ảnh chiếm 60% màn hình
+            height: MediaQuery.of(context).size.height * 0.6,
             child: Image.network(
               _fullRecipe.imageUrl,
               fit: BoxFit.cover,
               errorBuilder: (_, __, ___) => Container(color: Colors.grey[300]),
             ),
           ),
-
-          // 2. NÚT BACK
+          // NÚT BACK
           Positioned(
             top: MediaQuery.of(context).padding.top + 10,
             left: 20,
@@ -108,13 +163,12 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
               ),
             ),
           ),
-
-          // 3. SHEET KÉO THẢ (Thay thế cho Positioned.fill cũ)
+          // SHEET KÉO THẢ
           DraggableScrollableSheet(
             controller: _sheetController,
-            initialChildSize: 0.55, // Mặc định hiển thị 55% màn hình
-            minChildSize: 0.5, // Kéo xuống thấp nhất là 50%
-            maxChildSize: 1.0, // Kéo lên cao nhất là 100%
+            initialChildSize: 0.55,
+            minChildSize: 0.5,
+            maxChildSize: 1.0,
             builder: (BuildContext context, ScrollController scrollController) {
               return Container(
                 decoration: const BoxDecoration(
@@ -128,17 +182,15 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
                     ),
                   ],
                 ),
-                // Sử dụng SingleChildScrollView với controller của Sheet để đồng bộ cuộn
                 child: SingleChildScrollView(
                   controller: scrollController,
                   child: Column(
                     children: [
-                      // Thanh gạch ngang (Handle) - Ấn vào để mở rộng
                       GestureDetector(
                         onTap: _expandSheet,
                         child: Container(
                           width: double.infinity,
-                          color: Colors.transparent, // Tăng diện tích bấm
+                          color: Colors.transparent,
                           padding: const EdgeInsets.symmetric(vertical: 15),
                           child: Center(
                             child: Container(
@@ -152,12 +204,10 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
                           ),
                         ),
                       ),
-
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 24),
                         child: Column(
                           children: [
-                            // Tên món ăn - Ấn vào cũng mở rộng
                             GestureDetector(
                               onTap: _expandSheet,
                               child: Text(
@@ -172,7 +222,6 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
                             ),
                             const SizedBox(height: 24),
 
-                            // Thông tin tròn
                             _isLoading
                                 ? const LinearProgressIndicator(
                                     color: greenColor,
@@ -204,42 +253,31 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
                                   ),
                             const SizedBox(height: 24),
 
-                            // TabBar
-                            TabBar(
-                              controller: _tabController,
-                              labelColor: Colors.black,
-                              unselectedLabelColor: Colors.grey,
-                              indicatorColor: greenColor,
-                              indicatorWeight: 3,
-                              tabs: const [
-                                Tab(text: "Ingredients"),
-                                Tab(text: "Steps"),
+                            // --- 4. TAB BAR MỚI (Dùng Row + Hàm vẽ nút) ---
+                            Row(
+                              children: [
+                                _buildCustomTabButton(
+                                  "Ingredients",
+                                  0,
+                                  greenColor,
+                                ),
+                                _buildCustomTabButton("Steps", 1, greenColor),
                               ],
                             ),
                             const SizedBox(height: 16),
 
-                            // Nội dung Tab
-                            // Dùng SizedBox để định chiều cao tối thiểu cho nội dung bên trong
-                            SizedBox(
-                              height:
-                                  600, // Chiều cao đủ lớn để chứa nội dung list
-                              child: _isLoading
-                                  ? const Center(
-                                      child: CircularProgressIndicator(
-                                        color: greenColor,
-                                      ),
-                                    )
-                                  : TabBarView(
-                                      controller: _tabController,
-                                      children: [
-                                        _buildIngredientsList(greenColor),
-                                        _buildStepsList(),
-                                      ],
+                            // --- 5. NỘI DUNG TAB (Không giới hạn chiều cao nữa) ---
+                            _isLoading
+                                ? const Center(
+                                    child: CircularProgressIndicator(
+                                      color: greenColor,
                                     ),
-                            ),
-                            const SizedBox(
-                              height: 50,
-                            ), // Padding đáy để không bị cấn
+                                  )
+                                : (_selectedTabIndex == 0
+                                      ? _buildIngredientsList(greenColor)
+                                      : _buildStepsList()),
+
+                            const SizedBox(height: 50),
                           ],
                         ),
                       ),
@@ -281,58 +319,113 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
     );
   }
 
-  // SỬA: Thêm physics và shrinkWrap để list con không cuộn riêng lẻ
   Widget _buildIngredientsList(Color greenColor) {
-    if (_fullRecipe.ingredients.isEmpty) {
+    if (_fullRecipe.ingredients.isEmpty)
       return const Center(child: Text("Không có thông tin nguyên liệu."));
-    }
-    return ListView.builder(
-      physics: const NeverScrollableScrollPhysics(), // Khóa cuộn riêng
-      shrinkWrap: true, // Co lại vừa đủ nội dung
-      padding: EdgeInsets.zero,
-      itemCount: _fullRecipe.ingredients.length,
-      itemBuilder: (context, index) {
-        final item = _fullRecipe.ingredients[index];
-        final bool isHave = index % 2 == 0;
 
-        return Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+    int totalCount = _fullRecipe.ingredients.length;
+    int haveCount = 0;
+    for (var item in _fullRecipe.ingredients) {
+      if (_checkIngredientInPantry(item.name)) haveCount++;
+    }
+
+    bool hasAll = haveCount == totalCount && totalCount > 0;
+    String statusText = hasAll
+        ? "Đủ nguyên liệu!"
+        : "Có sẵn $haveCount/$totalCount nguyên liệu";
+    Color badgeColor = hasAll ? Colors.green[50]! : Colors.orange[50]!;
+    Color textColor = hasAll ? Colors.green[700]! : Colors.orange[700]!;
+    IconData badgeIcon = hasAll ? Icons.check_circle : Icons.shopping_basket;
+
+    return Column(
+      children: [
+        // Badge
+        Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            color: isHave ? greenColor.withOpacity(0.05) : Colors.grey[50],
+            color: badgeColor,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
             children: [
-              Icon(
-                Icons.check_circle,
-                size: 20,
-                color: isHave ? greenColor : Colors.grey[300],
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Text(
-                  "${item.quantity} ${item.unit} ${item.name}",
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                  ),
+              Icon(badgeIcon, color: textColor, size: 20),
+              const SizedBox(width: 10),
+              Text(
+                statusText,
+                style: TextStyle(
+                  color: textColor,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
                 ),
               ),
+              const Spacer(),
+              if (!hasAll)
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.add_shopping_cart,
+                    size: 16,
+                    color: textColor,
+                  ),
+                ),
             ],
           ),
-        );
-      },
+        ),
+
+        // List Ingredients
+        ListView.builder(
+          physics: const NeverScrollableScrollPhysics(),
+          shrinkWrap: true,
+          padding: EdgeInsets.zero,
+          itemCount: _fullRecipe.ingredients.length,
+          itemBuilder: (context, index) {
+            final item = _fullRecipe.ingredients[index];
+            bool isHave = _checkIngredientInPantry(item.name);
+
+            return Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+              decoration: BoxDecoration(
+                color: isHave ? greenColor.withOpacity(0.05) : Colors.grey[50],
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    isHave ? Icons.check_circle : Icons.radio_button_unchecked,
+                    size: 20,
+                    color: isHave ? greenColor : Colors.grey[300],
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Text(
+                      "${item.quantity} ${_cleanUnit(item.unit)} ${item.name}",
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                        color: isHave ? Colors.black87 : Colors.black54,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ],
     );
   }
 
-  // SỬA: Thêm physics và shrinkWrap
   Widget _buildStepsList() {
-    if (_fullRecipe.instructions.isEmpty) {
+    if (_fullRecipe.instructions.isEmpty)
       return const Center(child: Text("Chưa có hướng dẫn chi tiết."));
-    }
     return ListView.builder(
-      physics: const NeverScrollableScrollPhysics(), // Khóa cuộn riêng
+      physics: const NeverScrollableScrollPhysics(),
       shrinkWrap: true,
       padding: const EdgeInsets.only(top: 10),
       itemCount: _fullRecipe.instructions.length,
