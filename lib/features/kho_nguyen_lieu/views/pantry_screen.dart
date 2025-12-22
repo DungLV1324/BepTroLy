@@ -1,4 +1,9 @@
+import 'package:beptroly/features/kho_nguyen_lieu/views/widgets/add_ingredient_sheet.dart';
 import 'package:flutter/material.dart';
+
+import '../../thongbao/services/notification_service.dart';
+import '../models/ingredient_model.dart';
+import '../view_models/pantry_view_model.dart';
 
 class PantryScreen extends StatefulWidget {
   const PantryScreen({super.key});
@@ -8,70 +13,23 @@ class PantryScreen extends StatefulWidget {
 }
 
 class _PantryScreenState extends State<PantryScreen> {
-  final List<Map<String, dynamic>> _pantryData = [
-    {
-      "category": "Dairy & Eggs",
-      "count": 3,
-      "items": [
-        {
-          "name": "Eggs",
-          "quantity": "6 count",
-          "daysLeft": -1,
-          "icon": Icons.egg_alt,
-          "color": const Color(0xFFFF4D4D),
-          "status": "Expired yesterday"
-        },
-        {
-          "name": "Milk",
-          "quantity": "1 Litre",
-          "daysLeft": 2,
-          "icon": Icons.local_drink,
-          "color": const Color(0xFFFFC107),
-          "status": "Expires in 2 days"
-        },
-        {
-          "name": "Cheddar Cheese",
-          "quantity": "200g",
-          "daysLeft": 14,
-          "icon": Icons.circle,
-          "color": const Color(0xFF4CAF50),
-          "status": "Expires in 14 days"
-        },
-      ]
-    },
-    {
-      "category": "Vegetables",
-      "count": 2,
-      "items": [
-        {
-          "name": "Broccoli",
-          "quantity": "1 head",
-          "daysLeft": 5,
-          "icon": Icons.grass,
-          "color": const Color(0xFF4CAF50),
-          "status": "Expires in 5 days"
-        },
-        {
-          "name": "Carrots",
-          "quantity": "500g",
-          "daysLeft": 3,
-          "icon": Icons.eco,
-          "color": const Color(0xFFFFC107),
-          "status": "Expires in 3 days"
-        },
-      ]
-    },
-    {
-      "category": "Meats",
-      "count": 0,
-      "items": []
-    }
-  ];
+  final PantryViewModel _viewModel = PantryViewModel();
+  final NotificationService _notificationService = NotificationService();
+
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(seconds: 1), () {
+      _notificationService.showInstantNotification();
+    });
+    NotificationService().requestPermissions();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAFB),
+
       appBar: AppBar(
         backgroundColor: const Color(0xFFF9FAFB),
         elevation: 0,
@@ -93,48 +51,126 @@ class _PantryScreenState extends State<PantryScreen> {
       ),
 
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // TODO: Mở màn hình thêm nguyên liệu hoặc Quét mã vạch
-        },
         backgroundColor: const Color(0xFF2BEE79),
         child: const Icon(Icons.add, color: Colors.white, size: 28),
-      ),
+        onPressed: () async {
+          // 1. Hiện BottomSheet và chờ kết quả trả về
+          final IngredientModel? result = await showModalBottomSheet(
+            context: context,
+            isScrollControlled: true, // Để sheet có thể full chiều cao khi hiện phím
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            builder: (context) => const AddIngredientSheet(),
+          );
 
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-        child: Column(
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
+          // 2. Nếu người dùng bấm Save và có dữ liệu trả về
+          if (result != null) {
+            int notificationId = result.name.hashCode;
+
+            NotificationService().scheduleExpiryNotification(
+              id: notificationId,
+              title: 'Sắp hết hạn! ⚠️',
+              body: 'Món ${result.name} của bạn sẽ hết hạn hôm nay. Hãy dùng ngay nhé!',
+              expiryDate: result.expiryDate!,
+            );
+
+            _viewModel.addNewIngredient(result);
+            
+            await _viewModel.logNotification(
+                'Sắp hết hạn! ⚠️',
+                'Món ${result.name} của bạn sắp hết hạn.',
+                result.expiryDate!
+            );
+
+            // Feedback nhẹ
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Đã thêm ${result.name} vào tủ bếp!')),
+            );
+          }
+        },
+      ),
+      // --- BODY (STREAM BUILDER + LISTVIEW) ---
+      body: StreamBuilder<List<Map<String, dynamic>>>(
+        stream: _viewModel.pantryDataStream, // Lắng nghe luồng dữ liệu
+        builder: (context, snapshot) {
+          // 1. Trạng thái đang tải
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          // 2. Trạng thái lỗi
+          if (snapshot.hasError) {
+            return Center(child: Text("Đã xảy ra lỗi: ${snapshot.error}"));
+          }
+
+          // 3. Lấy dữ liệu
+          final pantryData = snapshot.data ?? [];
+
+          // 4. Xử lý khi kho trống
+          if (pantryData.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.kitchen_outlined, size: 64, color: Colors.grey),
+                  const SizedBox(height: 16),
+                  const Text("Tủ lạnh trống trơn!", style: TextStyle(color: Colors.grey)),
+                  const SizedBox(height: 8),
+                  ElevatedButton(
+                    onPressed: () => _viewModel.addTestItem(),
+                    child: const Text("Thêm món mẫu"),
                   )
                 ],
               ),
-              child: TextField(
-                decoration: InputDecoration(
-                  hintText: 'Search ingredients...',
-                  hintStyle: const TextStyle(color: Color(0xFF6B7280)),
-                  prefixIcon: const Icon(Icons.search, color: Color(0xFF9FA2B4)),
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 14),
-                ),
-              ),
-            ),
+            );
+          }
 
-            const SizedBox(height: 24),
+          // 5. HIỂN THỊ DANH SÁCH (Tương đương RecyclerView)
+          return ListView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+            // +1 để dành chỗ cho thanh tìm kiếm ở đầu tiên
+            itemCount: pantryData.length + 1,
+            itemBuilder: (context, index) {
 
-            ..._pantryData.map((category) {
-              return _buildCategorySection(category);
-            }).toList(),
+              if (index == 0) {
+                return Column(
+                  children: [
+                    _buildSearchBar(),
+                    const SizedBox(height: 24),
+                  ],
+                );
+              }
 
-            const SizedBox(height: 80),
-          ],
+              final categoryData = pantryData[index - 1];
+              return _buildCategorySection(categoryData);
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildSearchBar() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          )
+        ],
+      ),
+      child: const TextField(
+        decoration: InputDecoration(
+          hintText: 'Search ingredients...',
+          hintStyle: TextStyle(color: Color(0xFF6B7280)),
+          prefixIcon: Icon(Icons.search, color: Color(0xFF9FA2B4)),
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.symmetric(vertical: 14),
         ),
       ),
     );
@@ -202,6 +238,7 @@ class _PantryScreenState extends State<PantryScreen> {
       child: IntrinsicHeight(
         child: Row(
           children: [
+            // Thanh màu trạng thái bên trái
             Container(
               width: 4,
               decoration: BoxDecoration(
@@ -211,11 +248,12 @@ class _PantryScreenState extends State<PantryScreen> {
             ),
             const SizedBox(width: 12),
 
+            // Icon nền mờ
             Container(
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: item['color'].withOpacity(0.1),
+                color: (item['color'] as Color).withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
@@ -227,7 +265,7 @@ class _PantryScreenState extends State<PantryScreen> {
 
             const SizedBox(width: 14),
 
-            // Thông tin tên và số lượng
+            // Tên và số lượng
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -253,6 +291,7 @@ class _PantryScreenState extends State<PantryScreen> {
               ),
             ),
 
+            // Trạng thái (Expires in...)
             Text(
               item['status'],
               style: TextStyle(
