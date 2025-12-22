@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/data/latest.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:flutter_timezone/flutter_timezone.dart';
 
@@ -17,14 +18,16 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
   FlutterLocalNotificationsPlugin();
 
-  // 1. Khởi tạo (Gọi ở hàm main)
   Future<void> init() async {
-    // Cấu hình cho Android
-    // 'app_icon' là icon mặc định, bạn cần đảm bảo trong folder android/app/src/main/res/drawable có file ảnh app_icon.png hoặc dùng '@mipmap/ic_launcher'
+    if (kIsWeb) {
+      tzdata.initializeTimeZones();
+      tz.setLocalLocation(tz.getLocation('Asia/Ho_Chi_Minh'));
+      return;
+    }
+
     const AndroidInitializationSettings initializationSettingsAndroid =
     AndroidInitializationSettings('@mipmap/ic_launcher');
 
-    // Cấu hình cho iOS
     const DarwinInitializationSettings initializationSettingsDarwin =
     DarwinInitializationSettings(
       requestAlertPermission: true,
@@ -32,21 +35,28 @@ class NotificationService {
       requestSoundPermission: true,
     );
 
-    const InitializationSettings initializationSettings = InitializationSettings(
+    const InitializationSettings initializationSettings =
+    InitializationSettings(
       android: initializationSettingsAndroid,
       iOS: initializationSettingsDarwin,
     );
 
     await flutterLocalNotificationsPlugin.initialize(initializationSettings);
 
-    // Cấu hình múi giờ (Timezone)
-    tz.initializeTimeZones();
+    // Timezone
+    tzdata.initializeTimeZones();
     final timezoneInfo = await FlutterTimezone.getLocalTimezone();
-    final String timeZoneName = timezoneInfo.identifier;
+
+    // Phòng trường hợp Saigon
+    final String timeZoneName =
+    timezoneInfo.identifier == 'Asia/Saigon'
+        ? 'Asia/Ho_Chi_Minh'
+        : timezoneInfo.identifier;
+
     tz.setLocalLocation(tz.getLocation(timeZoneName));
   }
 
-  // 2. Hàm xin quyền (Quan trọng cho Android 13+)
+  //Hàm xin quyền
   Future<void> requestPermissions() async {
     await flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<
@@ -54,7 +64,7 @@ class NotificationService {
         ?.requestNotificationsPermission();
   }
 
-  // 3. Hàm lên lịch thông báo
+  //Hàm lên lịch thông báo
   Future<void> scheduleExpiryNotification({
     required int id,
     required String title,
@@ -110,6 +120,7 @@ class NotificationService {
   // Hủy thông báo (Khi người dùng xóa món ăn hoặc ăn xong)
   Future<void> cancelNotification(int id) async {
     await flutterLocalNotificationsPlugin.cancel(id);
+    print("Đã hủy thông báo ID: $id");
   }
 
   CollectionReference get _notificationRef {
@@ -118,11 +129,13 @@ class NotificationService {
 
   // 1. Hàm lưu lịch sử thông báo
   Future<void> addNotificationLog({
+    required int notificationId,
     required String title,
     required String body,
     required DateTime scheduledTime,
   }) async {
     await _notificationRef.add({
+      'notificationId': notificationId,
       'title': title,
       'body': body,
       'scheduledTime': Timestamp.fromDate(scheduledTime), // Thời điểm sẽ thông báo
@@ -150,5 +163,17 @@ class NotificationService {
   // 3. Hàm đánh dấu đã đọc
   Future<void> markAsRead(String notificationId) async {
     await _notificationRef.doc(notificationId).update({'isRead': true});
+  }
+
+  Future<void> deleteNotificationLog(int notificationId) async {
+    // Tìm các thông báo có notificationId trùng khớp
+    final querySnapshot = await _notificationRef
+        .where('notificationId', isEqualTo: notificationId)
+        .get();
+
+    // Xóa tất cả các document tìm được (thường chỉ có 1 cái)
+    for (var doc in querySnapshot.docs) {
+      await doc.reference.delete();
+    }
   }
 }

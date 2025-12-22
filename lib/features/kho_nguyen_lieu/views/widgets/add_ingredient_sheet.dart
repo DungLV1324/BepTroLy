@@ -6,7 +6,9 @@ import '../../models/ingredient_model.dart';
 import '../../services/spoonacular_service.dart';
 
 class AddIngredientSheet extends StatefulWidget {
-  const AddIngredientSheet({super.key});
+  // Thêm tham số này để nhận dữ liệu cần sửa
+  final IngredientModel? ingredientToEdit;
+  const AddIngredientSheet({super.key, this.ingredientToEdit});
 
   @override
   State<AddIngredientSheet> createState() => _AddIngredientSheetState();
@@ -26,6 +28,23 @@ class _AddIngredientSheetState extends State<AddIngredientSheet> {
   DateTime? _expiryDate;
   String? _imageUrl; // Lưu URL ảnh từ Spoonacular chọn được
   String? _aisle;    // Lưu ngành hàng
+  @override
+  void initState() {
+    super.initState();
+    if (widget.ingredientToEdit != null) {
+      final item = widget.ingredientToEdit!;
+      _nameController.text = item.name;
+      _qtyController.text = item.quantity.toString(); // Bỏ chữ .0 nếu cần
+      _selectedUnit = item.unit;
+      _expiryDate = item.expiryDate;
+      _imageUrl = item.imageUrl;
+      _aisle = item.aisle;
+
+      if (_expiryDate != null) {
+        _dateController.text = DateFormat('dd/MM/yyyy').format(_expiryDate!);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -213,22 +232,20 @@ class _AddIngredientSheetState extends State<AddIngredientSheet> {
     }
   }
 
-  // Logic Lưu
   void _saveIngredient() {
     if (_formKey.currentState!.validate()) {
-      // 1. Tạo Model hoàn chỉnh từ dữ liệu nhập
       final newItem = IngredientModel(
-        id: '', // ID sẽ do Firestore tạo
+        // QUAN TRỌNG: Nếu đang sửa thì phải giữ nguyên ID cũ
+        id: widget.ingredientToEdit?.id ?? '',
         name: _nameController.text,
         quantity: double.tryParse(_qtyController.text) ?? 1,
         unit: _selectedUnit,
         expiryDate: _expiryDate,
-        addedDate: DateTime.now(),
-        imageUrl: _imageUrl, // URL từ Spoonacular
-        aisle: _aisle ?? 'Pantry', // Ngành hàng từ Spoonacular
+        addedDate: widget.ingredientToEdit?.addedDate ?? DateTime.now(), // Giữ ngày thêm cũ
+        imageUrl: _imageUrl,
+        aisle: _aisle ?? 'Pantry',
       );
 
-      // 2. Trả dữ liệu về màn hình trước
       Navigator.pop(context, newItem);
     }
   }

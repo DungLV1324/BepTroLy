@@ -12,3 +12,9 @@ enum ExpiryStatus {
   expiringSoon, // Sắp hết hạn (<= 2 ngày)
   expired       // Đã hết hạn
 }
+
+enum ActionType {
+  add,
+  edit,
+  delete,
+}

@@ -36,4 +36,9 @@ class PantryService {
   Future<void> deleteIngredient(String id) async {
     await _pantryRef.doc(id).delete();
   }
+
+  Future<void> updateIngredient(IngredientModel item) async {
+    // item.id bắt buộc phải có để biết sửa document nào
+    await _pantryRef.doc(item.id).update(item.toJson());
+  }
 }

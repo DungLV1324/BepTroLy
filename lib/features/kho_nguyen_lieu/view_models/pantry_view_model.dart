@@ -40,6 +40,7 @@ class PantryViewModel extends ChangeNotifier {
         "items": listItems.map((item) {
           // Mapping từ Model sang Map UI hiển thị
           return {
+            "model": item,
             "id": item.id, // Giữ ID để xóa/sửa
             "name": item.name,
             "quantity": "${item.quantity} ${item.unit.name}", // Format số lượng
@@ -96,11 +97,39 @@ class PantryViewModel extends ChangeNotifier {
     await _pantryService.addIngredient(newItem);
   }
 
-  Future<void> logNotification(String title, String body, DateTime date) async {
+  Future<void> logNotification(int notificationId,String title, String body, DateTime date) async {
     await _notificationService.addNotificationLog(
+        notificationId: notificationId,
         title: title,
         body: body,
         scheduledTime: date
     );
+  }
+
+  Future<void> deleteIngredient(IngredientModel item) async {
+    int notificationId = item.name.hashCode;
+    // A. Xóa trong Firestore
+    await _pantryService.deleteIngredient(item.id);
+
+    // B. Hủy thông báo nhắc nhở (Dùng hashCode tên làm ID như lúc tạo)
+    await NotificationService().cancelNotification(notificationId);
+    await _notificationService.deleteNotificationLog(notificationId);
+  }
+
+// 2. Cập nhật món ăn
+  Future<void> updateIngredient(IngredientModel oldItem, IngredientModel newItem) async {
+    // A. Cập nhật Firestore
+    await _pantryService.updateIngredient(newItem);
+
+    await NotificationService().cancelNotification(oldItem.name.hashCode);
+
+    if (newItem.expiryDate != null) {
+      NotificationService().scheduleExpiryNotification(
+        id: newItem.name.hashCode, // Lưu ý: Nếu user đổi tên, ID này sẽ đổi
+        title: 'Sắp hết hạn! ⚠️',
+        body: 'Món ${newItem.name} sắp hết hạn.',
+        expiryDate: newItem.expiryDate!,
+      );
+    }
   }
 }
