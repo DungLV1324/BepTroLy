@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_enums.dart';
 import '../../thongbao/services/notification_service.dart';
@@ -8,10 +10,42 @@ class PantryViewModel extends ChangeNotifier {
   final PantryService _pantryService = PantryService();
   final NotificationService _notificationService = NotificationService();
 
-  Stream<List<Map<String, dynamic>>> get pantryDataStream {
-    return _pantryService.getIngredientsStream().map((items) {
-      return _groupItemsByCategory(items);
+  List<IngredientModel> _allItems = [];
+
+  String _searchQuery = "";
+
+  String get searchQuery => _searchQuery;
+
+  final StreamController<List<Map<String, dynamic>>> _uiStreamController = StreamController<List<Map<String, dynamic>>>.broadcast();
+
+  Stream<List<Map<String, dynamic>>> get pantryDataStream => _uiStreamController.stream;
+
+  PantryViewModel() {
+    // Lắng nghe dữ liệu từ Firestore ngay khi ViewModel được tạo
+    _pantryService.getIngredientsStream().listen((items) {
+      _allItems = items; // Lưu bản gốc
+      _applyFilterAndEmit(); // Lọc và đẩy ra UI
     });
+  }
+
+  void search(String query) {
+    _searchQuery = query;
+    _applyFilterAndEmit();
+  }
+
+  void _applyFilterAndEmit() {
+    List<IngredientModel> filteredList = _allItems;
+
+    if (_searchQuery.isNotEmpty) {
+      filteredList = _allItems.where((item) {
+        return item.name
+            .toLowerCase()
+            .contains(_searchQuery.toLowerCase());
+      }).toList();
+    }
+
+    final grouped = _groupItemsByCategory(filteredList);
+    _uiStreamController.add(grouped);
   }
 
   // Hàm logic: Gom nhóm các món ăn theo 'aisle' (ngành hàng)
@@ -52,7 +86,7 @@ class PantryViewModel extends ChangeNotifier {
         }).toList(),
       });
     });
-
+    _uiStreamController.add(result);
     return result;
   }
 
@@ -131,5 +165,11 @@ class PantryViewModel extends ChangeNotifier {
         expiryDate: newItem.expiryDate!,
       );
     }
+  }
+
+  @override
+  void dispose() {
+    _uiStreamController.close();
+    super.dispose();
   }
 }

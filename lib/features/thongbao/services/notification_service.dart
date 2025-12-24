@@ -176,4 +176,16 @@ class NotificationService {
       await doc.reference.delete();
     }
   }
+
+  Future<void> deleteNotificationDoc(String docId) async {
+    await _notificationRef.doc(docId).delete();
+  }
+
+  // Hàm xóa TẤT CẢ thông báo (Tiện ích làm thêm nếu muốn nút "Xóa hết")
+  Future<void> deleteAllNotifications() async {
+    var snapshots = await _notificationRef.get();
+    for (var doc in snapshots.docs) {
+      await doc.reference.delete();
+    }
+  }
 }

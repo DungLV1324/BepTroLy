@@ -1,6 +1,7 @@
 import 'package:beptroly/features/kho_nguyen_lieu/views/widgets/add_ingredient_sheet.dart';
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_enums.dart';
+import '../../../shared/widgets/app_toast.dart';
 import '../../thongbao/services/notification_service.dart';
 import '../models/ingredient_model.dart';
 import '../view_models/pantry_view_model.dart';
@@ -13,7 +14,7 @@ class PantryScreen extends StatefulWidget {
 }
 
 class _PantryScreenState extends State<PantryScreen> {
-  final PantryViewModel _viewModel = PantryViewModel();
+  final PantryViewModel _pantryviewModel = PantryViewModel();
   final NotificationService _notificationService = NotificationService();
 
   @override
@@ -64,7 +65,6 @@ class _PantryScreenState extends State<PantryScreen> {
           //Nếu người dùng bấm Save và có dữ liệu trả về
           if (result != null) {
             int notificationId = result.name.hashCode;
-
             _notificationService.scheduleExpiryNotification(
               id: notificationId,
               title: 'Sắp hết hạn! ⚠️',
@@ -72,21 +72,21 @@ class _PantryScreenState extends State<PantryScreen> {
               expiryDate: result.expiryDate!,
             );
 
-            _viewModel.addNewIngredient(result);
+            _pantryviewModel.addNewIngredient(result);
             
-            await _viewModel.logNotification(
+            await _pantryviewModel.logNotification(
                 notificationId,
                 'Sắp hết hạn! ⚠️',
                 'Món ${result.name} của bạn sắp hết hạn.',
                 result.expiryDate!
             );
-            showActionSnackBar( action: ActionType.add, itemName: result.name);
+            AppToast.show(context,ActionType.add,result.name);
           }
         },
       ),
 
       body: StreamBuilder<List<Map<String, dynamic>>>(
-        stream: _viewModel.pantryDataStream, // Lắng nghe luồng dữ liệu
+        stream: _pantryviewModel.pantryDataStream, // Lắng nghe luồng dữ liệu
         builder: (context, snapshot) {
           // 1. Trạng thái đang tải
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -101,25 +101,13 @@ class _PantryScreenState extends State<PantryScreen> {
           // 3. Lấy dữ liệu
           final pantryData = snapshot.data ?? [];
 
-          // 4. Xử lý khi kho trống
-          if (pantryData.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.kitchen_outlined, size: 64, color: Colors.grey),
-                  const SizedBox(height: 16),
-                  const Text("Tủ lạnh trống trơn!", style: TextStyle(color: Colors.grey)),
-                  const SizedBox(height: 8),
-                ],
-              ),
-            );
-          }
+          final int itemCount = pantryData.isEmpty ? 2 : pantryData.length + 1;
+
+          final bool isSearching = _pantryviewModel.searchQuery.isNotEmpty;
 
           return ListView.builder(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-            // +1 để dành chỗ cho thanh tìm kiếm ở đầu tiên
-            itemCount: pantryData.length + 1,
+            itemCount: itemCount,
             itemBuilder: (context, index) {
 
               if (index == 0) {
@@ -130,37 +118,29 @@ class _PantryScreenState extends State<PantryScreen> {
                   ],
                 );
               }
-
+              if (pantryData.isEmpty) {
+                return SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.5,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.search_off_rounded, size: 64, color: Colors.grey),
+                      const SizedBox(height: 16),
+                      Text(
+                          isSearching
+                              ? "Không tìm thấy món nào khớp với\n\"${_pantryviewModel.searchQuery}\""
+                              : "Tủ lạnh đang trống trơn!",
+                      style: const TextStyle(color: Colors.grey, fontSize: 16)
+                      ),
+                    ],
+                  ),
+                );
+              }
               final categoryData = pantryData[index - 1];
               return _buildCategorySection(categoryData);
             },
           );
         },
-      ),
-    );
-  }
-
-  Widget _buildSearchBar() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          )
-        ],
-      ),
-      child: const TextField(
-        decoration: InputDecoration(
-          hintText: 'Search ingredients...',
-          hintStyle: TextStyle(color: Color(0xFF6B7280)),
-          prefixIcon: Icon(Icons.search, color: Color(0xFF9FA2B4)),
-          border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(vertical: 14),
-        ),
       ),
     );
   }
@@ -232,9 +212,9 @@ class _PantryScreenState extends State<PantryScreen> {
 
       // Hành động khi vuốt xong
       onDismissed: (direction) {
-        _viewModel.deleteIngredient(model);
+        _pantryviewModel.deleteIngredient(model);
 
-        showActionSnackBar( action: ActionType.delete, itemName: model.name);
+        AppToast.show(context,ActionType.delete,model.name);
       },
 
       // 3. Bọc tiếp bằng GestureDetector để Bắt sự kiện chạm (Sửa)
@@ -252,11 +232,10 @@ class _PantryScreenState extends State<PantryScreen> {
 
           // Nếu có dữ liệu trả về thì cập nhật
           if (updatedItem != null) {
-            await _viewModel.updateIngredient(model, updatedItem);
+            await _pantryviewModel.updateIngredient(model, updatedItem);
 
             if (mounted) {
-              showActionSnackBar( action: ActionType.edit, itemName: updatedItem.name);
-
+              AppToast.show(context,ActionType.edit,updatedItem.name);
             }
           }
         },
@@ -270,7 +249,7 @@ class _PantryScreenState extends State<PantryScreen> {
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withValues(alpha:0.05),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               )
@@ -294,7 +273,7 @@ class _PantryScreenState extends State<PantryScreen> {
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: (item['color'] as Color).withOpacity(0.1),
+                    color: (item['color'] as Color).withValues(alpha:0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
@@ -352,86 +331,35 @@ class _PantryScreenState extends State<PantryScreen> {
     );
   }
 
-  // Hàm hiển thị thông báo
-  void showActionSnackBar({
-    required ActionType action,
-    required String itemName,
-  }) {
-    if (!mounted) return;
-
-    ScaffoldMessenger.of(context).clearSnackBars();
-
-    // Cấu hình theo hành động
-    late Color bgColor;
-    late Color borderColor;
-    late Color iconColor;
-    late IconData icon;
-    late String message;
-
-    switch (action) {
-      case ActionType.add:
-        bgColor = const Color(0xFFE8F5E9);
-        borderColor = const Color(0xFF4CAF50);
-        iconColor = const Color(0xFF4CAF50);
-        icon = Icons.check_circle;
-        message = 'Đã thêm $itemName!';
-        break;
-
-      case ActionType.edit:
-        bgColor = const Color(0xFFE3F2FD);
-        borderColor = const Color(0xFF2196F3);
-        iconColor = const Color(0xFF2196F3);
-        icon = Icons.edit;
-        message = 'Đã cập nhật $itemName!';
-        break;
-
-      case ActionType.delete:
-        bgColor = const Color(0xFFFFEBEE);
-        borderColor = const Color(0xFFF44336);
-        iconColor = const Color(0xFFF44336);
-        icon = Icons.delete;
-        message = 'Đã xóa $itemName!';
-        break;
-    }
-
-    final height = MediaQuery.of(context).size.height;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: bgColor,
-        elevation: 6,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: borderColor, width: 1),
-        ),
-        margin: EdgeInsets.only(
-          bottom: height * 0.70,
-          left: 40,
-          right: 40,
-        ),
-        duration: const Duration(seconds: 2),
-        content: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: iconColor, size: 28),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                message,
-                style: const TextStyle(
-                  color: Color(0xFF1B5E20),
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
+  Widget _buildSearchBar() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha:0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          )
+        ],
+      ),
+      child: TextField( // Bỏ const nếu có
+        // --- THÊM DÒNG NÀY ---
+        onChanged: (value) {
+          // Gọi hàm search trong ViewModel mỗi khi gõ
+          _pantryviewModel.search(value);
+        },
+        // ---------------------
+        decoration: const InputDecoration( // Thêm const nếu cần
+          hintText: 'Search ingredients...',
+          hintStyle: TextStyle(color: Color(0xFF6B7280)),
+          prefixIcon: Icon(Icons.search, color: Color(0xFF9FA2B4)),
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.symmetric(vertical: 14),
+          suffixIcon: null,
         ),
       ),
     );
   }
-
 }

@@ -6,7 +6,6 @@ import '../../models/ingredient_model.dart';
 import '../../services/spoonacular_service.dart';
 
 class AddIngredientSheet extends StatefulWidget {
-  // Thêm tham số này để nhận dữ liệu cần sửa
   final IngredientModel? ingredientToEdit;
   const AddIngredientSheet({super.key, this.ingredientToEdit});
 
@@ -24,10 +23,10 @@ class _AddIngredientSheetState extends State<AddIngredientSheet> {
   final TextEditingController _dateController = TextEditingController();
 
   // State
-  MeasureUnit _selectedUnit = MeasureUnit.g; // Mặc định là gram
+  MeasureUnit _selectedUnit = MeasureUnit.g;
   DateTime? _expiryDate;
-  String? _imageUrl; // Lưu URL ảnh từ Spoonacular chọn được
-  String? _aisle;    // Lưu ngành hàng
+  String? _imageUrl;
+  String? _aisle;
   @override
   void initState() {
     super.initState();
@@ -50,7 +49,6 @@ class _AddIngredientSheetState extends State<AddIngredientSheet> {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(24),
-      // Bo tròn góc trên
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -58,7 +56,7 @@ class _AddIngredientSheetState extends State<AddIngredientSheet> {
       child: Form(
         key: _formKey,
         child: Column(
-          mainAxisSize: MainAxisSize.min, // Chỉ cao vừa đủ nội dung
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header
@@ -71,7 +69,6 @@ class _AddIngredientSheetState extends State<AddIngredientSheet> {
             ),
             const SizedBox(height: 20),
 
-            // 1. TÊN NGUYÊN LIỆU (TypeAhead - Có gợi ý từ Spoonacular)
             const Text("Tên nguyên liệu", style: TextStyle(fontWeight: FontWeight.w600)),
             const SizedBox(height: 8),
           TypeAheadField<IngredientModel>(
@@ -98,7 +95,7 @@ class _AddIngredientSheetState extends State<AddIngredientSheet> {
                     ? Image.network(
                   suggestion.imageUrl!,
                   width: 30,
-                  errorBuilder: (_, __, ___) =>
+                  errorBuilder: (_, _, _) =>
                   const Icon(Icons.image),
                 )
                     : const Icon(Icons.food_bank),
