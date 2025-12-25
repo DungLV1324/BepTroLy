@@ -16,7 +16,6 @@ class AddIngredientSheet extends StatefulWidget {
 class _AddIngredientSheetState extends State<AddIngredientSheet> {
   final SpoonacularService _apiService = SpoonacularService();
   final _formKey = GlobalKey<FormState>();
-
   // Controllers
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _qtyController = TextEditingController();
@@ -38,15 +37,19 @@ class _AddIngredientSheetState extends State<AddIngredientSheet> {
       _expiryDate = item.expiryDate;
       _imageUrl = item.imageUrl;
       _aisle = item.aisle;
+    } else {
+      _expiryDate = DateTime.now();
+    }
 
-      if (_expiryDate != null) {
-        _dateController.text = DateFormat('dd/MM/yyyy').format(_expiryDate!);
-      }
+    if (_expiryDate != null) {
+      _dateController.text = DateFormat('dd/MM/yyyy').format(_expiryDate!);
     }
   }
-
   @override
   Widget build(BuildContext context) {
+    // Tiêu đề thay đổi tùy theo việc Thêm hay Sửa
+    final isEditing = widget.ingredientToEdit != null;
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: const BoxDecoration(
@@ -59,143 +62,26 @@ class _AddIngredientSheetState extends State<AddIngredientSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text("Thêm nguyên liệu mới", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
-              ],
-            ),
+            // 1. Header (Tiêu đề + Nút đóng)
+            _buildHeader(isEditing ? "Cập nhật nguyên liệu" : "Thêm nguyên liệu mới"),
             const SizedBox(height: 20),
 
-            const Text("Tên nguyên liệu", style: TextStyle(fontWeight: FontWeight.w600)),
-            const SizedBox(height: 8),
-          TypeAheadField<IngredientModel>(
-            builder: (context, controller, focusNode) {
-              controller.text = _nameController.text;
-
-              return TextField(
-                controller: controller,
-                focusNode: focusNode,
-                decoration: _inputDecoration("Nhập tên tiếng Anh để có gợi ý tốt nhất (ví dụ: Rice (gạo))"),
-                onChanged: (value) {
-                  _nameController.text = value;
-                },
-              );
-            },
-
-            suggestionsCallback: (search) async {
-              return await _apiService.searchIngredients(search);
-            },
-
-            itemBuilder: (context, suggestion) {
-              return ListTile(
-                leading: suggestion.imageUrl != null
-                    ? Image.network(
-                  suggestion.imageUrl!,
-                  width: 30,
-                  errorBuilder: (_, _, _) =>
-                  const Icon(Icons.image),
-                )
-                    : const Icon(Icons.food_bank),
-                title: Text(suggestion.name),
-                subtitle: Text(suggestion.aisle ?? 'Unknown aisle'),
-              );
-            },
-
-            onSelected: (suggestion) {
-              _nameController.text = suggestion.name;
-              setState(() {
-                _imageUrl = suggestion.imageUrl;
-                _aisle = suggestion.aisle;
-              });
-            },
-
-            emptyBuilder: (context) => const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Text('Không tìm thấy món này'),
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-            // 2. SỐ LƯỢNG & ĐƠN VỊ (Row)
-            Row(
-              children: [
-                Expanded(
-                  flex: 1,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text("Số lượng", style: TextStyle(fontWeight: FontWeight.w600)),
-                      const SizedBox(height: 8),
-                      TextFormField(
-                        controller: _qtyController,
-                        keyboardType: TextInputType.number,
-                        decoration: _inputDecoration("e.g., 500"),
-                        validator: (value) => value!.isEmpty ? "Nhập số" : null,
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  flex: 1,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text("Đơn vị", style: TextStyle(fontWeight: FontWeight.w600)),
-                      const SizedBox(height: 8),
-                      DropdownButtonFormField<MeasureUnit>(
-                        value: _selectedUnit,
-                        decoration: _inputDecoration(""),
-                        items: MeasureUnit.values.map((unit) {
-                          return DropdownMenuItem(
-                            value: unit,
-                            child: Text(unit.name), // Hiển thị 'kg', 'g', 'piece'
-                          );
-                        }).toList(),
-                        onChanged: (val) => setState(() => _selectedUnit = val!),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-
+            // 2. Input Tên (Tìm kiếm gợi ý)
+            _buildNameInputSection(),
             const SizedBox(height: 16),
 
-            // 3. NGÀY HẾT HẠN (DatePicker)
-            const Text("Ngày hết hạn", style: TextStyle(fontWeight: FontWeight.w600)),
-            const SizedBox(height: 8),
-            TextFormField(
-              controller: _dateController,
-              readOnly: true, // Không cho nhập tay
-              decoration: _inputDecoration("dd/mm/yyyy").copyWith(
-                suffixIcon: const Icon(Icons.calendar_today, size: 20),
-              ),
-              onTap: _pickDate,
-              validator: (value) => value!.isEmpty ? "Chọn ngày" : null,
-            ),
+            // 3. Hàng Số lượng & Đơn vị
+            _buildQuantityAndUnitSection(),
+            const SizedBox(height: 16),
 
+            // 4. Input Ngày hết hạn
+            _buildDateInputSection(),
             const SizedBox(height: 24),
 
-            // 4. BUTTON SAVE
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF4CAF50), // Màu xanh lá
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                onPressed: _saveIngredient,
-                child: const Text("Save Ingredient", style: TextStyle(color: Colors.white, fontSize: 16)),
-              ),
-            ),
+            // 5. Nút Lưu
+            _buildSaveButton(isEditing ? "Lưu thay đổi" : "Thêm vào tủ"),
 
-            // Padding bottom để tránh bàn phím che (nếu cần)
+            // Xử lý bàn phím che
             Padding(padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom)),
           ],
         ),
@@ -232,7 +118,6 @@ class _AddIngredientSheetState extends State<AddIngredientSheet> {
   void _saveIngredient() {
     if (_formKey.currentState!.validate()) {
       final newItem = IngredientModel(
-        // QUAN TRỌNG: Nếu đang sửa thì phải giữ nguyên ID cũ
         id: widget.ingredientToEdit?.id ?? '',
         name: _nameController.text,
         quantity: double.tryParse(_qtyController.text) ?? 1,
@@ -245,5 +130,148 @@ class _AddIngredientSheetState extends State<AddIngredientSheet> {
 
       Navigator.pop(context, newItem);
     }
+  }
+
+  Widget _buildHeader(String title) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        IconButton(
+          icon: const Icon(Icons.close),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNameInputSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text("Tên nguyên liệu", style: TextStyle(fontWeight: FontWeight.w600)),
+        const SizedBox(height: 8),
+        TypeAheadField<IngredientModel>(
+          builder: (context, controller, focusNode) {
+            // Đồng bộ text controller nếu cần thiết
+            if (controller.text != _nameController.text) {
+              controller.text = _nameController.text;
+            }
+            return TextField(
+              controller: controller,
+              focusNode: focusNode,
+              decoration: _inputDecoration("Nhập tên tiếng Anh (ví dụ: Rice)"),
+              // Lưu ý: Cập nhật controller chính khi gõ
+              onChanged: (val) => _nameController.text = val,
+            );
+          },
+          suggestionsCallback: (search) async {
+            if (search.isEmpty) return [];
+            return await _apiService.searchIngredients(search);
+          },
+          itemBuilder: (context, suggestion) {
+            return ListTile(
+              leading: suggestion.imageUrl != null
+                  ? Image.network(suggestion.imageUrl!, width: 30, errorBuilder: (_, __, ___) => const Icon(Icons.image))
+                  : const Icon(Icons.food_bank),
+              title: Text(suggestion.name),
+              subtitle: Text(suggestion.aisle ?? 'Unknown aisle'),
+            );
+          },
+          onSelected: (suggestion) {
+            _nameController.text = suggestion.name;
+            setState(() {
+              _imageUrl = suggestion.imageUrl;
+              _aisle = suggestion.aisle;
+            });
+          },
+          emptyBuilder: (context) => const Padding(
+            padding: EdgeInsets.all(8.0),
+            child: Text('Không tìm thấy món này'),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildQuantityAndUnitSection() {
+    return Row(
+      children: [
+        // Cột Số lượng
+        Expanded(
+          flex: 1,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text("Số lượng", style: TextStyle(fontWeight: FontWeight.w600)),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _qtyController,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                decoration: _inputDecoration("e.g., 500"),
+                validator: (value) => value!.isEmpty ? "Nhập số" : null,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 16),
+        // Cột Đơn vị
+        Expanded(
+          flex: 1,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text("Đơn vị", style: TextStyle(fontWeight: FontWeight.w600)),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<MeasureUnit>(
+                value: _selectedUnit,
+                decoration: _inputDecoration(""),
+                items: MeasureUnit.values.map((unit) {
+                  return DropdownMenuItem(
+                    value: unit,
+                    child: Text(unit.name),
+                  );
+                }).toList(),
+                onChanged: (val) => setState(() => _selectedUnit = val!),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDateInputSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text("Ngày hết hạn", style: TextStyle(fontWeight: FontWeight.w600)),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: _dateController,
+          readOnly: true,
+          decoration: _inputDecoration("dd/mm/yyyy").copyWith(
+            suffixIcon: const Icon(Icons.calendar_today, size: 20),
+          ),
+          onTap: _pickDate,
+          validator: (value) => value!.isEmpty ? "Chọn ngày" : null,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSaveButton(String label) {
+    return SizedBox(
+      width: double.infinity,
+      height: 50,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF4CAF50),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+        onPressed: _saveIngredient,
+        child: Text(label, style: const TextStyle(color: Colors.white, fontSize: 16)),
+      ),
+    );
   }
 }
