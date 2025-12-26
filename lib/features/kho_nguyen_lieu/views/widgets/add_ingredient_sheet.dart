@@ -63,7 +63,7 @@ class _AddIngredientSheetState extends State<AddIngredientSheet> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // 1. Header (Tiêu đề + Nút đóng)
-            _buildHeader(isEditing ? "Cập nhật nguyên liệu" : "Thêm nguyên liệu mới"),
+            _buildHeader(isEditing ? "Update ingredient" : "Add new ingredient"),
             const SizedBox(height: 20),
 
             // 2. Input Tên (Tìm kiếm gợi ý)
@@ -79,7 +79,7 @@ class _AddIngredientSheetState extends State<AddIngredientSheet> {
             const SizedBox(height: 24),
 
             // 5. Nút Lưu
-            _buildSaveButton(isEditing ? "Lưu thay đổi" : "Thêm vào tủ"),
+            _buildSaveButton(isEditing ? "Save changes" : "Add to pantry"),
 
             // Xử lý bàn phím che
             Padding(padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom)),
@@ -149,7 +149,7 @@ class _AddIngredientSheetState extends State<AddIngredientSheet> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text("Tên nguyên liệu", style: TextStyle(fontWeight: FontWeight.w600)),
+        const Text("Ingredient name", style: TextStyle(fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
         TypeAheadField<IngredientModel>(
           builder: (context, controller, focusNode) {
@@ -160,7 +160,7 @@ class _AddIngredientSheetState extends State<AddIngredientSheet> {
             return TextField(
               controller: controller,
               focusNode: focusNode,
-              decoration: _inputDecoration("Nhập tên tiếng Anh (ví dụ: Rice)"),
+              decoration: _inputDecoration("(e.g., Rice,Gạo,."),
               // Lưu ý: Cập nhật controller chính khi gõ
               onChanged: (val) => _nameController.text = val,
             );
@@ -187,7 +187,7 @@ class _AddIngredientSheetState extends State<AddIngredientSheet> {
           },
           emptyBuilder: (context) => const Padding(
             padding: EdgeInsets.all(8.0),
-            child: Text('Không tìm thấy món này'),
+            child: Text('Item not found'),
           ),
         ),
       ],
@@ -203,13 +203,13 @@ class _AddIngredientSheetState extends State<AddIngredientSheet> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text("Số lượng", style: TextStyle(fontWeight: FontWeight.w600)),
+              const Text("Quantity", style: TextStyle(fontWeight: FontWeight.w600)),
               const SizedBox(height: 8),
               TextFormField(
                 controller: _qtyController,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 decoration: _inputDecoration("e.g., 500"),
-                validator: (value) => value!.isEmpty ? "Nhập số" : null,
+                validator: (value) => value!.isEmpty ? "Enter quantity" : null,
               ),
             ],
           ),
@@ -221,7 +221,7 @@ class _AddIngredientSheetState extends State<AddIngredientSheet> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text("Đơn vị", style: TextStyle(fontWeight: FontWeight.w600)),
+              const Text("Unit", style: TextStyle(fontWeight: FontWeight.w600)),
               const SizedBox(height: 8),
               DropdownButtonFormField<MeasureUnit>(
                 value: _selectedUnit,
@@ -245,7 +245,7 @@ class _AddIngredientSheetState extends State<AddIngredientSheet> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text("Ngày hết hạn", style: TextStyle(fontWeight: FontWeight.w600)),
+        const Text("Expiration date", style: TextStyle(fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
         TextFormField(
           controller: _dateController,
@@ -254,7 +254,7 @@ class _AddIngredientSheetState extends State<AddIngredientSheet> {
             suffixIcon: const Icon(Icons.calendar_today, size: 20),
           ),
           onTap: _pickDate,
-          validator: (value) => value!.isEmpty ? "Chọn ngày" : null,
+          validator: (value) => value!.isEmpty ? "Select date" : null,
         ),
       ],
     );

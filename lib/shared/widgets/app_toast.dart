@@ -15,11 +15,11 @@ class AppToast {
 
     switch (action) {
       case ActionType.add:
-        bgColor = const Color(0xFFE8F5E9); // Xanh lá nhạt
+        bgColor = const Color(0xFFE8F5E9);
         borderColor = const Color(0xFF4CAF50);
-        primaryColor = const Color(0xFF2E7D32); // Xanh lá đậm
+        primaryColor = const Color(0xFF2E7D32);
         icon = Icons.check_circle;
-        message = 'Đã thêm $itemName!';
+        message = 'Added successfully $itemName!';
         break;
 
       case ActionType.edit:
@@ -27,7 +27,7 @@ class AppToast {
         borderColor = const Color(0xFF2196F3);
         primaryColor = const Color(0xFF1565C0); // Xanh dương đậm
         icon = Icons.edit;
-        message = 'Đã cập nhật $itemName!';
+        message = 'Updated successfully $itemName!';
         break;
 
       case ActionType.delete:
@@ -35,7 +35,7 @@ class AppToast {
         borderColor = const Color(0xFFEF5350);
         primaryColor = const Color(0xFFC62828); // Đỏ đậm
         icon = Icons.delete_outline;
-        message = 'Đã xóa $itemName!';
+        message = 'Deleted successfully $itemName!';
         break;
     }
 

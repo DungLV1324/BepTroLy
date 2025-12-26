@@ -25,14 +25,14 @@ class PantryEmptyState extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             isSearching
-                ? "Không tìm thấy món nào khớp với\n\"$searchQuery\""
-                : "Tủ lạnh đang trống trơn!",
+                ? "No items match\n\"$searchQuery\""
+                : "Your fridge is empty!",
             textAlign: TextAlign.center,
             style: TextStyle(color: Colors.grey[600], fontSize: 16),
           ),
           if (!isSearching) ...[
             const SizedBox(height: 8),
-            Text("Bấm nút (+) để thêm đồ mới nhé", style: TextStyle(color: Colors.grey[400], fontSize: 14)),
+            Text("Tap the (+) button to add new items", style: TextStyle(color: Colors.grey[400], fontSize: 14)),
           ]
         ],
       ),

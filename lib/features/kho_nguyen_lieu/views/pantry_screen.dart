@@ -41,12 +41,12 @@ class _PantryScreenState extends State<PantryScreen> {
       // Setup Notification & Data
       _notificationService.scheduleExpiryNotification(
           id: notifId,
-          title: 'Sắp hết hạn! ⚠️',
-          body: 'Món ${result.name} sắp hết hạn.',
+          title: 'Expiring soon! ⚠️',
+          body: 'The item ${result.name} is about to expire.',
           expiryDate: result.expiryDate!
       );
       _pantryViewModel.addNewIngredient(result);
-      await _pantryViewModel.logNotification(notifId, 'Sắp hết hạn! ⚠️', 'Món ${result.name} sắp hết hạn.', result.expiryDate!);
+      await _pantryViewModel.logNotification(notifId, 'Expiring soon! ⚠️', 'The item ${result.name} is about to expire.', result.expiryDate!);
 
       if (mounted) AppToast.show(context, ActionType.add, result.name);
     }
@@ -114,7 +114,7 @@ class _PantryScreenState extends State<PantryScreen> {
 
           // 2. Trạng thái lỗi
           if (snapshot.hasError) {
-            return Center(child: Text("Đã xảy ra lỗi: ${snapshot.error}"));
+            return Center(child: Text("An error occurred: ${snapshot.error}"));
           }
 
           // 3. Lấy dữ liệu
