@@ -23,30 +23,30 @@ class MainScaffold extends StatelessWidget {
       bottomNavigationBar: NavigationBar(
         selectedIndex: navigationShell.currentIndex,
         onDestinationSelected: _goBranch,
-        indicatorColor: const Color(0xFFFF7043).withOpacity(0.2),
+        indicatorColor: const Color(0xFF4CAF50).withOpacity(0.2),
 
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home, color: Colors.deepOrange),
+            selectedIcon: Icon(Icons.home, color: Colors.green),
             label: 'Home',
           ),
 
           NavigationDestination(
             icon: Icon(Icons.kitchen_outlined),
-            selectedIcon: Icon(Icons.kitchen,color: Colors.deepOrange),
+            selectedIcon: Icon(Icons.kitchen,color: Colors.green),
             label: 'Tủ lạnh',
           ),
 
           NavigationDestination(
             icon: Icon(Icons.calendar_month_outlined),
-            selectedIcon: Icon(Icons.calendar_month,color: Colors.deepOrange),
+            selectedIcon: Icon(Icons.calendar_month,color: Colors.green),
             label: 'Lên lịch',
           ),
 
           NavigationDestination(
             icon: Icon(Icons.shopping_cart_outlined),
-            selectedIcon: Icon(Icons.shopping_cart,color: Colors.deepOrange),
+            selectedIcon: Icon(Icons.shopping_cart,color: Colors.green),
             label: 'Mua sắm',
           ),
         ],

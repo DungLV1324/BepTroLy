@@ -6,7 +6,6 @@ class IngredientModel {
   final double quantity;
   final MeasureUnit unit;
 
-  // Các trường Nullable (Có thể null)
   final DateTime? expiryDate; // Null nếu là nguyên liệu trong công thức nấu ăn
   final DateTime? addedDate;  // Ngày thêm vào kho
   final String? imageUrl;     // URL ảnh từ Spoonacular
@@ -23,7 +22,7 @@ class IngredientModel {
     this.aisle,
   });
 
-  /// FR3.1: Kiểm tra trạng thái hạn sử dụng
+  /// Kiểm tra trạng thái hạn sử dụng
   ExpiryStatus get status {
     if (expiryDate == null) return ExpiryStatus.fresh;
 
@@ -39,7 +38,7 @@ class IngredientModel {
     return ExpiryStatus.fresh;
   }
 
-  /// Trả về số ngày còn lại (dùng để hiển thị UI: "Còn 2 ngày")
+  /// Trả về số ngày còn lại
   int get daysRemaining {
     if (expiryDate == null) return 999; // Giá trị mặc định lớn
     final now = DateTime.now();
@@ -48,7 +47,7 @@ class IngredientModel {
     return expiration.difference(today).inDays;
   }
 
-  /// Tạo bản sao mới với một số trường thay đổi (Immutable pattern)
+  /// Tạo bản sao mới với một số trường thay đổi
   IngredientModel copyWith({
     String? id,
     String? name,
@@ -102,11 +101,8 @@ class IngredientModel {
     // Spoonacular trả về ID là int, convert sang String
     final String apiId = json['id']?.toString() ?? DateTime.now().millisecondsSinceEpoch.toString();
 
-    // Ưu tiên lấy tên sạch (nameClean) nếu có, nếu không lấy originalString hoặc name
     final String apiName = json['nameClean'] ?? json['name'] ?? 'Unknown Ingredient';
 
-    // Lấy ảnh: Spoonacular chỉ trả về filename, cần ghép với base URL
-    // Base URL icon: https://spoonacular.com/cdn/ingredients_100x100/
     String? imgUrl;
     if (json['image'] != null) {
       imgUrl = "https://spoonacular.com/cdn/ingredients_100x100/${json['image']}";
@@ -118,7 +114,7 @@ class IngredientModel {
       quantity: (json['amount'] as num?)?.toDouble() ?? 0.0,
       unit: _parseUnitString(json['unit']),
       aisle: json['aisle'],
-      // Lưu ý: Spoonacular không trả về expiryDate, user phải tự nhập khi thêm vào kho
+      // Spoonacular không trả về expiryDate, user phải tự nhập khi thêm vào kho
       expiryDate: null,
       addedDate: DateTime.now(), // Mặc định là lúc gọi API
       imageUrl: imgUrl,
@@ -139,8 +135,6 @@ class IngredientModel {
     if (['tbsp', 'tsp', 'spoon', 'tablespoon', 'teaspoon'].any((e) => u.contains(e))) return MeasureUnit.spoon;
     if (['cup', 'cups'].contains(u)) return MeasureUnit.cup;
     if (['pcs', 'piece', 'pieces', 'slice', 'slices'].contains(u)) return MeasureUnit.piece;
-
-    // Nếu API trả về đơn vị lạ (oz, pound...), tạm thời quy về unknown hoặc piece
     return MeasureUnit.unknown;
   }
 }

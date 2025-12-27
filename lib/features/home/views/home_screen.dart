@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 // Đảm bảo import đúng đường dẫn file của bạn
 import '../../goi_y_mon_an/models/recipe_model.dart';
 import '../../kho_nguyen_lieu/models/ingredient_model.dart';
+import '../../thongbao/view/notification_screen.dart';
 import '../viewmodels/home_view_model.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -97,8 +98,13 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         IconButton(
-          onPressed: () {},
           icon: const Icon(Icons.notifications_outlined, size: 28),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const NotificationScreen()),
+            );
+          },
         ),
       ],
     );

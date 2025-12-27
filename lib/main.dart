@@ -1,12 +1,19 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'app_routes.dart';
 import 'features/goi_y_mon_an/viewmodels/recipe_view_model.dart';
 import 'features/home/viewmodels/home_view_model.dart';
+import 'features/thongbao/services/notification_service.dart';
+import 'firebase_options.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  await NotificationService().init();
   await dotenv.load(fileName: ".env");
   runApp(const BepTroLyApp());
 }
