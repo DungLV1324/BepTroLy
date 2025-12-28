@@ -17,7 +17,7 @@ class PantryItemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final IngredientModel model = itemMap['model'];
-
+    bool hasImage = model.imageUrl != null && model.imageUrl!.isNotEmpty;
     return Dismissible(
       key: Key(model.id),
       direction: DismissDirection.endToStart,
@@ -70,20 +70,49 @@ class PantryItemCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
 
-                // Icon nền
                 Container(
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: (itemMap['color'] as Color).withOpacity(0.1),
+                    // Nếu có ảnh thì để nền trong suốt, không có ảnh thì để nền màu nhạt
+                    color: hasImage
+                        ? Colors.transparent
+                        : (itemMap['color'] as Color).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(itemMap['icon'], color: itemMap['color'], size: 20),
-                ),
-                const SizedBox(width: 14),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12), // Bo góc cho ảnh
+                    child: hasImage
+                        ? Image.network(
+                      model.imageUrl!,
+                      fit: BoxFit.cover, // Cắt ảnh cho vừa khung vuông 44x44
 
+                      // Xử lý khi ảnh loading
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Center(
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: itemMap['color']
+                          ),
+                        );
+                      },
+
+                      // Xử lý khi ảnh bị lỗi (404, mất mạng) -> Hiện lại Icon cũ
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          color: (itemMap['color'] as Color).withOpacity(0.1),
+                          child: Icon(itemMap['icon'], color: itemMap['color'], size: 20),
+                        );
+                      },
+                    )
+                    // Nếu không có link ảnh ngay từ đầu -> Hiện Icon
+                        : Icon(itemMap['icon'], color: itemMap['color'], size: 20),
+                  ),
+                ),
+                const SizedBox(width: 16),
                 // Tên & Số lượng
                 Expanded(
                   child: Column(
