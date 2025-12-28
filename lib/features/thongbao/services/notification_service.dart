@@ -76,7 +76,7 @@ class NotificationService {
     required DateTime expiryDate,
   }) async {
     final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
-    final tz.TZDateTime scheduledTime = now.add(const Duration(seconds: 10));
+    final tz.TZDateTime scheduledTime = now.add(const Duration(seconds: 60));
 
     print("Đang đặt lịch thông báo vào lúc: $scheduledTime"); // Xem log để chắc chắn
 

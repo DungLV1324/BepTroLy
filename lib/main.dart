@@ -27,7 +27,7 @@ class BepTroLyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => HomeViewModel()),
         ChangeNotifierProvider(create: (_) => RecipeViewModel()),
-      ],
+        ],
       child: MaterialApp.router(
         title: 'Bếp Trợ Lý',
         debugShowCheckedModeBanner: false,
