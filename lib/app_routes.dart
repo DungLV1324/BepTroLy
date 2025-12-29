@@ -6,6 +6,7 @@ import 'package:beptroly/shared/layout/main_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'features/auth/views/login_screen.dart';
+import 'features/auth/views/login_email.dart' as login_email; // Đã sửa: Thêm bí danh
 import 'features/auth/views/register_screen.dart';
 import 'features/goi_y_mon_an/views/recipe_feed_screen.dart';
 import 'features/home/views/home_screen.dart';
@@ -28,6 +29,12 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/login',
       builder: (context, state) => const LoginScreen(),
+      routes: [
+        GoRoute(
+          path: 'email',
+          builder: (context, state) => const login_email.LoginScreen(),
+        ),
+      ],
     ),
     GoRoute(
       path: '/register',
@@ -60,7 +67,6 @@ final appRouter = GoRouter(
             ),
           ],
         ),
-        // Đã sửa: Gộp 2 branch của planner thành 1
         StatefulShellBranch(
           navigatorKey: _shellNavigatorPlannerKey,
           routes: [
@@ -68,9 +74,8 @@ final appRouter = GoRouter(
               path: '/planner',
               builder: (context, state) => const WeeklyMealPlannerScreen(),
               routes: [
-                // Route con cho màn hình thêm kế hoạch
                 GoRoute(
-                  path: 'add', // Đường dẫn sẽ là /planner/add
+                  path: 'add',
                   builder: (context, state) => const MealPlannerScreen(),
                 ),
               ],

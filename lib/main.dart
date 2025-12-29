@@ -1,15 +1,25 @@
-import 'features/home/viewmodels/splash_view_model.dart';
-import 'features/ke_hoach/viewmodels/shopping_list_view_model.dart';
+// Đã sửa: Sử dụng đúng tên package 'beptroly'
+import 'package:beptroly/firebase_options.dart';
+import 'package:beptroly/features/home/viewmodels/splash_view_model.dart';
+import 'package:beptroly/features/ke_hoach/viewmodels/shopping_list_view_model.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
-import 'app_routes.dart';
-import 'features/goi_y_mon_an/viewmodels/recipe_view_model.dart';
-import 'features/home/viewmodels/home_view_model.dart';
+import 'package:beptroly/app_routes.dart';
+import 'package:beptroly/features/goi_y_mon_an/viewmodels/recipe_view_model.dart';
+import 'package:beptroly/features/home/viewmodels/home_view_model.dart';
+import 'package:beptroly/features/auth/viewmodels/login_view_model.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
+
+  // Khởi tạo Firebase
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
   runApp(const BepTroLyApp());
 }
 
@@ -20,6 +30,7 @@ class BepTroLyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => LoginViewModel()),
         ChangeNotifierProvider(create: (_) => HomeViewModel()),
         ChangeNotifierProvider(create: (_) => RecipeViewModel()),
         ChangeNotifierProvider(create: (_) => ShoppingListViewModel()),
