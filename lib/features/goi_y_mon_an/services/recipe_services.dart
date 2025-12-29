@@ -55,7 +55,6 @@ class RecipeServices {
   Future<RecipeModel> getRecipeDetails(String id) async {
     if (_apiKey.isEmpty) throw Exception('Chưa cấu hình API Key');
 
-    // API lấy thông tin chi tiết: /recipes/{id}/information
     final Uri uri = Uri.parse(
       '$_baseUrl/recipes/$id/information?includeNutrition=false&apiKey=$_apiKey',
     );
@@ -68,7 +67,6 @@ class RecipeServices {
         final Map<String, dynamic> data = json.decode(response.body);
         print('✅ Đã lấy được chi tiết món: ${data['title']}');
 
-        // Sử dụng hàm fromSpoonacularDetail trong Model để parse dữ liệu đầy đủ
         return RecipeModel.fromSpoonacularDetail(data);
       } else if (response.statusCode == 402) {
         throw Exception('Hết lượt gọi API (402).');
@@ -81,56 +79,56 @@ class RecipeServices {
     }
   }
 
-  // 3. Tìm kiếm nâng cao (Complex Search) - Dùng cho Lọc (Filter), Search Bar, Trending...
+  // 3. Tìm kiếm nâng cao (Complex Search) - Kết nối bộ lọc Filter
   Future<List<RecipeModel>> searchRecipes({
     String? query,
-    String? type, // main course, side dish, dessert...
-    String? diet, // vegetarian, vegan, gluten free...
-    int? maxReadyTime, // phút
-    String? sort, // popularity, healthiness, time...
-    List<String>? includeIngredients, // Danh sách nguyên liệu có sẵn
+    String? type,
+    String? diet,
+    int? maxReadyTime,
+    String? sort,
+    List<String>? includeIngredients,
   }) async {
     if (_apiKey.isEmpty) throw Exception('API Key is missing');
 
-    // Xây dựng URL với các tham số
-    // addRecipeInformation=true để lấy luôn thông tin chi tiết (ảnh, thời gian...)
+    // Khởi tạo URL cơ bản
     String url =
-        '$_baseUrl/recipes/complexSearch?apiKey=$_apiKey&number=10&addRecipeInformation=true';
+        '$_baseUrl/recipes/complexSearch?apiKey=$_apiKey&number=10&addRecipeInformation=true&fillIngredients=true';
 
     if (query != null && query.isNotEmpty) url += '&query=$query';
     if (type != null && type.isNotEmpty) url += '&type=$type';
-    if (diet != null && diet.isNotEmpty) url += '&diet=$diet';
+
+    // Xử lý diet: Chỉ thêm vào API nếu giá trị khác 'None' và không rỗng
+    if (diet != null && diet.isNotEmpty && diet != 'None') {
+      url += '&diet=${diet.toLowerCase()}';
+    }
+
     if (maxReadyTime != null) url += '&maxReadyTime=$maxReadyTime';
     if (sort != null && sort.isNotEmpty) url += '&sort=$sort';
-
-    // Nếu có nguyên liệu, ưu tiên tìm món chứa nguyên liệu đó
     if (includeIngredients != null && includeIngredients.isNotEmpty) {
       url += '&includeIngredients=${includeIngredients.join(',')}';
-      url +=
-          '&sort=min-missing-ingredients'; // Sắp xếp theo số nguyên liệu thiếu ít nhất
+      url += '&sort=min-missing-ingredients';
     }
 
     try {
-      print('🌐 Gọi API Complex Search: $url');
+      print('🌐 Đang gọi API Complex Search (Filter): $url');
       final response = await http.get(Uri.parse(url));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final List<dynamic> results = data['results'];
 
-        print('✅ Complex Search tìm thấy ${results.length} kết quả');
+        print(
+          '✅ Complex Search tìm thấy ${results.length} món khớp với bộ lọc',
+        );
 
-        // Map dữ liệu trả về sang RecipeModel
-        // Lưu ý: complexSearch trả về cấu trúc hơi khác findByIngredients,
-        // nhưng nhờ addRecipeInformation=true nên dùng fromSpoonacularDetail là ổn nhất.
         return results
             .map((e) => RecipeModel.fromSpoonacularDetail(e))
             .toList();
       } else {
-        throw Exception('API Error: ${response.statusCode}');
+        throw Exception('Lỗi API Complex Search: ${response.statusCode}');
       }
     } catch (e) {
-      print('❌ Lỗi Search: $e');
+      print('❌ Lỗi kết nối Complex Search: $e');
       rethrow;
     }
   }

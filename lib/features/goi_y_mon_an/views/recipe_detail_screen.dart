@@ -65,7 +65,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
         });
       }
     } catch (e) {
-      print("Lỗi load chi tiết: $e");
+      debugPrint("Error loading recipe details: $e");
       if (mounted) setState(() => _isLoading = false);
     }
   }
@@ -266,7 +266,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                             ),
                             const SizedBox(height: 16),
 
-                            // --- 5. NỘI DUNG TAB (Không giới hạn chiều cao nữa) ---
+                            // --- 5. NỘI DUNG TAB ---
                             _isLoading
                                 ? const Center(
                                     child: CircularProgressIndicator(
@@ -321,7 +321,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
 
   Widget _buildIngredientsList(Color greenColor) {
     if (_fullRecipe.ingredients.isEmpty)
-      return const Center(child: Text("Không có thông tin nguyên liệu."));
+      return const Center(child: Text("No ingredient information available."));
 
     int totalCount = _fullRecipe.ingredients.length;
     int haveCount = 0;
@@ -331,8 +331,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
 
     bool hasAll = haveCount == totalCount && totalCount > 0;
     String statusText = hasAll
-        ? "Đủ nguyên liệu!"
-        : "Có sẵn $haveCount/$totalCount nguyên liệu";
+        ? "All ingredients ready!"
+        : "Available: $haveCount/$totalCount ingredients";
     Color badgeColor = hasAll ? Colors.green[50]! : Colors.orange[50]!;
     Color textColor = hasAll ? Colors.green[700]! : Colors.orange[700]!;
     IconData badgeIcon = hasAll ? Icons.check_circle : Icons.shopping_basket;
@@ -423,7 +423,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
 
   Widget _buildStepsList() {
     if (_fullRecipe.instructions.isEmpty)
-      return const Center(child: Text("Chưa có hướng dẫn chi tiết."));
+      return const Center(child: Text("No detailed instructions available."));
     return ListView.builder(
       physics: const NeverScrollableScrollPhysics(),
       shrinkWrap: true,

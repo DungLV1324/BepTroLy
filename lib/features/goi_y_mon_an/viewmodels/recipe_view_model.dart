@@ -1,9 +1,8 @@
-// File: lib/features/goi_y_mon_an/viewmodels/recipe_view_model.dart
-
 import 'package:flutter/material.dart';
 import '../models/recipe_model.dart';
 import '../services/recipe_services.dart';
 
+// Các trạng thái của màn hình
 enum RecipeViewState { idle, loading, success, error }
 
 class RecipeViewModel extends ChangeNotifier {
@@ -18,7 +17,7 @@ class RecipeViewModel extends ChangeNotifier {
   String _errorMessage = '';
   String get errorMessage => _errorMessage;
 
-  // 1. Hàm tìm gợi ý theo nguyên liệu (Dùng cho nút "Have Ingredients")
+  // 1. Hàm gợi ý theo nguyên liệu (Dành cho filter "Have Ingredients")
   Future<void> fetchSuggestedRecipes(List<String> ingredients) async {
     _setState(RecipeViewState.loading);
     try {
@@ -31,53 +30,50 @@ class RecipeViewModel extends ChangeNotifier {
       _recipes = result;
       _setState(RecipeViewState.success);
     } catch (e) {
+      debugPrint("Error in fetchSuggestedRecipes: $e");
       _errorMessage = e.toString();
       _setState(RecipeViewState.error);
     }
   }
 
-  // --- ĐÂY LÀ ĐOẠN BẠN ĐANG THIẾU ---
-  // 2. Hàm Lọc & Tìm kiếm (Đã sửa tên thành fetchRecipesWithFilter để khớp với View)
+  // 2. Hàm Lọc & Tìm kiếm nâng cao (Đã thêm tham số DIET)
   Future<void> fetchRecipesWithFilter({
     String? query,
-    String? time, // Nhận chuỗi '< 20 mins' từ View
+    String? time,
+    String? diet,
   }) async {
     _setState(RecipeViewState.loading);
     try {
-      List<RecipeModel> result = [];
-
-      // Xử lý tham số thời gian (Convert từ String sang int)
+      // --- XỬ LÝ THÔNG SỐ THỜI GIAN ---
       int? maxReadyTime;
-      if (time != null && time.contains('20')) {
-        maxReadyTime = 20;
+      if (time != null && time != 'All') {
+        final digits = time.replaceAll(RegExp(r'[^0-9]'), '');
+        maxReadyTime = int.tryParse(digits);
       }
 
-      // Logic:
-      // - Nếu có time -> Lọc theo time
-      // - Nếu không có time & không có query -> Mặc định là Trending (sort popularity)
-      // - Nếu có query -> Tìm theo từ khóa
-
+      // --- XỬ LÝ LOGIC SORT ---
       String? sortParam;
       if (maxReadyTime == null && (query == null || query.isEmpty)) {
-        sortParam = 'popularity'; // Logic cho Trending
+        sortParam = 'popularity';
       }
 
-      // Gọi API Complex Search trong Service
-      result = await _dataSource.searchRecipes(
-        query: query,
+      // --- GỌI SERVICE ---
+      _recipes = await _dataSource.searchRecipes(
+        query: query ?? '',
         maxReadyTime: maxReadyTime,
+        diet: (diet == 'None' || diet == null) ? null : diet,
         sort: sortParam,
       );
 
-      _recipes = result;
       _setState(RecipeViewState.success);
     } catch (e) {
+      debugPrint("Error in fetchRecipesWithFilter: $e");
       _errorMessage = e.toString();
       _setState(RecipeViewState.error);
     }
   }
-  // ----------------------------------
 
+  // Hàm cập nhật trạng thái và báo cho giao diện vẽ lại
   void _setState(RecipeViewState state) {
     _state = state;
     notifyListeners();
