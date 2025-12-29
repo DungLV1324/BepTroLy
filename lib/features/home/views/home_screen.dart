@@ -38,7 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildHeader(context), // Truyền context để điều hướng
+                  _buildHeader(context),
                   const SizedBox(height: 20),
                   _buildSearchBar(),
                   const SizedBox(height: 30),
@@ -67,7 +67,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
