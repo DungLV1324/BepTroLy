@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'app_routes.dart';
 import 'features/goi_y_mon_an/viewmodels/recipe_view_model.dart';
 import 'features/home/viewmodels/home_view_model.dart';
+import 'features/ke_hoach/viewmodels/shopping_list_view_model.dart';
 import 'features/thongbao/services/notification_service.dart';
 import 'firebase_options.dart';
 
@@ -27,7 +28,8 @@ class BepTroLyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => HomeViewModel()),
         ChangeNotifierProvider(create: (_) => RecipeViewModel()),
-        ],
+        ChangeNotifierProvider(create: (_) => ShoppingListViewModel()),
+      ],
       child: MaterialApp.router(
         title: 'Bếp Trợ Lý',
         debugShowCheckedModeBanner: false,
