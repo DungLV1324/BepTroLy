@@ -1,5 +1,6 @@
 import 'package:beptroly/features/home/views/splash_screen.dart';
 import 'features/ke_hoach/views/meal_planner_screen.dart';
+import 'features/ke_hoach/views/meal_planner_add.dart';
 import 'features/ke_hoach/views/shopping_list_screen.dart';
 import 'package:beptroly/shared/layout/main_scaffold.dart';
 import 'package:flutter/material.dart';
@@ -59,12 +60,20 @@ final appRouter = GoRouter(
             ),
           ],
         ),
+        // Đã sửa: Gộp 2 branch của planner thành 1
         StatefulShellBranch(
           navigatorKey: _shellNavigatorPlannerKey,
           routes: [
             GoRoute(
               path: '/planner',
-              builder: (context, state) => const MealPlannerScreen(),
+              builder: (context, state) => const WeeklyMealPlannerScreen(),
+              routes: [
+                // Route con cho màn hình thêm kế hoạch
+                GoRoute(
+                  path: 'add', // Đường dẫn sẽ là /planner/add
+                  builder: (context, state) => const MealPlannerScreen(),
+                ),
+              ],
             ),
           ],
         ),

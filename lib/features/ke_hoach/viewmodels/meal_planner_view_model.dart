@@ -1,7 +1,5 @@
 // lib/ke_hoach/viewmodels/meal_planner_view_model.dart
 import 'package:flutter/material.dart';
-import 'package:uuid/uuid.dart';
-// Đã sửa: Import thống nhất từ vị trí thư mục gốc (core)
 import '../../../core/constants/app_enums.dart';
 import '../models/meal_plan_model.dart';
 
@@ -32,14 +30,10 @@ class MealPlannerViewModel with ChangeNotifier {
 
   MealPlannerViewModel({MealPlanModel? initialPlan})
       : _plan = initialPlan ??
-      MealPlanModel(
-        date: DateTime.now(),
-        mealType: MealType.lunch,
-        recipeId: '',
-        recipeName: 'Chưa chọn món',
-        recipeImageUrl: '',
-        id: const Uuid().v4(),
-      );
+            MealPlanModel(
+              date: DateTime.now(),
+              mealType: MealType.lunch,
+            );
 
   MealPlanModel get plan => _plan;
   int get originalServings => _originalServings;
@@ -47,9 +41,6 @@ class MealPlannerViewModel with ChangeNotifier {
   void selectMeal(Meal meal) {
     _plan = _plan.copyWith(
       selectedMeal: meal,
-      recipeId: meal.id,
-      recipeName: meal.name,
-      recipeImageUrl: meal.imageUrl,
     );
     notifyListeners();
   }
@@ -57,9 +48,6 @@ class MealPlannerViewModel with ChangeNotifier {
   void removeMeal() {
     _plan = _plan.copyWith(
       selectedMeal: null,
-      recipeId: '',
-      recipeName: 'Chưa chọn món',
-      recipeImageUrl: '',
     );
     notifyListeners();
   }
@@ -109,25 +97,30 @@ class MealPlannerViewModel with ChangeNotifier {
     notifyListeners();
   }
 
-  void saveMealPlan() {
+  // Đã sửa: Chuyển sang Future<bool> để báo hiệu thành công
+  Future<bool> saveMealPlan() async {
     if (_plan.selectedMeal == null) {
       print('Lỗi: Cần chọn món ăn trước khi lưu.');
-      return;
+      return false; // Lưu thất bại
     }
 
     print('--- KẾ HOẠCH ĐÃ LƯU ---');
     print('ID: ${_plan.id}');
     print('Món: ${_plan.selectedMeal?.name ?? 'Không có món'}');
-    print('Ngày: ${_formatDate(_plan.date)}'); // Dùng hàm định dạng thủ công
+    print('Ngày: ${_formatDate(_plan.date)}');
     print('Buổi: ${_plan.mealType.toString().split('.').last}');
     print('Giờ: ${_plan.specificTime.hour.toString().padLeft(2, '0')}:${_plan.specificTime.minute.toString().padLeft(2, '0')}');
     print('Khẩu phần: ${_plan.servings}');
     print('Ghi chú: ${_plan.notes}');
     print('Lặp lại: ${_plan.repeatDays.entries.where((e) => e.value).map((e) => e.key).join(', ')}');
     print('-----------------------');
+
+    // Ở đây bạn có thể gọi API/Service để lưu trữ.
+    // Sau khi lưu thành công, trả về true.
+    await Future.delayed(const Duration(milliseconds: 500)); // Giả lập độ trễ mạng
+    return true; // Giả định lưu thành công
   }
 
-  // Hàm định dạng ngày tháng thủ công (cần cho việc in console/lưu trữ)
   String _formatDate(DateTime date) {
     final day = date.day.toString().padLeft(2, '0');
     final month = date.month.toString().padLeft(2, '0');
