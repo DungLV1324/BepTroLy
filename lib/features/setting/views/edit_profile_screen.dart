@@ -9,7 +9,6 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  // Controller để quản lý văn bản nhập vào
   final TextEditingController _nameController = TextEditingController(
     text: "User Name",
   );
@@ -34,7 +33,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               const Text(
-                "Thay đổi ảnh đại diện",
+                "Change Profile Picture",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 20),
@@ -43,9 +42,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   backgroundColor: Color(0xFFFFF0ED),
                   child: Icon(Icons.photo_library, color: Colors.deepOrange),
                 ),
-                title: const Text("Chọn từ thư viện"),
+                title: const Text("Choose from Gallery"),
                 onTap: () {
                   // TODO: Thư viện image_picker xử lý tại đây
+                  debugPrint("Picking image from gallery...");
                   context.pop();
                 },
               ),
@@ -54,9 +54,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   backgroundColor: Color(0xFFFFF0ED),
                   child: Icon(Icons.camera_alt, color: Colors.deepOrange),
                 ),
-                title: const Text("Chụp ảnh mới"),
+                title: const Text("Take a New Photo"),
                 onTap: () {
                   // TODO: Thư viện image_picker xử lý tại đây
+                  debugPrint("Opening camera...");
                   context.pop();
                 },
               ),
@@ -81,7 +82,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ),
         centerTitle: true,
         title: const Text(
-          'Chỉnh sửa hồ sơ',
+          'Edit Profile',
           style: TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
@@ -149,20 +150,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
             // 2. Các ô nhập liệu
             _buildTextField(
-              "Họ và tên",
-              "Nhập tên của bạn",
+              "Full Name",
+              "Enter your name",
               _nameController,
               false,
             ),
             _buildTextField(
-              "Email",
+              "Email Address",
               "email@example.com",
               _emailController,
               true,
             ),
             _buildTextField(
-              "Số điện thoại",
-              "Nhập số điện thoại",
+              "Phone Number",
+              "Enter phone number",
               _phoneController,
               false,
             ),
@@ -175,9 +176,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               height: 50,
               child: ElevatedButton(
                 onPressed: () {
+                  // Thông báo
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('Đã cập nhật thông tin thành công!'),
+                      content: Text('Profile updated successfully!'),
                     ),
                   );
                   context.pop();
@@ -190,7 +192,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   elevation: 2,
                 ),
                 child: const Text(
-                  "LƯU THAY ĐỔI",
+                  "SAVE CHANGES",
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,

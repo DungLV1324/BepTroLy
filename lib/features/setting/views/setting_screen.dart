@@ -1,5 +1,3 @@
-// File: lib/features/setting/views/setting_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
@@ -27,7 +25,7 @@ class SettingScreen extends StatelessWidget {
           ),
           centerTitle: true,
           title: const Text(
-            'Cài đặt',
+            'Settings',
             style: TextStyle(
               color: Colors.black,
               fontWeight: FontWeight.bold,
@@ -95,7 +93,7 @@ class SettingScreen extends StatelessWidget {
                             color: Colors.black,
                           ),
                           title: const Text(
-                            'Cảnh báo hết hạn',
+                            'Expiry Alerts',
                             style: TextStyle(fontWeight: FontWeight.w500),
                           ),
                           value: viewModel.isExpiryAlertOn,
@@ -119,7 +117,7 @@ class SettingScreen extends StatelessWidget {
                             color: Colors.black,
                           ),
                           title: const Text(
-                            'Chế độ tối',
+                            'Dark Mode',
                             style: TextStyle(fontWeight: FontWeight.w500),
                           ),
                           value: viewModel.isDarkModeOn,
@@ -132,7 +130,7 @@ class SettingScreen extends StatelessWidget {
                           endIndent: 16,
                         ),
 
-                        // Item: Edit Profile (ĐÃ BỔ SUNG ĐIỀU HƯỚNG)
+                        // Item: Edit Profile
                         ListTile(
                           leading: const Icon(
                             Icons.person_outline,
@@ -148,7 +146,6 @@ class SettingScreen extends StatelessWidget {
                             color: Colors.grey,
                           ),
                           onTap: () {
-                            // Gọi lệnh chuyển trang sang màn hình sửa hồ sơ
                             context.push('/edit_profile');
                           },
                         ),
@@ -175,7 +172,7 @@ class SettingScreen extends StatelessWidget {
                           Icon(Icons.logout, color: Colors.red),
                           SizedBox(width: 8),
                           Text(
-                            'Đăng xuất',
+                            'Log Out',
                             style: TextStyle(
                               color: Colors.red,
                               fontWeight: FontWeight.bold,
@@ -240,12 +237,12 @@ class SettingScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               const Text(
-                "Đăng xuất",
+                "Log Out",
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               Text(
-                "Bạn có chắc chắn muốn đăng xuất khỏi tài khoản không?",
+                "Are you sure you want to log out of your account?",
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.grey[600], fontSize: 15),
               ),
@@ -263,7 +260,7 @@ class SettingScreen extends StatelessWidget {
                         side: BorderSide(color: Colors.grey[300]!),
                       ),
                       child: const Text(
-                        "Hủy",
+                        "Cancel",
                         style: TextStyle(
                           color: Colors.black,
                           fontWeight: FontWeight.w600,
@@ -287,7 +284,7 @@ class SettingScreen extends StatelessWidget {
                         ),
                       ),
                       child: const Text(
-                        "Đồng ý",
+                        "Confirm",
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
