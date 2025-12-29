@@ -22,6 +22,7 @@ class MainScaffold extends StatelessWidget {
       body: navigationShell,
       bottomNavigationBar: NavigationBar(
         selectedIndex: navigationShell.currentIndex,
+        onDestinationSelected: _goBranch,
         indicatorColor: const Color(0xFFFF7043).withOpacity(0.2),
 
         destinations: const [

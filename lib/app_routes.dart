@@ -1,16 +1,20 @@
 import 'features/goi_y_mon_an/models/recipe_model.dart';
 import 'features/goi_y_mon_an/views/recipe_detail_screen.dart';
 import 'package:beptroly/features/home/views/splash_screen.dart';
+import 'features/ke_hoach/views/meal_planner_add.dart';
 import 'features/ke_hoach/views/meal_planner_screen.dart';
 import 'features/ke_hoach/views/shopping_list_screen.dart';
 import 'package:beptroly/shared/layout/main_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'features/auth/views/login_screen.dart';
+import 'features/auth/views/login_email.dart' as login_email; // Đã sửa: Thêm bí danh
 import 'features/auth/views/register_screen.dart';
 import 'features/goi_y_mon_an/views/recipe_feed_screen.dart';
 import 'features/home/views/home_screen.dart';
 import 'features/kho_nguyen_lieu/views/pantry_screen.dart';
+import 'features/setting/views/edit_profile_screen.dart';
+import 'features/setting/views/setting_screen.dart';
 
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -21,7 +25,7 @@ final _shellNavigatorShoppingKey = GlobalKey<NavigatorState>(debugLabel: 'shellS
 
 final appRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
-  initialLocation: '/',
+  initialLocation: '/home',
   routes: [
     GoRoute(
       path: '/',
@@ -30,6 +34,12 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/login',
       builder: (context, state) => const LoginScreen(),
+      routes: [
+        GoRoute(
+          path: 'email',
+          builder: (context, state) => const login_email.LoginScreen(),
+        ),
+      ],
     ),
     GoRoute(
       path: '/register',
@@ -49,11 +59,6 @@ final appRouter = GoRouter(
       },
     ),
 
-    // Route Cài đặt
-    GoRoute(
-      path: '/settings',
-      builder: (context, state) => const SettingScreen(),
-    ),
     GoRoute(
       path: '/edit_profile',
       builder: (context, state) => const EditProfileScreen(),
@@ -106,9 +111,8 @@ final appRouter = GoRouter(
               path: '/planner',
               builder: (context, state) => const WeeklyMealPlannerScreen(),
               routes: [
-                // Route con cho màn hình thêm kế hoạch
                 GoRoute(
-                  path: 'add', // Đường dẫn sẽ là /planner/add
+                  path: 'add',
                   builder: (context, state) => const MealPlannerScreen(),
                 ),
               ],
@@ -129,7 +133,7 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: '/settings',
-      parentNavigatorKey: _rootNavigatorKey, // Quan trọng: Che BottomBar
+      parentNavigatorKey: _rootNavigatorKey,
       builder: (context, state) => const SettingScreen(),
     ),
   ],

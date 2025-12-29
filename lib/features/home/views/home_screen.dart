@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart'; // Import GoRouter
 import 'package:provider/provider.dart';
 import '../../goi_y_mon_an/models/recipe_model.dart';
 import '../../kho_nguyen_lieu/models/ingredient_model.dart';
-import '../../thong_bao/view/notification_screen.dart';
+import '../../thongbao/view/notification_screen.dart';
 import '../viewmodels/home_view_model.dart';
 
 class HomeScreen extends StatefulWidget {
