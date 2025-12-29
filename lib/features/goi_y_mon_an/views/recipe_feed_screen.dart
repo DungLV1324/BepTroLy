@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../viewmodels/recipe_view_model.dart';
+import 'package:go_router/go_router.dart';
+import 'dart:async';
+
+import 'package:beptroly/features/goi_y_mon_an/viewmodels/recipe_view_model.dart';
+import 'package:beptroly/features/goi_y_mon_an/models/recipe_model.dart';
+import 'package:beptroly/features/goi_y_mon_an/views/widgets/recipe_filter_sheet.dart';
 
 class RecipeFeedScreen extends StatefulWidget {
   const RecipeFeedScreen({super.key});
@@ -10,28 +15,97 @@ class RecipeFeedScreen extends StatefulWidget {
 }
 
 class _RecipeFeedScreenState extends State<RecipeFeedScreen> {
-  int _selectedFilter = 0;
-
+  // 1. PANTRY MOCK DATA (Tủ lạnh giả lập)
   final List<String> _myPantryIngredients = [
     'chicken',
     'egg',
     'tomato',
     'onion',
     'rice',
+    'bananas',
+    'oatmeal',
+    'peanut butter',
+    'sundried tomatoes',
+    'parsley',
+    'olive oil',
+    'basil',
+    'eggs',
   ];
 
+  int _selectedFilterIndex = 0;
+  Timer? _debounce;
+
   final List<Map<String, dynamic>> _filters = [
-    {'label': 'Trending', 'icon': null},
-    {'label': 'Under 20 mins', 'icon': Icons.access_time},
-    {'label': 'Have Ingredients', 'icon': Icons.check_circle_outline},
+    {'label': 'Trending', 'icon': Icons.whatshot, 'type': 'trending'},
+    {'label': 'Under 20 mins', 'icon': Icons.timer_outlined, 'type': 'time'},
+    {
+      'label': 'Have Ingredients',
+      'icon': Icons.check_circle_outline,
+      'type': 'pantry',
+    },
   ];
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<RecipeViewModel>().fetchSuggestedRecipes(_myPantryIngredients);
+      _loadDataForFilter(0);
     });
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  // --- HÀM MỞ BẢNG LỌC NÂNG CAO ---
+  Future<void> _openFilterSheet() async {
+    // Mở Bottom Sheet và đợi dữ liệu lọc trả về
+    final result = await showModalBottomSheet<Map<String, dynamic>>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const RecipeFilterSheet(),
+    );
+
+    // Nếu người dùng nhấn 'Apply Filters'
+    if (result != null) {
+      debugPrint("Selected filters: $result");
+
+      context.read<RecipeViewModel>().fetchRecipesWithFilter(
+        query: '',
+        time: result['maxReadyTime'] == 'All' ? '' : result['maxReadyTime'],
+        diet: result['diet'] == 'None' ? '' : result['diet'],
+      );
+    }
+  }
+
+  void _loadDataForFilter(int index) {
+    final viewModel = context.read<RecipeViewModel>();
+    final type = _filters[index]['type'];
+
+    if (type == 'pantry') {
+      viewModel.fetchSuggestedRecipes(_myPantryIngredients);
+    } else if (type == 'time') {
+      viewModel.fetchRecipesWithFilter(query: '', time: '< 20 mins');
+    } else {
+      viewModel.fetchRecipesWithFilter(query: '');
+    }
+  }
+
+  bool _checkInPantry(String name) {
+    return _myPantryIngredients.any(
+      (item) =>
+          name.toLowerCase().contains(item.toLowerCase()) ||
+          item.toLowerCase().contains(name.toLowerCase()),
+    );
+  }
+
+  String _calculateDifficulty(int minutes) {
+    if (minutes <= 0 || minutes <= 20) return 'Easy';
+    if (minutes <= 45) return 'Medium';
+    return 'Hard';
   }
 
   @override
@@ -39,42 +113,65 @@ class _RecipeFeedScreenState extends State<RecipeFeedScreen> {
     final viewModel = context.watch<RecipeViewModel>();
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => context.pop(),
+        ),
+        title: const Text(
+          "Recipe Suggestions",
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+      ),
       body: SafeArea(
         child: Column(
           children: [
+            // HEADER & SEARCH BAR
             Container(
               color: Colors.white,
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
-                        'Hôm nay bạn muốn\nnấu món gì? 🍳',
+                        'What do you want\nto cook today? ',
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
                           height: 1.3,
                         ),
                       ),
-                      CircleAvatar(
-                        backgroundColor: Colors.grey[100],
-                        child: const Text('😊', style: TextStyle(fontSize: 20)),
-                      ),
+                      const Text('🔍', style: TextStyle(fontSize: 24)),
                     ],
                   ),
                   const SizedBox(height: 20),
 
-                  // Search Bar
+                  // Ô TÌM KIẾM CÓ NÚT LỌC (Tune Icon)
                   TextField(
-                    onSubmitted: (value) {
+                    onChanged: (value) {
+                      if (_debounce?.isActive ?? false) _debounce!.cancel();
+                      _debounce = Timer(const Duration(milliseconds: 1000), () {
+                        context.read<RecipeViewModel>().fetchRecipesWithFilter(
+                          query: value,
+                        );
+                      });
                     },
                     decoration: InputDecoration(
-                      hintText: 'Tìm công thức...',
+                      hintText: 'Search recipes...',
                       prefixIcon: const Icon(Icons.search, color: Colors.grey),
+
+                      // NÚT Lọc
+                      suffixIcon: IconButton(
+                        icon: const Icon(Icons.tune, color: Colors.orange),
+                        onPressed: _openFilterSheet,
+                      ),
+
                       filled: true,
                       fillColor: Colors.grey[100],
                       border: OutlineInputBorder(
@@ -89,6 +186,7 @@ class _RecipeFeedScreenState extends State<RecipeFeedScreen> {
                   ),
                   const SizedBox(height: 16),
 
+                  // Filter Chips
                   SizedBox(
                     height: 40,
                     child: ListView.builder(
@@ -96,41 +194,43 @@ class _RecipeFeedScreenState extends State<RecipeFeedScreen> {
                       itemCount: _filters.length,
                       itemBuilder: (context, index) {
                         final filter = _filters[index];
-                        final isSelected = _selectedFilter == index;
+                        final isSelected = _selectedFilterIndex == index;
                         return Padding(
-                          padding: const EdgeInsets.only(right: 8),
+                          padding: const EdgeInsets.only(right: 10),
                           child: FilterChip(
-                            label: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                if (filter['icon'] != null) ...[
-                                  Icon(
-                                    filter['icon'],
-                                    size: 16,
-                                    color: isSelected
-                                        ? Colors.white
-                                        : Colors.grey[700],
-                                  ),
-                                  const SizedBox(width: 4),
-                                ],
-                                Text(filter['label']),
-                              ],
+                            showCheckmark: false,
+                            avatar: Icon(
+                              filter['icon'],
+                              size: 18,
+                              color: isSelected
+                                  ? Colors.white
+                                  : Colors.grey[600],
                             ),
-                            selected: isSelected,
-                            onSelected: (selected) =>
-                                setState(() => _selectedFilter = index),
-                            backgroundColor: Colors.grey[100],
-                            selectedColor: Colors.orange[400],
+                            label: Text(filter['label']),
                             labelStyle: TextStyle(
                               color: isSelected
                                   ? Colors.white
                                   : Colors.grey[700],
                               fontWeight: FontWeight.w500,
                             ),
+                            selected: isSelected,
+                            selectedColor: Colors.orange,
+                            backgroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(20),
+                              side: BorderSide(
+                                color: isSelected
+                                    ? Colors.orange
+                                    : Colors.grey[300]!,
+                                width: 1,
+                              ),
                             ),
-                            showCheckmark: false,
+                            onSelected: (bool selected) {
+                              if (selected) {
+                                setState(() => _selectedFilterIndex = index);
+                                _loadDataForFilter(index);
+                              }
+                            },
                           ),
                         );
                       },
@@ -140,72 +240,61 @@ class _RecipeFeedScreenState extends State<RecipeFeedScreen> {
               ),
             ),
 
+            // RECIPE LIST
             Expanded(
               child: Builder(
                 builder: (context) {
-                  // 1. Trạng thái Loading
-                  if (viewModel.state == RecipeViewState.loading) {
+                  if (viewModel.state == RecipeViewState.loading)
                     return const Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          CircularProgressIndicator(color: Colors.orange),
-                          SizedBox(height: 10),
-                          Text("Đang hỏi đầu bếp Spoonacular..."),
-                        ],
-                      ),
+                      child: CircularProgressIndicator(color: Colors.orange),
                     );
-                  }
-
-                  if (viewModel.state == RecipeViewState.error) {
+                  if (viewModel.state == RecipeViewState.error)
                     return Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(20.0),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(Icons.error_outline, size: 48, color: Colors.red),
-                            const SizedBox(height: 10),
-                            Text(
-                              'Lỗi: ${viewModel.errorMessage}',
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(color: Colors.red),
-                            ),
-                            ElevatedButton(
-                              onPressed: () {
-                                context.read<RecipeViewModel>().fetchSuggestedRecipes(_myPantryIngredients);
-                              },
-                              child: const Text("Thử lại"),
-                            )
-                          ],
-                        ),
-                      ),
+                      child: Text('Error: ${viewModel.errorMessage}'),
                     );
-                  }
-
-                  if (viewModel.recipes.isEmpty) {
-                    return const Center(
-                      child: Text("Không tìm thấy món nào với nguyên liệu này!"),
-                    );
-                  }
+                  if (viewModel.recipes.isEmpty)
+                    return const Center(child: Text("No recipes found!"));
 
                   return ListView.builder(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
                     itemCount: viewModel.recipes.length,
                     itemBuilder: (context, index) {
                       final recipe = viewModel.recipes[index];
 
-                      return _RecipeCard(
-                        title: recipe.name,
-                        imageUrl: recipe.imageUrl,
+                      List<String> actualMissed = [];
+                      if (recipe.ingredients.isNotEmpty) {
+                        actualMissed = recipe.ingredients
+                            .where((ing) => !_checkInPantry(ing.name))
+                            .map((ing) => ing.name)
+                            .toList();
+                      } else if (recipe.missedIngredients.isNotEmpty) {
+                        actualMissed = recipe.missedIngredients
+                            .where((name) => !_checkInPantry(name))
+                            .toList();
+                      }
 
-                        time: recipe.cookingTimeMinutes > 0
-                            ? '${recipe.cookingTimeMinutes} phút'
-                            : 'Chi tiết xem sau',
+                      bool isFull =
+                          actualMissed.isEmpty &&
+                          (recipe.ingredients.isNotEmpty ||
+                              recipe.usedIngredientCount > 0);
 
-                        difficulty: 'Trung bình',
-                        usedCount: recipe.usedIngredientCount,
-                        totalCount: recipe.usedIngredientCount + recipe.missedIngredientCount,
+                      return GestureDetector(
+                        onTap: () =>
+                            context.push('/recipe_detail', extra: recipe),
+                        child: _RecipeCard(
+                          title: recipe.name,
+                          imageUrl: recipe.imageUrl,
+                          // FALLBACK: Không hiện See details
+                          time: recipe.cookingTimeMinutes > 0
+                              ? '${recipe.cookingTimeMinutes} mins'
+                              : '15 mins',
+                          difficulty: _calculateDifficulty(
+                            recipe.cookingTimeMinutes,
+                          ),
+                          hasAllIngredients: isFull,
+                          onBuyIngredients: () =>
+                              context.push('/shopping', extra: actualMissed),
+                        ),
                       );
                     },
                   );
@@ -219,129 +308,126 @@ class _RecipeFeedScreenState extends State<RecipeFeedScreen> {
   }
 }
 
+// --- WIDGET CARD ĐÃ ĐỒNG BỘ ---
 class _RecipeCard extends StatelessWidget {
   final String title;
   final String imageUrl;
   final String time;
   final String difficulty;
-  final int usedCount;
-  final int totalCount;
+  final bool hasAllIngredients;
+  final VoidCallback? onBuyIngredients;
 
   const _RecipeCard({
     required this.title,
     required this.imageUrl,
     required this.time,
     required this.difficulty,
-    this.usedCount = 0,
-    this.totalCount = 0,
+    this.hasAllIngredients = false,
+    this.onBuyIngredients,
   });
 
   @override
   Widget build(BuildContext context) {
-    final bool hasAllIngredients = totalCount > 0 && usedCount == totalCount;
+    String statusText = hasAllIngredients
+        ? 'Ingredients ready!'
+        : 'Needs ingredients';
+    Color statusColor = hasAllIngredients
+        ? Colors.green[700]!
+        : Colors.orange[700]!;
+    Color statusBg = hasAllIngredients ? Colors.green[50]! : Colors.orange[50]!;
+    IconData statusIcon = hasAllIngredients
+        ? Icons.check_circle
+        : Icons.shopping_basket;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+      margin: const EdgeInsets.only(bottom: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Recipe Image
           ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-            child: Container(
-              height: 180,
+            borderRadius: BorderRadius.circular(16),
+            child: Image.network(
+              imageUrl,
+              height: 200,
               width: double.infinity,
-              color: Colors.grey[300],
-              child: Image.network(
-                imageUrl,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.broken_image, size: 40, color: Colors.grey),
-                        Text("Lỗi ảnh", style: TextStyle(color: Colors.grey, fontSize: 12)),
-                      ],
-                    ),
-                  );
-                },
-              ),
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) =>
+                  Container(color: Colors.grey[200], height: 200),
             ),
           ),
-
-          // Recipe Info
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
+          const SizedBox(height: 12),
+          Text(
+            title,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              Icon(Icons.access_time, size: 16, color: Colors.grey[400]),
+              const SizedBox(width: 4),
+              Text(
+                time,
+                style: TextStyle(color: Colors.grey[500], fontSize: 13),
+              ),
+              const SizedBox(width: 12),
+              Icon(Icons.bar_chart, size: 16, color: Colors.grey[400]),
+              const SizedBox(width: 4),
+              Text(
+                difficulty,
+                style: TextStyle(color: Colors.grey[500], fontSize: 13),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
                   ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 8),
-
-                // Time and Difficulty
-                Row(
-                  children: [
-                    const Icon(Icons.access_time, size: 16, color: Colors.grey),
-                    const SizedBox(width: 4),
-                    Text(time, style: TextStyle(color: Colors.grey[600], fontSize: 14)),
-                    const SizedBox(width: 16),
-                    const Icon(Icons.bar_chart, size: 16, color: Colors.grey),
-                    const SizedBox(width: 4),
-                    Text(difficulty, style: TextStyle(color: Colors.grey[600], fontSize: 14)),
-                  ],
-                ),
-                const SizedBox(height: 12),
-
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(
-                    color: hasAllIngredients ? Colors.green[50] : Colors.orange[50],
-                    borderRadius: BorderRadius.circular(20),
+                    color: statusBg,
+                    borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
-                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
-                        hasAllIngredients ? Icons.check_circle : Icons.shopping_basket,
-                        size: 16,
-                        color: hasAllIngredients ? Colors.green[700] : Colors.orange[700],
-                      ),
-                      const SizedBox(width: 6),
+                      Icon(statusIcon, size: 16, color: statusColor),
+                      const SizedBox(width: 8),
                       Text(
-                        hasAllIngredients
-                            ? 'Đủ nguyên liệu!'
-                            : 'Có sẵn $usedCount/$totalCount nguyên liệu',
+                        statusText,
                         style: TextStyle(
-                          color: hasAllIngredients ? Colors.green[700] : Colors.orange[700],
-                          fontWeight: FontWeight.w600,
+                          color: statusColor,
+                          fontWeight: FontWeight.bold,
                           fontSize: 13,
                         ),
                       ),
                     ],
                   ),
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(width: 10),
+              // giỏ hàng
+              InkWell(
+                onTap: onBuyIngredients,
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFF5722),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.shopping_cart_outlined,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),

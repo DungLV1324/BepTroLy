@@ -1,41 +1,67 @@
-import 'package:beptroly/shared/layout/main_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:beptroly/shared/layout/main_scaffold.dart';
+
+// --- IMPORT CÁC MÀN HÌNH ---
 import 'features/auth/views/login_screen.dart';
 import 'features/auth/views/register_screen.dart';
-import 'features/goi_y_mon_an/views/recipe_feed_screen.dart';
 import 'features/home/views/home_screen.dart';
+import 'features/goi_y_mon_an/views/recipe_feed_screen.dart';
+import 'features/goi_y_mon_an/views/recipe_detail_screen.dart';
+import 'features/goi_y_mon_an/models/recipe_model.dart';
 import 'features/kho_nguyen_lieu/views/pantry_screen.dart';
+// Import các màn hình bạn đã có
+import 'features/ke_hoach/views/meal_planner_screen.dart';
+import 'features/ke_hoach/views/shopping_list_screen.dart';
+
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
-final _shellNavigatorHomeKey = GlobalKey<NavigatorState>(debugLabel: 'shellHome');
-final _shellNavigatorPantryKey = GlobalKey<NavigatorState>(debugLabel: 'shellPantry');
-final _shellNavigatorPlannerKey = GlobalKey<NavigatorState>(debugLabel: 'shellPlanner');
-final _shellNavigatorShoppingKey = GlobalKey<NavigatorState>(debugLabel: 'shellShopping');
+final _shellNavigatorHomeKey = GlobalKey<NavigatorState>(
+  debugLabel: 'shellHome',
+);
+final _shellNavigatorPantryKey = GlobalKey<NavigatorState>(
+  debugLabel: 'shellPantry',
+);
+final _shellNavigatorPlannerKey = GlobalKey<NavigatorState>(
+  debugLabel: 'shellPlanner',
+);
+final _shellNavigatorShoppingKey = GlobalKey<NavigatorState>(
+  debugLabel: 'shellShopping',
+);
 
 final appRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
   initialLocation: '/login',
   routes: [
-    GoRoute(
-      path: '/login',
-      builder: (context, state) => const LoginScreen(),
-    ),
-
+    // --- 1. MÀN HÌNH KHÔNG CÓ BOTTOM BAR (Full Screen) ---
+    GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
     GoRoute(
       path: '/register',
       builder: (context, state) => const RegisterScreen(),
     ),
 
+    // Gợi ý món ăn (Danh sách)
     GoRoute(
       path: '/recipes',
       builder: (context, state) => const RecipeFeedScreen(),
     ),
 
+    // Chi tiết món ăn (Đưa ra ngoài để khớp với lệnh push('/recipe_detail'))
+    GoRoute(
+      path: '/recipe_detail',
+      parentNavigatorKey: _rootNavigatorKey, // Che BottomBar
+      builder: (context, state) {
+        final recipe = state.extra as RecipeModel;
+        return RecipeDetailScreen(recipe: recipe);
+      },
+    ),
+
+    // --- 2. MÀN HÌNH CÓ BOTTOM BAR (Shell) ---
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
         return MainScaffold(navigationShell: navigationShell);
       },
       branches: [
+        // Tab 1: Home
         StatefulShellBranch(
           navigatorKey: _shellNavigatorHomeKey,
           routes: [
@@ -46,6 +72,7 @@ final appRouter = GoRouter(
           ],
         ),
 
+        // Tab 2: Tủ lạnh
         StatefulShellBranch(
           navigatorKey: _shellNavigatorPantryKey,
           routes: [
@@ -56,22 +83,27 @@ final appRouter = GoRouter(
           ],
         ),
 
+        // Tab 3: Lên lịch (Thay Placeholder bằng màn hình thật)
         StatefulShellBranch(
           navigatorKey: _shellNavigatorPlannerKey,
           routes: [
             GoRoute(
               path: '/planner',
-              builder: (context, state) => const Scaffold(body: Center(child: Text("Màn hình Lên lịch"))),
+              // Nếu chưa có file thật thì tạm dùng Scaffold, nếu có rồi thì đổi thành:
+              // builder: (context, state) => const MealPlannerScreen(),
+              builder: (context, state) => const MealPlannerScreen(),
             ),
           ],
         ),
 
+        // Tab 4: Mua sắm (Thay Placeholder bằng màn hình thật)
         StatefulShellBranch(
           navigatorKey: _shellNavigatorShoppingKey,
           routes: [
             GoRoute(
               path: '/shopping',
-              builder: (context, state) => const Scaffold(body: Center(child: Text("Màn hình Mua sắm"))),
+              // builder: (context, state) => const ShoppingListScreen(),
+              builder: (context, state) => const ShoppingListScreen(),
             ),
           ],
         ),
