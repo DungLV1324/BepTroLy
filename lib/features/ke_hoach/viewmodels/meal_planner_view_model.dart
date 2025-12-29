@@ -1,4 +1,3 @@
-// lib/ke_hoach/viewmodels/meal_planner_view_model.dart
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_enums.dart';
 import '../models/meal_plan_model.dart';

@@ -341,8 +341,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
               return GestureDetector(
                 onTap: () {
-                  // Navigate sang màn hình chi tiết món ăn (nếu có)
-                  // Hoặc chuyển tab sang Recipes
+                  context.push('/recipe_detail', extra: item);
                   print("Click vào món: ${item.name}");
                 },
                 child: Container(
@@ -429,7 +428,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               // Missing Ingredients Logic
                               if (item.missedIngredientCount > 0)
                                 Text(
-                                  'Thiếu ${item.missedIngredientCount} nguyên liệu',
+                                  'Lack ${item.missedIngredientCount} ingredient',
                                   style: const TextStyle(
                                       color: Colors.redAccent,
                                       fontSize: 12,
@@ -438,7 +437,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 )
                               else
                                 const Text(
-                                  'Đủ nguyên liệu!',
+                                  'Enough ingredients!',
                                   style: TextStyle(
                                       color: Colors.green,
                                       fontSize: 12,

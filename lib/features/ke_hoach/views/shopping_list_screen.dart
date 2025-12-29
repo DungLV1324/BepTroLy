@@ -1,9 +1,8 @@
-// lib/views/shopping_list_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/shopping_list_view_model.dart';
 import '../models/shopping_item_model.dart';
-import '../../../core/constants/app_enums.dart'; // Đảm bảo import đúng
+import '../../../core/constants/app_enums.dart';
 
 class ShoppingListScreen extends StatelessWidget {
   const ShoppingListScreen({super.key});
