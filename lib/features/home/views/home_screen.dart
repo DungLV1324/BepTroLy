@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-
 import '../../goi_y_mon_an/models/recipe_model.dart';
 import '../../kho_nguyen_lieu/models/ingredient_model.dart';
 import '../../thongbao/view/notification_screen.dart';
@@ -39,13 +38,13 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildHeader(context), // Truyền context để chuyển trang
+                  _buildHeader(context),
                   const SizedBox(height: 20),
                   _buildSearchBar(),
                   const SizedBox(height: 30),
 
                   _buildSectionHeader('Sắp hết hạn', () {
-                    context.push('/pantry'); // Vào Tủ lạnh
+                    context.go('/pantry');
                   }),
                   const SizedBox(height: 15),
                   _buildExpiringList(viewModel.expiringIngredients),
@@ -53,7 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 30),
 
                   _buildSectionHeader('Gợi ý cho bạn', () {
-                    context.push('/recipes'); // Vào màn Gợi ý (Xem tất cả)
+                    context.go('/home/recipes');
                   }),
                   const SizedBox(height: 15),
                   _buildRecipeList(viewModel.recommendedRecipes),
@@ -68,7 +67,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // --- 1. SỬA HEADER: Thêm sự kiện bấm Avatar -> Settings ---
   Widget _buildHeader(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -208,8 +206,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) {
                               return const Icon(
-                                Icons.broken_image,
+                                Icons.eco,
                                 color: Colors.orange,
+                                size: 30,
                               );
                             },
                           )
@@ -241,7 +240,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // --- 2. SỬA LIST MÓN ĂN: Thêm GestureDetector để bấm xem chi tiết ---
   Widget _buildRecipeList(List<RecipeModel> recipes) {
     if (recipes.isEmpty) {
       return const Text("Chưa có gợi ý nào.");
@@ -256,7 +254,6 @@ class _HomeScreenState extends State<HomeScreen> {
         itemBuilder: (context, index) {
           final item = recipes[index];
 
-          // Logic kiểm tra ảnh (Giữ nguyên của bạn)
           ImageProvider imageProvider;
           if (item.imageUrl.startsWith('http')) {
             imageProvider = NetworkImage(item.imageUrl);
@@ -264,11 +261,11 @@ class _HomeScreenState extends State<HomeScreen> {
             imageProvider = AssetImage(item.imageUrl);
           }
 
-          // BỌC CONTAINER BẰNG GESTURE DETECTOR
+          // 2. Logic điều hướng (Từ code cũ - Stashed)
           return GestureDetector(
             onTap: () {
-              // Chuyển trang sang Chi tiết (Đúng route /recipe_detail)
-              context.push('/recipe_detail', extra: item);
+              // Chuyển sang màn hình chi tiết món ăn
+              context.push('/home/recipe_detail', extra: item);
             },
             child: Container(
               width: 220,
@@ -296,7 +293,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               top: Radius.circular(20),
                             ),
                             image: DecorationImage(
-                              image: imageProvider,
+                              image: imageProvider, // Sử dụng provider đã xử lý
                               fit: BoxFit.cover,
                               onError: (e, s) => const Icon(Icons.broken_image),
                             ),

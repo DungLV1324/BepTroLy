@@ -1,4 +1,22 @@
-import '../../../../core/constants/app_enums.dart';
+// lib/ke_hoach/models/meal_plan_model.dart
+import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
+// Đã sửa: Điều chỉnh đường dẫn Import cho phù hợp với cấu trúc
+import '../../../core/constants/app_enums.dart';
+
+class Meal {
+  final String id;
+  final String name;
+  final String imageUrl;
+  final int preparationTimeMinutes;
+
+  const Meal({
+    required this.id,
+    required this.name,
+    required this.imageUrl,
+    required this.preparationTimeMinutes,
+  });
+}
 
 class MealPlanModel {
   final String id;
@@ -9,44 +27,27 @@ class MealPlanModel {
   final String recipeImageUrl;
   final bool isCooked;
 
+  final Meal? selectedMeal;
+  final int servings;
+  final TimeOfDay specificTime;
+  final String notes;
+  final Map<String, bool> repeatDays;
+
   MealPlanModel({
-    required this.id,
+    String? id,
     required this.date,
     required this.mealType,
     required this.recipeId,
     required this.recipeName,
     required this.recipeImageUrl,
     this.isCooked = false,
-  });
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'date': date.toIso8601String(),
-      'mealType': mealType.toString().split('.').last,
-      'recipeId': recipeId,
-      'recipeName': recipeName,
-      'recipeImageUrl': recipeImageUrl,
-      'isCooked': isCooked,
-    };
-  }
-
-  factory MealPlanModel.fromJson(Map<String, dynamic> json) {
-    return MealPlanModel(
-      id: json['id'] as String,
-      date: DateTime.parse(json['date']),
-
-      mealType: MealType.values.firstWhere(
-            (e) => e.toString().split('.').last == json['mealType'],
-        orElse: () => MealType.dinner,
-      ),
-
-      recipeId: json['recipeId'] as String,
-      recipeName: json['recipeName'] as String? ?? 'Món ăn',
-      recipeImageUrl: json['recipeImageUrl'] as String? ?? '',
-      isCooked: json['isCooked'] as bool? ?? false,
-    );
-  }
+    this.selectedMeal,
+    this.servings = 2,
+    this.specificTime = const TimeOfDay(hour: 12, minute: 0),
+    this.notes = '',
+    // T2, T3, T4, T5, T6, T7, CN
+    this.repeatDays = const {'T2': false, 'T3': false, 'T4': false, 'T5': false, 'T6': false, 'T7': false, 'CN': false},
+  }) : id = id ?? const Uuid().v4();
 
   MealPlanModel copyWith({
     String? id,
@@ -56,6 +57,11 @@ class MealPlanModel {
     String? recipeName,
     String? recipeImageUrl,
     bool? isCooked,
+    Meal? selectedMeal,
+    int? servings,
+    TimeOfDay? specificTime,
+    String? notes,
+    Map<String, bool>? repeatDays,
   }) {
     return MealPlanModel(
       id: id ?? this.id,
@@ -65,11 +71,11 @@ class MealPlanModel {
       recipeName: recipeName ?? this.recipeName,
       recipeImageUrl: recipeImageUrl ?? this.recipeImageUrl,
       isCooked: isCooked ?? this.isCooked,
+      selectedMeal: selectedMeal ?? this.selectedMeal,
+      servings: servings ?? this.servings,
+      specificTime: specificTime ?? this.specificTime,
+      notes: notes ?? this.notes,
+      repeatDays: repeatDays ?? this.repeatDays,
     );
-  }
-
-  bool get isToday {
-    final now = DateTime.now();
-    return date.year == now.year && date.month == now.month && date.day == now.day;
   }
 }

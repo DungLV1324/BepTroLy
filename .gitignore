@@ -1,3 +1,4 @@
+# Miscellaneous
 @@ -1,47 +1,67 @@
 # Built application files
 *.apk
@@ -24,8 +25,6 @@
 !.idea/copyright
 !.idea/codeStyles/
 
-# Java class files
-*.class
 # Visual Studio Code
 .vscode/
 
@@ -37,6 +36,7 @@ build/
 # Flutter / Dart
 .dart_tool/
 
+# IntelliJ / Android Studio
 # Flutter/Dart
 .packages
 .pub/
@@ -44,9 +44,6 @@ build/
 .flutter-plugins
 .flutter-plugins-dependencies
 pubspec.lock  # hoặc *.lock nếu muốn ignore tất cả
-build/
-.pub-cache/
-.pub/
 
 # Local configuration
 local.properties
@@ -58,11 +55,6 @@ android/key.properties
 **/*.jks
 **/*.keystore
 
-# IDE
-*.iml
-.idea/
-!.idea/copyright
-!.idea/codeStyles/
 # iOS (Rất quan trọng)
 ios/Flutter/App.framework
 ios/Flutter/Flutter.framework
@@ -72,17 +64,10 @@ ios/Flutter/app.zip
 ios/ServiceDefinitions.json
 ios/Runner/GeneratedPluginRegistrant.*
 
-# Gradle
-.gradle/
 # iOS - CocoaPods (Thư viện bên iOS)
 ios/Pods/
 ios/Podfile.lock
 
-# Misc
-.DS_Store
-_sandbox/
-captures/
-.env
 # macOS
 macos/Flutter/ephemeral/
 macos/Pods/
@@ -97,8 +82,5 @@ windows/flutter/ephemeral/
 # Linux
 linux/flutter/ephemeral/
 
-# Android/Kotlin
-android/.kotlin/
-android/app/release/
 # Environment variables (Bảo mật)
 .env
