@@ -1,13 +1,8 @@
-// lib/ke_hoach/views/meal_planner_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-// Loại bỏ import 'package:intl/intl.dart';
+import '../viewmodels/meal_planner_view_model.dart';import '../../../../core/constants/app_enums.dart';
+import 'package:go_router/go_router.dart';
 
-import '../viewmodels/meal_planner_view_model.dart';
-import '../models/meal_plan_model.dart';
-import '../../../../core/constants/app_enums.dart';
-
-// --- Khai báo màu sắc chung ---
 class AppColors {
   static const Color primaryGreen = Color(0xFF4CAF50);
   static const Color primaryRed = Color(0xFFE53935);
@@ -60,6 +55,20 @@ class AddMealPlanScreenContent extends StatelessWidget {
     return '$dayOfWeek, $day/$month/$year';
   }
 
+  Future<void> _handleSave(BuildContext context, MealPlannerViewModel viewModel) async {
+    final success = await viewModel.saveMealPlan();
+    // Kiểm tra context còn tồn tại trước khi sử dụng
+    if (success && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Lưu kế hoạch thành công!'),
+          backgroundColor: AppColors.primaryGreen,
+        ),
+      );
+      GoRouter.of(context).pop();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<MealPlannerViewModel>(
@@ -93,7 +102,7 @@ class AddMealPlanScreenContent extends StatelessWidget {
               _buildNoteSection(viewModel),
               const SizedBox(height: 16),
               _buildRepeatSection(context, viewModel),
-              const SizedBox(height: 100),
+              const SizedBox(height: 120),
             ],
           ),
           bottomNavigationBar: _buildBottomActions(context, viewModel, isMealSelected),
@@ -107,14 +116,14 @@ class AddMealPlanScreenContent extends StatelessWidget {
     return AppBar(
       backgroundColor: AppColors.background,
       elevation: 0,
-      leading: IconButton(icon: const Icon(Icons.arrow_back, color: AppColors.darkText), onPressed: () => Navigator.pop(context)),
+      leading: IconButton(icon: const Icon(Icons.arrow_back, color: AppColors.darkText), onPressed: () => GoRouter.of(context).pop()),
       centerTitle: true,
       title: const Text('Thêm kế hoạch', style: TextStyle(color: AppColors.darkText, fontSize: 18, fontWeight: FontWeight.w700)),
       actions: [
         Padding(
           padding: const EdgeInsets.only(right: 16.0),
           child: ElevatedButton(
-            onPressed: isMealSelected ? () => viewModel.saveMealPlan() : null,
+            onPressed: isMealSelected ? () => _handleSave(context, viewModel) : null,
             style: ElevatedButton.styleFrom(
               backgroundColor: isMealSelected ? AppColors.primaryGreen : AppColors.greyBackground,
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
@@ -129,7 +138,47 @@ class AddMealPlanScreenContent extends StatelessWidget {
     );
   }
 
-  // MARK: - Món ăn
+  // MARK: - Bottom Actions
+  Widget _buildBottomActions(BuildContext context, MealPlannerViewModel viewModel, bool isMealSelected) {
+    return Container(
+      padding: const EdgeInsets.all(16).copyWith(bottom: MediaQuery.of(context).padding.bottom + 16),
+      decoration: const BoxDecoration(
+        color: AppColors.background,
+        border: Border(top: BorderSide(width: 1, color: AppColors.greyDivider)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: OutlinedButton(
+              onPressed: () {},
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9999)),
+                side: const BorderSide(color: AppColors.primaryGreen, width: 1),
+              ),
+              child: const Text('Xem công thức', style: TextStyle(color: AppColors.primaryGreen, fontSize: 16, fontWeight: FontWeight.w700)),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: ElevatedButton(
+              // Đã sửa: Gọi _handleSave
+              onPressed: isMealSelected ? () => _handleSave(context, viewModel) : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryGreen,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9999)),
+                elevation: 4,
+                shadowColor: AppColors.primaryGreen.withOpacity(0.3),
+              ),
+              child: const Text('Lưu kế hoạch', style: TextStyle(color: AppColors.white, fontSize: 16, fontWeight: FontWeight.w700)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildMealLabel() {
     return const Text.rich(
       TextSpan(children: [TextSpan(text: 'Món ăn ', style: TextStyle(color: AppColors.greyText, fontSize: 16, fontWeight: FontWeight.w600)), TextSpan(text: '* ', style: TextStyle(color: AppColors.primaryRed, fontSize: 16, fontWeight: FontWeight.w600))]),
@@ -161,7 +210,7 @@ class AddMealPlanScreenContent extends StatelessWidget {
       decoration: _buildBoxDecoration(),
       child: Row(
         children: [
-          ClipRRect(borderRadius: BorderRadius.circular(16), child: Image.network(meal.imageUrl, width: 80, height: 80, fit: BoxFit.cover)),
+          ClipRRect(borderRadius: BorderRadius.circular(16), child: Image.asset(meal.imageUrl, width: 80, height: 80, fit: BoxFit.cover)), // Sửa thành Image.asset
           const SizedBox(width: 16),
           Expanded(
             child: Column(
@@ -227,8 +276,7 @@ class AddMealPlanScreenContent extends StatelessWidget {
   Widget _buildDateRow(BuildContext context, MealPlannerViewModel viewModel) {
     return _buildPlanDetailRow(
       icon: Icons.calendar_today,
-      title: const Text.rich(TextSpan(children: [TextSpan(text: 'Ngày nấu ', style: TextStyle(color: AppColors.darkText, fontSize: 16, fontWeight: FontWeight.w500)), TextSpan(text: '*', style: TextStyle(color: AppColors.primaryRed, fontSize: 16, fontWeight: FontWeight.w500))])),
-      // Đã sửa: Sử dụng hàm định dạng thủ công
+      title: const Text.rich(TextSpan(children: [TextSpan(text: 'Ngày nấu ', style: TextStyle(color: AppColors.darkText, fontSize: 16, fontWeight: FontWeight.w500)), TextSpan(text: '* ', style: TextStyle(color: AppColors.primaryRed, fontSize: 16, fontWeight: FontWeight.w500))])),
       value: Text(_formatDate(viewModel.plan.date), style: const TextStyle(color: AppColors.darkText, fontSize: 16, fontWeight: FontWeight.w500)),
       onTap: () async {
         final DateTime? picked = await showDatePicker(
@@ -480,45 +528,6 @@ class AddMealPlanScreenContent extends StatelessWidget {
     );
   }
 
-
-  Widget _buildBottomActions(BuildContext context, MealPlannerViewModel viewModel, bool isMealSelected) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: AppColors.background, border: Border(top: BorderSide(width: 1, color: AppColors.greyDivider))),
-      child: Row(
-        children: [
-          Expanded(
-            child: OutlinedButton(
-              onPressed: isMealSelected ? () {} : null,
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9999)),
-                side: BorderSide(color: isMealSelected ? AppColors.primaryGreen : AppColors.greyDivider, width: 1),
-              ),
-              child: Text('Xem công thức', style: TextStyle(color: isMealSelected ? AppColors.primaryGreen : AppColors.greyText, fontSize: 16, fontWeight: FontWeight.w700)),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: ElevatedButton(
-              onPressed: isMealSelected ? () => viewModel.saveMealPlan() : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: isMealSelected ? AppColors.primaryGreen : AppColors.greyBackground,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9999)),
-                elevation: isMealSelected ? 4 : 0,
-                shadowColor: AppColors.primaryGreen.withOpacity(0.3),
-              ),
-              child: Text('Lưu kế hoạch', style: TextStyle(color: isMealSelected ? AppColors.white : AppColors.greyText, fontSize: 16, fontWeight: FontWeight.w700)),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // MARK: - Dialogs
-
   void _showMealSelectionDialog(BuildContext context, MealPlannerViewModel viewModel) {
     showModalBottomSheet(
       context: context,
@@ -538,7 +547,7 @@ class AddMealPlanScreenContent extends StatelessWidget {
                   itemBuilder: (context, index) {
                     final meal = viewModel.availableMeals[index];
                     return ListTile(
-                      leading: ClipRRect(borderRadius: BorderRadius.circular(8), child: Image.network(meal.imageUrl, width: 50, height: 50, fit: BoxFit.cover)),
+                      leading: ClipRRect(borderRadius: BorderRadius.circular(8), child: Image.asset(meal.imageUrl, width: 50, height: 50, fit: BoxFit.cover)), // Sửa thành Image.asset
                       title: Text(meal.name),
                       subtitle: Text('${meal.preparationTimeMinutes} phút'),
                       onTap: () {
@@ -569,7 +578,7 @@ class AddMealPlanScreenContent extends StatelessWidget {
                 children: viewModel.plan.repeatDays.keys.map((day) {
                   return CheckboxListTile(
                     title: Text(day),
-                    value: viewModel.plan.repeatDays[day],
+                    value: viewModel.plan.repeatDays[day] ?? false,
                     onChanged: (bool? newValue) {
                       if (newValue != null) {
                         viewModel.toggleRepeatDay(day);

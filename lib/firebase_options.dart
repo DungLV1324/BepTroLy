@@ -67,6 +67,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '513391357564',
     projectId: 'bep-tro-ly',
     storageBucket: 'bep-tro-ly.firebasestorage.app',
+    iosClientId: '513391357564-bba32qqda79266caqvas90cf8b8qa8d5.apps.googleusercontent.com',
     iosBundleId: 'btl.tlu.beptroly',
   );
 
@@ -76,6 +77,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '513391357564',
     projectId: 'bep-tro-ly',
     storageBucket: 'bep-tro-ly.firebasestorage.app',
+    iosClientId: '513391357564-bba32qqda79266caqvas90cf8b8qa8d5.apps.googleusercontent.com',
     iosBundleId: 'btl.tlu.beptroly',
   );
 

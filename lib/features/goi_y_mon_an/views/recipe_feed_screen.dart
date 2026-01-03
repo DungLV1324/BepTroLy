@@ -15,7 +15,6 @@ class RecipeFeedScreen extends StatefulWidget {
 }
 
 class _RecipeFeedScreenState extends State<RecipeFeedScreen> {
-  // 1. PANTRY MOCK DATA (Tủ lạnh giả lập)
   final List<String> _myPantryIngredients = [
     'chicken',
     'egg',
@@ -240,7 +239,6 @@ class _RecipeFeedScreenState extends State<RecipeFeedScreen> {
               ),
             ),
 
-            // RECIPE LIST
             Expanded(
               child: Builder(
                 builder: (context) {
@@ -308,7 +306,6 @@ class _RecipeFeedScreenState extends State<RecipeFeedScreen> {
   }
 }
 
-// --- WIDGET CARD ĐÃ ĐỒNG BỘ ---
 class _RecipeCard extends StatelessWidget {
   final String title;
   final String imageUrl;

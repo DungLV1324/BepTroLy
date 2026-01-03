@@ -12,7 +12,20 @@
           "package_name": "btl.tlu.beptroly"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "513391357564-su0tv8m1elmvhbb20kekakf84072qvrn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "btl.tlu.beptroly",
+            "certificate_hash": "82975d601510c71bae33c11c733a6b300022dd1b"
+          }
+        },
+        {
+          "client_id": "513391357564-mu76q0vs60dhbum3qh7hmmhgc3to4pvc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDRHirYpIRICvKgBru_sE4ogOZLiHYQ4PQ"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "513391357564-mu76q0vs60dhbum3qh7hmmhgc3to4pvc.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "513391357564-bba32qqda79266caqvas90cf8b8qa8d5.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "btl.tlu.beptroly"
+              }
+            }
+          ]
         }
       }
     }

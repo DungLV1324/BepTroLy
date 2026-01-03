@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:go_router/go_router.dart'; // Import GoRouter
 import 'package:provider/provider.dart';
 import '../../goi_y_mon_an/models/recipe_model.dart';
 import '../../kho_nguyen_lieu/models/ingredient_model.dart';
@@ -71,9 +71,10 @@ class _HomeScreenState extends State<HomeScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        // Bọc InkWell để bấm được
         InkWell(
-          onTap: () => context.push('/settings'), // Chuyển sang Cài đặt
+          onTap: () {
+            context.push('/settings');
+          },
           borderRadius: BorderRadius.circular(30),
           child: Row(
             children: [
