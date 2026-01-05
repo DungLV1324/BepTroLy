@@ -33,7 +33,7 @@ class _Login_EmailState extends State<Login_Email> {
     final password = _passwordController.text.trim();
     if (email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui lòng nhập đầy đủ email và mật khẩu.')),
+        const SnackBar(content: Text('Please enter your full email and password.')),
       );
       return;
     }
@@ -71,7 +71,7 @@ class _Login_EmailState extends State<Login_Email> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Text(
-              'Đăng nhập bằng Email',
+              'Login With Email',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 28,
@@ -98,7 +98,7 @@ class _Login_EmailState extends State<Login_Email> {
             const SizedBox(height: 20),
             _buildTextField(
               controller: _passwordController,
-              hintText: 'Mật khẩu',
+              hintText: 'Password',
               icon: Icons.lock_outline,
               obscureText: true,
             ),
@@ -118,7 +118,7 @@ class _Login_EmailState extends State<Login_Email> {
                 child: viewModel.isLoading
                     ? const CircularProgressIndicator(color: Color(0xFF66BB6A))
                     : const Text(
-                        'Đăng nhập',
+                        'Login',
                         style: TextStyle(color: Color(0xFF66BB6A), fontSize: 16, fontWeight: FontWeight.bold),
                       ),
               ),
