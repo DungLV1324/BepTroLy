@@ -1,5 +1,3 @@
-// File: lib/features/goi_y_mon_an/views/recipe_detail_screen.dart
-
 import 'package:flutter/material.dart';
 import '../../kho_nguyen_lieu/models/ingredient_model.dart';
 import '../models/recipe_model.dart';

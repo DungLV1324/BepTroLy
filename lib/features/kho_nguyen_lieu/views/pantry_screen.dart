@@ -1,4 +1,11 @@
+import 'package:beptroly/features/kho_nguyen_lieu/views/widgets/add_ingredient_sheet.dart';
+import 'package:beptroly/features/kho_nguyen_lieu/views/widgets/pantry_empty_state.dart';
+import 'package:beptroly/features/kho_nguyen_lieu/views/widgets/pantry_item_card.dart';
 import 'package:flutter/material.dart';
+import '../../../shared/widgets/app_toast.dart';
+import '../../thongbao/services/notification_service.dart';
+import '../models/ingredient_model.dart';
+import '../view_models/pantry_view_model.dart';
 
 class PantryScreen extends StatefulWidget {
   const PantryScreen({super.key});
@@ -8,65 +15,63 @@ class PantryScreen extends StatefulWidget {
 }
 
 class _PantryScreenState extends State<PantryScreen> {
-  final List<Map<String, dynamic>> _pantryData = [
-    {
-      "category": "Dairy & Eggs",
-      "count": 3,
-      "items": [
-        {
-          "name": "Eggs",
-          "quantity": "6 count",
-          "daysLeft": -1,
-          "icon": Icons.egg_alt,
-          "color": const Color(0xFFFF4D4D),
-          "status": "Expired yesterday"
-        },
-        {
-          "name": "Milk",
-          "quantity": "1 Litre",
-          "daysLeft": 2,
-          "icon": Icons.local_drink,
-          "color": const Color(0xFFFFC107),
-          "status": "Expires in 2 days"
-        },
-        {
-          "name": "Cheddar Cheese",
-          "quantity": "200g",
-          "daysLeft": 14,
-          "icon": Icons.circle,
-          "color": const Color(0xFF4CAF50),
-          "status": "Expires in 14 days"
-        },
-      ]
-    },
-    {
-      "category": "Vegetables",
-      "count": 2,
-      "items": [
-        {
-          "name": "Broccoli",
-          "quantity": "1 head",
-          "daysLeft": 5,
-          "icon": Icons.grass,
-          "color": const Color(0xFF4CAF50),
-          "status": "Expires in 5 days"
-        },
-        {
-          "name": "Carrots",
-          "quantity": "500g",
-          "daysLeft": 3,
-          "icon": Icons.eco,
-          "color": const Color(0xFFFFC107),
-          "status": "Expires in 3 days"
-        },
-      ]
-    },
-    {
-      "category": "Meats",
-      "count": 0,
-      "items": []
+  final PantryViewModel _pantryViewModel = PantryViewModel();
+  final NotificationService _notificationService = NotificationService();
+
+  @override
+  void initState() {
+    super.initState();
+    _pantryViewModel.addListener(() {
+      if (mounted) setState(() {});
+
+    });_notificationService.requestPermissions();
+  }
+
+  void _handleAddNew() async {
+    final IngredientModel? result = await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) => const AddIngredientSheet(),
+    );
+
+    if (result != null) {
+      int notifId = result.name.hashCode;
+
+      // Setup Notification & Data
+      _notificationService.scheduleExpiryNotification(
+          id: notifId,
+          title: 'Expiring soon! ⚠️',
+          body: 'The item ${result.name} is about to expire.',
+          expiryDate: result.expiryDate!
+      );
+      _pantryViewModel.addNewIngredient(result);
+      await _pantryViewModel.logNotification(notifId, 'Expiring soon! ⚠️', 'The item ${result.name} is about to expire.', result.expiryDate!);
+
+      if (mounted) AppToast.show(context, ActionType.add, result.name);
     }
-  ];
+  }
+
+  // 2. Logic Sửa
+  void _handleEdit(IngredientModel model) async {
+    final IngredientModel? updatedItem = await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) => AddIngredientSheet(ingredientToEdit: model),
+    );
+
+    if (updatedItem != null) {
+      await _pantryViewModel.updateIngredient(model, updatedItem);
+      if (mounted) AppToast.show(context, ActionType.edit, updatedItem.name);
+    }
+  }
+
+  // 3. Logic Xóa
+  void _handleDelete(IngredientModel model) {
+    _pantryViewModel.deleteIngredient(model);
+    if (mounted) AppToast.show(context, ActionType.delete, model.name);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -92,57 +97,81 @@ class _PantryScreenState extends State<PantryScreen> {
         ),
       ),
 
+      // Nút mở sheet Add
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // TODO: Mở màn hình thêm nguyên liệu hoặc Quét mã vạch
-        },
         backgroundColor: const Color(0xFF2BEE79),
+        onPressed: _handleAddNew,
         child: const Icon(Icons.add, color: Colors.white, size: 28),
       ),
 
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-        child: Column(
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  )
-                ],
-              ),
-              child: TextField(
-                decoration: InputDecoration(
-                  hintText: 'Search ingredients...',
-                  hintStyle: const TextStyle(color: Color(0xFF6B7280)),
-                  prefixIcon: const Icon(Icons.search, color: Color(0xFF9FA2B4)),
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 14),
-                ),
-              ),
-            ),
+      body: StreamBuilder<List<Map<String, dynamic>>>(
+        stream: _pantryViewModel.pantryDataStream,
+        builder: (context, snapshot) {
+          // 1. Trạng thái đang tải
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-            const SizedBox(height: 24),
+          // 2. Trạng thái lỗi
+          if (snapshot.hasError) {
+            return Center(child: Text("An error occurred: ${snapshot.error}"));
+          }
 
-            ..._pantryData.map((category) {
-              return _buildCategorySection(category);
-            }).toList(),
+          // 3. Lấy dữ liệu
+          final pantryData = snapshot.data ?? [];
 
-            const SizedBox(height: 80),
-          ],
+          final int itemCount = pantryData.isEmpty ? 2 : pantryData.length + 1;
+
+          return ListView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+            itemCount: itemCount,
+            itemBuilder: (context, index) {
+
+              if (index == 0) {
+                return Column(
+                  children: [
+                    _buildSearchBar(),
+                    const SizedBox(height: 24),
+                  ],
+                );
+              }
+              if (pantryData.isEmpty) {
+                return PantryEmptyState(
+                  isSearching: _pantryViewModel.searchQuery.isNotEmpty,
+                  searchQuery: _pantryViewModel.searchQuery,
+                );
+              }
+              final categoryData = pantryData[index - 1];
+              return _buildCategorySection(categoryData);
+            }
+          );
+        },
+      ),
+    );
+  }
+
+// Có thể tách widget SearchBar ra file riêng luôn cho sạch, nhưng để đây cũng tạm ổn
+  Widget _buildSearchBar() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
+      ),
+      child: TextField(
+        onChanged: (val) => _pantryViewModel.search(val),
+        decoration: const InputDecoration(
+          hintText: 'Search ingredients...',
+          hintStyle: TextStyle(color: Color(0xFF6B7280)),
+          prefixIcon: Icon(Icons.search, color: Color(0xFF9FA2B4)),
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.symmetric(vertical: 14),
         ),
       ),
     );
   }
 
   Widget _buildCategorySection(Map<String, dynamic> data) {
-    final List<dynamic> items = data['items'];
-
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Theme(
@@ -152,118 +181,30 @@ class _PantryScreenState extends State<PantryScreen> {
           tilePadding: EdgeInsets.zero,
           title: Row(
             children: [
-              Text(
-                data['category'],
-                style: const TextStyle(
+              Text(data['category'], style: const TextStyle(
                   color: Color(0xFF1A1D26),
                   fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
+                  fontWeight: FontWeight.w700)),
               const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEEEEEE),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  data['count'].toString(),
-                  style: const TextStyle(
+                decoration: BoxDecoration(color: const Color(0xFFEEEEEE),
+                    borderRadius: BorderRadius.circular(10)),
+                child: Text(data['count'].toString(), style: const TextStyle(
                     color: Color(0xFF9FA2B4),
                     fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                    fontWeight: FontWeight.w600)),
               ),
             ],
           ),
-          children: items.map<Widget>((item) => _buildPantryItem(item)).toList(),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPantryItem(Map<String, dynamic> item) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 14),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          )
-        ],
-      ),
-      child: IntrinsicHeight(
-        child: Row(
-          children: [
-            Container(
-              width: 4,
-              decoration: BoxDecoration(
-                color: item['color'],
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(width: 12),
-
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: item['color'].withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                item['icon'],
-                color: item['color'],
-                size: 20,
-              ),
-            ),
-
-            const SizedBox(width: 14),
-
-            // Thông tin tên và số lượng
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    item['name'],
-                    style: const TextStyle(
-                      color: Color(0xFF1A1D26),
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    item['quantity'],
-                    style: const TextStyle(
-                      color: Color(0xFF9FA2B4),
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            Text(
-              item['status'],
-              style: TextStyle(
-                color: item['color'] == const Color(0xFF9FA2B4)
-                    ? const Color(0xFF9FA2B4)
-                    : item['color'],
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
+          // Sử dụng Widget con PantryItemCard
+          children: (data['items'] as List).map<Widget>((itemMap) {
+            return PantryItemCard(
+              itemMap: itemMap,
+              onDelete: _handleDelete, // Truyền hàm xử lý
+              onEdit: _handleEdit, // Truyền hàm xử lý
+            );
+          }).toList(),
         ),
       ),
     );

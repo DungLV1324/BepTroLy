@@ -1,13 +1,8 @@
-// lib/ke_hoach/views/meal_planner_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:go_router/go_router.dart'; // Đã thêm
+import '../viewmodels/meal_planner_view_model.dart';import '../../../../core/constants/app_enums.dart';
+import 'package:go_router/go_router.dart';
 
-import '../viewmodels/meal_planner_view_model.dart';
-import '../models/meal_plan_model.dart';
-import '../../../../core/constants/app_enums.dart';
-
-// --- Khai báo màu sắc chung ---
 class AppColors {
   static const Color primaryGreen = Color(0xFF4CAF50);
   static const Color primaryRed = Color(0xFFE53935);
@@ -60,7 +55,6 @@ class AddMealPlanScreenContent extends StatelessWidget {
     return '$dayOfWeek, $day/$month/$year';
   }
 
-  // Đã thêm: Hàm xử lý lưu và điều hướng
   Future<void> _handleSave(BuildContext context, MealPlannerViewModel viewModel) async {
     final success = await viewModel.saveMealPlan();
     // Kiểm tra context còn tồn tại trước khi sử dụng
@@ -108,7 +102,7 @@ class AddMealPlanScreenContent extends StatelessWidget {
               _buildNoteSection(viewModel),
               const SizedBox(height: 16),
               _buildRepeatSection(context, viewModel),
-              const SizedBox(height: 120), // Thêm khoảng trống cho bottom bar
+              const SizedBox(height: 120),
             ],
           ),
           bottomNavigationBar: _buildBottomActions(context, viewModel, isMealSelected),
@@ -129,7 +123,6 @@ class AddMealPlanScreenContent extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.only(right: 16.0),
           child: ElevatedButton(
-            // Đã sửa: Gọi _handleSave
             onPressed: isMealSelected ? () => _handleSave(context, viewModel) : null,
             style: ElevatedButton.styleFrom(
               backgroundColor: isMealSelected ? AppColors.primaryGreen : AppColors.greyBackground,
@@ -186,8 +179,6 @@ class AddMealPlanScreenContent extends StatelessWidget {
     );
   }
 
-  // ... (Các hàm build khác giữ nguyên) ...
-  // MARK: - Món ăn
   Widget _buildMealLabel() {
     return const Text.rich(
       TextSpan(children: [TextSpan(text: 'Món ăn ', style: TextStyle(color: AppColors.greyText, fontSize: 16, fontWeight: FontWeight.w600)), TextSpan(text: '* ', style: TextStyle(color: AppColors.primaryRed, fontSize: 16, fontWeight: FontWeight.w600))]),

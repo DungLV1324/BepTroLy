@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart'; // Import GoRouter
 import 'package:provider/provider.dart';
-
 import '../../goi_y_mon_an/models/recipe_model.dart';
 import '../../kho_nguyen_lieu/models/ingredient_model.dart';
-import '../../thong_bao/view/notification_screen.dart';
+import '../../thongbao/view/notification_screen.dart';
 import '../viewmodels/home_view_model.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -39,14 +38,12 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildHeader(context), // Truyền context để điều hướng
+                  _buildHeader(context),
                   const SizedBox(height: 20),
                   _buildSearchBar(),
                   const SizedBox(height: 30),
 
-                  // Section: Sắp hết hạn
                   _buildSectionHeader('Sắp hết hạn', () {
-                    // Điều hướng sang màn hình Tủ lạnh
                     context.go('/pantry');
                   }),
                   const SizedBox(height: 15),
@@ -54,9 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   const SizedBox(height: 30),
 
-                  // Section: Gợi ý món ăn
                   _buildSectionHeader('Gợi ý cho bạn', () {
-                    // Điều hướng sang màn hình Danh sách món ăn
                     context.go('/home/recipes');
                   }),
                   const SizedBox(height: 15),
@@ -76,12 +71,11 @@ class _HomeScreenState extends State<HomeScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        // Sự kiện ấn vào Avatar -> Mở Cài đặt
         InkWell(
           onTap: () {
             context.push('/settings');
           },
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(30),
           child: Row(
             children: [
               const CircleAvatar(
@@ -108,9 +102,8 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         IconButton(
-          icon: const Icon(Icons.notifications_outlined),
+          icon: const Icon(Icons.notifications_outlined, size: 28),
           onPressed: () {
-            // --- HÀM ĐIỀU HƯỚNG ---
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const NotificationScreen()),
@@ -165,7 +158,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // List: Nguyên liệu sắp hết hạn (Sử dụng code mới - hỗ trợ Asset Image)
   Widget _buildExpiringList(List<IngredientModel> ingredients) {
     if (ingredients.isEmpty) {
       return const Padding(
@@ -208,11 +200,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     shape: BoxShape.circle,
                     color: Color(0xFFFFF0E0),
                   ),
-                  // Logic hiển thị ảnh từ Code Mới (Upstream)
                   child: ClipOval(
                     child: (item.imageUrl != null && item.imageUrl!.isNotEmpty)
                         ? Image.asset(
-                            item.imageUrl!, // Load từ Assets local
+                            item.imageUrl!,
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) {
                               return const Icon(
@@ -250,7 +241,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // List: Gợi ý món ăn (Merge: Logic ảnh mới + Logic điều hướng cũ)
   Widget _buildRecipeList(List<RecipeModel> recipes) {
     if (recipes.isEmpty) {
       return const Text("Chưa có gợi ý nào.");
@@ -265,7 +255,6 @@ class _HomeScreenState extends State<HomeScreen> {
         itemBuilder: (context, index) {
           final item = recipes[index];
 
-          // 1. Logic kiểm tra ảnh (Từ code mới)
           ImageProvider imageProvider;
           if (item.imageUrl.startsWith('http')) {
             imageProvider = NetworkImage(item.imageUrl);

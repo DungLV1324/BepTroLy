@@ -1,4 +1,10 @@
 # Miscellaneous
+@@ -1,47 +1,67 @@
+# Built application files
+*.apk
+*.ap_
+*.aab
+# Miscellaneous
 *.class
 *.log
 *.pyc
@@ -9,6 +15,8 @@
 .history
 .svn/
 
+# Files for the dex VM
+*.dex
 # IntelliJ / Android Studio
 *.iml
 *.ipr
@@ -20,14 +28,25 @@
 # Visual Studio Code
 .vscode/
 
+# Generated files
+bin/
+gen/
+out/
+build/
 # Flutter / Dart
 .dart_tool/
+
+# IntelliJ / Android Studio
+# Flutter/Dart
+.packages
+.pub/
+.pub-cache/
 .flutter-plugins
 .flutter-plugins-dependencies
-build/
-.pub-cache/
-.pub/
+pubspec.lock  # hoặc *.lock nếu muốn ignore tất cả
 
+# Local configuration
+local.properties
 # Android
 android/local.properties
 android/.gradle
