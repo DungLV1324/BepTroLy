@@ -1,82 +1,131 @@
-// lib/ke_hoach/viewmodels/meal_planner_view_model.dart
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_enums.dart';
 import '../models/meal_plan_model.dart';
 
 class MealPlannerViewModel with ChangeNotifier {
-  final List<Meal> availableMeals = const [
-    Meal(
-      id: 'r1',
-      name: 'Salad ức gà và bơ',
-      imageUrl: 'assets/images/chicken_butter.jpg',
-      preparationTimeMinutes: 25,
-    ),
-    Meal(
-      id: 'r2',
-      name: 'Cá hồi áp chảo sốt chanh leo',
-      imageUrl: 'assets/images/alfredo.jpg',
-      preparationTimeMinutes: 40,
-    ),
-    Meal(
-      id: 'r3',
-      name: 'Súp bí đỏ kem tươi',
-      imageUrl: 'assets/images/bruschetta.jpg',
-      preparationTimeMinutes: 30,
-    ),
-  ];
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  List<Meal> _availableMeals = [];
+  List<Meal> get availableMeals => _availableMeals;
+
+  bool _isLoading = false;
+  bool get isLoading => _isLoading;
+
+  String? _errorMessage;
+  String? get errorMessage => _errorMessage;
 
   MealPlanModel _plan;
-  final int _originalServings = 3;
+  final List<Meal> _selectedMeals = [];
+  int _originalServings = 2;
 
   MealPlannerViewModel({MealPlanModel? initialPlan})
       : _plan = initialPlan ??
-            MealPlanModel(
-              date: DateTime.now(),
-              mealType: MealType.lunch,
-            );
+      MealPlanModel(
+        date: DateTime.now(),
+        mealType: MealType.lunch,
+      ) {
+    fetchRecipesFromFirebase();
+  }
 
   MealPlanModel get plan => _plan;
+  List<Meal> get selectedMeals => _selectedMeals;
   int get originalServings => _originalServings;
 
-  void selectMeal(Meal meal) {
-    _plan = _plan.copyWith(
-      selectedMeal: meal,
-    );
+  // LẤY DỮ LIỆU TỪ FIREBASE - KHỚP VỚI ẢNH CỦA BẠN
+  Future<void> fetchRecipesFromFirebase() async {
+    _isLoading = true;
+    _errorMessage = null; // Clear previous errors
     notifyListeners();
-  }
 
-  void removeMeal() {
-    _plan = _plan.copyWith(
-      selectedMeal: null,
-    );
-    notifyListeners();
-  }
+    try {
+      // KIỂM TRA: Tên collection trong ảnh của bạn là 'Recipes' (chữ R viết hoa)
+      final snapshot = await _db.collection('Recipes').get();
 
-  void selectDate(DateTime newDate) {
-    _plan = _plan.copyWith(date: newDate);
-    notifyListeners();
-  }
+      if (snapshot.docs.isEmpty) {
+        _errorMessage = 'CẢNH BÁO: Collection "Recipes" đang trống trên Firebase';
+        debugPrint(_errorMessage);
+      }
 
-  void setMealTime(MealType newType) {
-    TimeOfDay specificTime;
-    if (newType == MealType.breakfast) {
-      specificTime = const TimeOfDay(hour: 7, minute: 0);
-    } else if (newType == MealType.lunch) {
-      specificTime = const TimeOfDay(hour: 12, minute: 0);
-    } else if (newType == MealType.dinner) {
-      specificTime = const TimeOfDay(hour: 19, minute: 0);
-    } else {
-      specificTime = const TimeOfDay(hour: 16, minute: 0); // snack
+      _availableMeals = snapshot.docs.map((doc) {
+        final data = doc.data();
+
+        // MAPPING DỮ LIỆU TỪ ẢNH image_c58e6c.png
+        return Meal(
+          id: doc.id,
+          // Trong ảnh, tên món nằm ở trường 'title' chứ không phải 'description'
+          name: data['title'] ?? 'Món ăn không tên',
+          // Ảnh không có field image_url, tạm dùng placeholder
+          imageUrl: 'assets/images/placeholder.jpg',
+          // Trong ảnh dùng 'cooking_time'
+          preparationTimeMinutes: data['cooking_time'] ?? 0,
+          kcal: data['kcal'] ?? 0,
+        );
+      }).toList();
+
+      debugPrint('Thành công: Đã tải được ${availableMeals.length} món');
+    } catch (e) {
+      _errorMessage = 'Lỗi khi tải công thức: $e';
+      debugPrint(_errorMessage);
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
-    _plan = _plan.copyWith(mealType: newType, specificTime: specificTime);
+  }
+
+  // CÁC HÀM LƯU VÀ CẬP NHẬT (Giữ nguyên logic đã chạy tốt)
+  void selectMeal(Meal meal) {
+    if (!_selectedMeals.any((item) => item.id == meal.id)) {
+      _selectedMeals.add(meal);
+      notifyListeners();
+    }
+  }
+
+  void removeMeal(Meal meal) {
+    _selectedMeals.removeWhere((item) => item.id == meal.id);
     notifyListeners();
   }
 
-  void setSpecificTime(TimeOfDay newTime) {
-    _plan = _plan.copyWith(specificTime: newTime);
-    notifyListeners();
+  Future<bool> saveMealPlan() async {
+    final User? user = _auth.currentUser;
+    if (user == null || _selectedMeals.isEmpty) return false;
+
+    try {
+      _isLoading = true;
+      notifyListeners();
+
+      final planData = {
+        'date': Timestamp.fromDate(_plan.date),
+        'mealType': _plan.mealType.toString().split('.').last,
+        'specificTime': '${_plan.specificTime.hour}:${_plan.specificTime.minute}',
+        'servings': _plan.servings,
+        'notes': _plan.notes,
+        'repeatDays': _plan.repeatDays,
+        'meals': _selectedMeals.map((m) => {
+          'mealId': m.id,
+          'name': m.name,
+          'imageUrl': m.imageUrl,
+        }).toList(),
+        'createdAt': FieldValue.serverTimestamp(),
+      };
+
+      await _db.collection('users').doc(user.uid).collection('meal_plans').add(planData);
+      return true;
+    } catch (e) {
+      _errorMessage = 'Lỗi khi lưu kế hoạch: $e';
+      debugPrint(_errorMessage);
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
+  void selectDate(DateTime newDate) { _plan = _plan.copyWith(date: newDate); notifyListeners(); }
+  void setMealTime(MealType newType) { _plan = _plan.copyWith(mealType: newType); notifyListeners(); }
+  void setSpecificTime(TimeOfDay newTime) { _plan = _plan.copyWith(specificTime: newTime); notifyListeners(); }
   void changeServings(int delta) {
     final newServings = _plan.servings + delta;
     if (newServings > 0) {
@@ -84,47 +133,11 @@ class MealPlannerViewModel with ChangeNotifier {
       notifyListeners();
     }
   }
-
-  void updateNotes(String newNotes) {
-    _plan = _plan.copyWith(notes: newNotes);
-    notifyListeners();
-  }
-
+  void updateNotes(String newNotes) { _plan = _plan.copyWith(notes: newNotes); notifyListeners(); }
   void toggleRepeatDay(String day) {
-    final updatedRepeatDays = Map<String, bool>.from(_plan.repeatDays);
-    updatedRepeatDays[day] = !(updatedRepeatDays[day] ?? false);
-    _plan = _plan.copyWith(repeatDays: updatedRepeatDays);
+    final newRepeatDays = Map<String, bool>.from(_plan.repeatDays);
+    newRepeatDays[day] = !newRepeatDays[day]!;
+    _plan = _plan.copyWith(repeatDays: newRepeatDays);
     notifyListeners();
-  }
-
-  // Đã sửa: Chuyển sang Future<bool> để báo hiệu thành công
-  Future<bool> saveMealPlan() async {
-    if (_plan.selectedMeal == null) {
-      print('Lỗi: Cần chọn món ăn trước khi lưu.');
-      return false; // Lưu thất bại
-    }
-
-    print('--- KẾ HOẠCH ĐÃ LƯU ---');
-    print('ID: ${_plan.id}');
-    print('Món: ${_plan.selectedMeal?.name ?? 'Không có món'}');
-    print('Ngày: ${_formatDate(_plan.date)}');
-    print('Buổi: ${_plan.mealType.toString().split('.').last}');
-    print('Giờ: ${_plan.specificTime.hour.toString().padLeft(2, '0')}:${_plan.specificTime.minute.toString().padLeft(2, '0')}');
-    print('Khẩu phần: ${_plan.servings}');
-    print('Ghi chú: ${_plan.notes}');
-    print('Lặp lại: ${_plan.repeatDays.entries.where((e) => e.value).map((e) => e.key).join(', ')}');
-    print('-----------------------');
-
-    // Ở đây bạn có thể gọi API/Service để lưu trữ.
-    // Sau khi lưu thành công, trả về true.
-    await Future.delayed(const Duration(milliseconds: 500)); // Giả lập độ trễ mạng
-    return true; // Giả định lưu thành công
-  }
-
-  String _formatDate(DateTime date) {
-    final day = date.day.toString().padLeft(2, '0');
-    final month = date.month.toString().padLeft(2, '0');
-    final year = date.year;
-    return '$day/$month/$year';
   }
 }

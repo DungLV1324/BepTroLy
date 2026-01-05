@@ -1,54 +1,64 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../models/meal_plan_model.dart';
-import '../../../core/constants/app_enums.dart';
 
-// Đã sửa: Đổi tên ViewModel để tránh trùng lặp
 class WeeklyMealPlannerViewModel with ChangeNotifier {
-  List<DailyPlan> _weeklyPlans = [];
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  WeeklyMealPlannerViewModel() {
-    _generateDummyData();
-  }
+  List<DailyPlan> _weeklyPlans = [];
+  bool _isLoading = true;
 
   List<DailyPlan> get weeklyPlans => _weeklyPlans;
+  bool get isLoading => _isLoading;
 
-  void _generateDummyData() {
-    final monday = DateTime(2024, 12, 9);
-
-    _weeklyPlans = [
-      DailyPlan(
-        date: monday,
-        meals: [
-          // Đã sửa: Dữ liệu mẫu giờ đã gọn gàng hơn
-          MealPlanModel(
-            date: monday,
-            mealType: MealType.breakfast,
-            selectedMeal: const Meal(id: 'r1', name: 'Avocado Toast', imageUrl: 'https://picsum.photos/200', preparationTimeMinutes: 15, kcal: 350),
-          ),
-          MealPlanModel(
-            date: monday,
-            mealType: MealType.lunch, // Bữa trưa trống
-          ),
-          MealPlanModel(
-            date: monday,
-            mealType: MealType.dinner,
-            selectedMeal: const Meal(id: 'r2', name: 'Grilled Salmon', imageUrl: 'https://picsum.photos/201', preparationTimeMinutes: 20, kcal: 550),
-          ),
-        ],
-      ),
-      // Bạn có thể thêm các ngày khác tại đây...
-    ];
-    notifyListeners();
+  WeeklyMealPlannerViewModel() {
+    listenToMealPlans();
   }
 
-  void nextWeek() {
-    // Logic để tải dữ liệu của tuần tiếp theo
-    notifyListeners();
+  void listenToMealPlans() {
+    final user = _auth.currentUser;
+    if (user == null) {
+      _isLoading = false;
+      notifyListeners();
+      return;
+    }
+
+    _db.collection('users')
+        .doc(user.uid)
+        .collection('meal_plans')
+        .orderBy('date', descending: false)
+        .snapshots()
+        .listen((snapshot) {
+      final allPlans = snapshot.docs.map((doc) => MealPlanModel.fromFirestore(doc)).toList();
+      _weeklyPlans = _groupPlansByDate(allPlans);
+      _isLoading = false;
+      notifyListeners();
+    }, onError: (error) {
+      _isLoading = false;
+      notifyListeners();
+    });
   }
 
-  // Đã thêm: Hàm còn thiếu
-  void previousWeek() {
-    // Logic để tải dữ liệu của tuần trước đó
-    notifyListeners();
+  List<DailyPlan> _groupPlansByDate(List<MealPlanModel> plans) {
+    Map<String, List<MealPlanModel>> grouped = {};
+    for (var plan in plans) {
+      String dateKey = "${plan.date.day}/${plan.date.month}/${plan.date.year}";
+      if (grouped[dateKey] == null) grouped[dateKey] = [];
+      grouped[dateKey]!.add(plan);
+    }
+    final List<DailyPlan> dailyPlans = grouped.entries.map((e) => DailyPlan(date: e.value.first.date, meals: e.value)).toList();
+    dailyPlans.sort((a, b) => a.date.compareTo(b.date));
+    return dailyPlans;
   }
+
+  Future<void> deleteMealPlan(String planId) async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+    await _db.collection('users').doc(user.uid).collection('meal_plans').doc(planId).delete();
+  }
+
+  void nextWeek() { notifyListeners(); }
+  void previousWeek() { notifyListeners(); }
 }

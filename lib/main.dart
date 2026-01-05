@@ -10,7 +10,6 @@ import 'app_routes.dart';
 import 'features/goi_y_mon_an/viewmodels/recipe_view_model.dart';
 import 'features/home/viewmodels/home_view_model.dart';
 import 'features/thongbao/services/notification_service.dart';
-
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
