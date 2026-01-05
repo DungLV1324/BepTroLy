@@ -1,10 +1,8 @@
 import 'features/auth/viewmodels/login_view_model.dart';
 import 'features/home/viewmodels/splash_view_model.dart';
-import 'features/ke_hoach/viewmodels/shopping_list_view_model.dart';
+import 'features/Shopping/viewmodels/shopping_list_view_model.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:beptroly/firebase_options.dart';
-import 'features/home/viewmodels/splash_view_model.dart';
-import 'features/ke_hoach/viewmodels/shopping_list_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';

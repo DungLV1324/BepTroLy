@@ -5,12 +5,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AuthService {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn.standard(
-    scopes: ['email'],
-  );
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  static const String _userCollection = 'USERS';
+  static const String _userCollection = 'users';
 
   app_model.UserModel? get currentUser {
     final firebaseUser = _firebaseAuth.currentUser;
@@ -29,7 +27,6 @@ class AuthService {
       );
       if (credential.user != null) {
         await credential.user!.updateDisplayName(name);
-        // Lưu vào Firestore ngay khi đăng ký thành công
         await _saveUserToFirestore(credential.user!);
         await credential.user!.reload();
         return _mapFirebaseUser(_firebaseAuth.currentUser);
@@ -47,7 +44,6 @@ class AuthService {
           password: password
       );
       if (credential.user != null) {
-        // Cập nhật thông tin đăng nhập vào Firestore
         await _saveUserToFirestore(credential.user!);
       }
       return _mapFirebaseUser(credential.user);
@@ -59,8 +55,6 @@ class AuthService {
   Future<app_model.UserModel?> signInWithGoogle() async {
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-
-
       if (googleUser == null) return null;
 
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
@@ -77,6 +71,7 @@ class AuthService {
         return _mapFirebaseUser(firebaseUser);
       }
       return null;
+
     } on FirebaseAuthException catch (e) {
       throw _handleFirebaseAuthError(e);
     } catch (e) {
@@ -85,34 +80,24 @@ class AuthService {
     }
   }
 
-  // ĐÃ SỬA: Hàm lưu sử dụng 'USERS' và xử lý Map lồng nhau Pantry/meal_plans
   Future<void> _saveUserToFirestore(User firebaseUser) async {
-    try {
-      final userDocRef = _firestore.collection(_userCollection).doc(firebaseUser.uid);
-      final doc = await userDocRef.get();
+    final userDocRef = _firestore.collection(_userCollection).doc(firebaseUser.uid);
+    final doc = await userDocRef.get();
 
-      if (!doc.exists) {
-        // Nếu là người dùng mới, khởi tạo cấu trúc Map như trong ảnh của bạn
-        await userDocRef.set({
-          'uid': firebaseUser.uid,
-          'email': firebaseUser.email,
-          'displayName': firebaseUser.displayName ?? 'Người dùng',
-          'photoUrl': firebaseUser.photoURL ?? '',
-          'lastLogin': FieldValue.serverTimestamp(),
-          'createdAt': FieldValue.serverTimestamp(),
-          'Pantry': {}, // Khởi tạo Map rỗng cho kho nguyên liệu
-          'meal_plans': {}, // Khởi tạo Map rỗng cho kế hoạch bữa ăn
-        });
-      } else {
-        // Nếu đã tồn tại, chỉ cập nhật thời gian đăng nhập để không ghi đè dữ liệu cũ
-        await userDocRef.update({
-          'lastLogin': FieldValue.serverTimestamp(),
-        });
-      }
-    } catch (e) {
-      // Bắt lỗi Permission Denied nếu Security Rules chưa cho phép ghi vào 'USERS'
-      print('Firestore Save Error: $e');
-      throw 'Không có quyền cập nhật dữ liệu hệ thống.';
+    if (!doc.exists) {
+      await userDocRef.set({
+        'uid': firebaseUser.uid,
+        'email': firebaseUser.email,
+        'displayName': firebaseUser.displayName ?? 'Người dùng',
+        'photoUrl': firebaseUser.photoURL ?? '',
+        'lastLogin': FieldValue.serverTimestamp(),
+        'createdAt': FieldValue.serverTimestamp(),
+
+      });
+    } else {
+      await userDocRef.update({
+        'lastLogin': FieldValue.serverTimestamp(),
+      });
     }
   }
 
@@ -123,7 +108,6 @@ class AuthService {
         if (name != null) await firebaseUser.updateDisplayName(name);
         if (photoUrl != null) await firebaseUser.updatePhotoURL(photoUrl);
 
-        // Cập nhật cả trong Collection 'USERS'
         await _firestore.collection(_userCollection).doc(firebaseUser.uid).update({
           if (name != null) 'displayName': name,
           if (photoUrl != null) 'photoUrl': photoUrl,
@@ -147,7 +131,6 @@ class AuthService {
     }
   }
 
-
   app_model.UserModel? _mapFirebaseUser(User? firebaseUser) {
     if (firebaseUser == null) return null;
     return app_model.UserModel(
@@ -158,10 +141,11 @@ class AuthService {
     );
   }
 
+  // Đã sửa: Bổ sung các mã lỗi
   String _handleFirebaseAuthError(FirebaseAuthException e) {
     switch (e.code) {
       case 'invalid-credential':
-        return 'Thông tin đăng nhập không chính xác hoặc đã hết hạn.'; // Sửa lỗi trong ảnh
+        return 'Thông tin đăng nhập không chính xác hoặc đã hết hạn.';
       case 'user-not-found':
         return 'Tài khoản chưa được đăng ký.';
       case 'wrong-password':
@@ -170,8 +154,14 @@ class AuthService {
         return 'Email này đã được sử dụng.';
       case 'network-request-failed':
         return 'Lỗi kết nối mạng.';
+      case 'user-disabled':
+        return 'Tài khoản này đã bị khóa.';
+      case 'invalid-email':
+        return 'Email không hợp lệ.';
+      case 'operation-not-allowed':
+        return 'Phương thức đăng nhập này chưa được cho phép.';
       default:
-        return 'Lỗi xác thực: ${e.message}';
+        return 'Lỗi hệ thống: ${e.message}'; // Hiển thị lỗi gốc từ Firebase
     }
   }
 }

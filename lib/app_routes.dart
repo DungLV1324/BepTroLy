@@ -3,12 +3,12 @@ import 'features/goi_y_mon_an/views/recipe_detail_screen.dart';
 import 'package:beptroly/features/home/views/splash_screen.dart';
 import 'features/ke_hoach/views/meal_planner_add.dart';
 import 'features/ke_hoach/views/meal_planner_screen.dart';
-import 'features/ke_hoach/views/shopping_list_screen.dart';
+import 'features/Shopping/views/shopping_list_screen.dart';
 import 'package:beptroly/shared/layout/main_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'features/auth/views/login_screen.dart';
-import 'features/auth/views/login_email.dart' as login_email; // Đã sửa: Thêm bí danh
+import 'features/auth/views/login_email.dart' as login_email;
 import 'features/auth/views/register_screen.dart';
 import 'features/goi_y_mon_an/views/recipe_feed_screen.dart';
 import 'features/home/views/home_screen.dart';
@@ -25,7 +25,7 @@ final _shellNavigatorShoppingKey = GlobalKey<NavigatorState>(debugLabel: 'shellS
 
 final appRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
-  initialLocation: '/home',
+  initialLocation: '/',
   routes: [
     GoRoute(
       path: '/',
