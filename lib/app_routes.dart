@@ -25,7 +25,7 @@ final _shellNavigatorShoppingKey = GlobalKey<NavigatorState>(debugLabel: 'shellS
 
 final appRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
-  initialLocation: '/',
+  initialLocation: '/home',
   routes: [
     GoRoute(
       path: '/',

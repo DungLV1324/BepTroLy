@@ -5,7 +5,7 @@
     <application
         android:label="beptroly"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@drawable/icon_app">
         <activity
             android:name=".MainActivity"
             android:exported="true"
