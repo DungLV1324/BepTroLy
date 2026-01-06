@@ -91,7 +91,7 @@ class ExpiringList extends StatelessWidget {
             ? Image.network(
           item.imageUrl!,
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => _buildFallbackIcon(),
+          errorBuilder: (_, _, _) => _buildFallbackIcon(),
         )
             : _buildFallbackIcon(),
       ),

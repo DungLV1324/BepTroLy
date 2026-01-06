@@ -25,7 +25,7 @@ final _shellNavigatorShoppingKey = GlobalKey<NavigatorState>(debugLabel: 'shellS
 
 final appRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
-  initialLocation: '/home',
+  initialLocation: '/',
   routes: [
     GoRoute(
       path: '/',
@@ -52,7 +52,7 @@ final appRouter = GoRouter(
 
     GoRoute(
       path: '/recipe_detail',
-      parentNavigatorKey: _rootNavigatorKey, // Che BottomBar
+      parentNavigatorKey: _rootNavigatorKey,
       builder: (context, state) {
         final recipe = state.extra as RecipeModel;
         return RecipeDetailScreen(recipe: recipe);
@@ -83,7 +83,7 @@ final appRouter = GoRouter(
                 GoRoute(
                   path: 'recipe_detail',
                   parentNavigatorKey:
-                      _rootNavigatorKey, // Che BottomBar khi xem chi tiết (Tùy chọn)
+                      _rootNavigatorKey,
                   builder: (context, state) {
                     final recipe = state.extra as RecipeModel;
                     return RecipeDetailScreen(recipe: recipe);

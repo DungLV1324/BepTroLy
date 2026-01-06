@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../thongbao/view/notification_screen.dart';
 
@@ -6,11 +7,7 @@ class HomeHeader extends StatelessWidget {
   final String userName;
   final String? photoUrl;
 
-  const HomeHeader({
-    super.key,
-    required this.userName,
-    this.photoUrl,
-  });
+  const HomeHeader({super.key, required this.userName, this.photoUrl});
 
   @override
   Widget build(BuildContext context) {
@@ -19,17 +16,22 @@ class HomeHeader extends StatelessWidget {
       children: [
         Row(
           children: [
-            CircleAvatar(
-              radius: 24,
-              backgroundColor: Colors.grey[200],
-              // Nếu có ảnh mạng thì hiện, không thì hiện icon mặc định
-              backgroundImage: (photoUrl != null && photoUrl!.isNotEmpty)
-                  ? NetworkImage(photoUrl!)
-                  : null,
-              child: (photoUrl == null || photoUrl!.isEmpty)
-                  ? const Icon(Icons.person, color: Colors.grey)
-                  : null,
+            GestureDetector(
+              onTap: () {
+                context.push('/settings');
+              },
+              child: ClipOval(
+                child: Image(
+                  width: 48,
+                  height: 48,
+                  fit: BoxFit.cover,
+                  image: (photoUrl != null && photoUrl!.isNotEmpty)
+                      ? NetworkImage(photoUrl!) as ImageProvider
+                      : const AssetImage('assets/images/icon_app.png'),
+                ),
+              ),
             ),
+
             const SizedBox(width: 12),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -41,9 +43,12 @@ class HomeHeader extends StatelessWidget {
                 // 3. Hiển thị Tên thật
                 Text(
                   '$userName!',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
                   maxLines: 1,
-                  overflow: TextOverflow.ellipsis, // Cắt bớt nếu tên quá dài
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
@@ -54,7 +59,9 @@ class HomeHeader extends StatelessWidget {
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const NotificationScreen()),
+              MaterialPageRoute(
+                builder: (context) => const NotificationScreen(),
+              ),
             );
           },
         ),
