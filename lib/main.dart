@@ -8,7 +8,7 @@ import 'package:provider/provider.dart';
 import 'app_routes.dart';
 import 'features/goi_y_mon_an/viewmodels/recipe_view_model.dart';
 import 'features/home/viewmodels/home_view_model.dart';
-import 'features/ke_hoach/viewmodels/shopping_list_view_model.dart';
+import 'features/shopping/viewmodels/shopping_list_view_model.dart';
 import 'features/thongbao/services/notification_service.dart';
 import 'features/setting/viewmodels/setting_view_model.dart';
 
