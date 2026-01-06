@@ -1,13 +1,18 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../models/ingredient_model.dart';
 
 class PantryService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
-
-  final String _userId = "user_test_01";
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   CollectionReference get _pantryRef {
-    return _db.collection('users').doc(_userId).collection('pantry_items');
+    final User? user = _auth.currentUser;
+    if (user == null) {
+      throw Exception("Người dùng chưa đăng nhập! Không thể truy cập Pantry.");
+    }
+
+    return _db.collection('users').doc(user.uid).collection('pantry_items');
   }
 
   // 1. Lấy luồng dữ liệu và chuyển đổi sang IngredientModel

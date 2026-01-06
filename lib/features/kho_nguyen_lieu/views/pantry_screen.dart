@@ -38,7 +38,7 @@ class _PantryScreenState extends State<PantryScreen> {
     if (result != null) {
       int notifId = result.name.hashCode;
 
-      // Setup Notification & Data
+      //Notification
       _notificationService.scheduleExpiryNotification(
           id: notifId,
           title: 'Expiring soon! ⚠️',
@@ -52,7 +52,7 @@ class _PantryScreenState extends State<PantryScreen> {
     }
   }
 
-  // 2. Logic Sửa
+  //Sửa
   void _handleEdit(IngredientModel model) async {
     final IngredientModel? updatedItem = await showModalBottomSheet(
       context: context,
@@ -67,7 +67,7 @@ class _PantryScreenState extends State<PantryScreen> {
     }
   }
 
-  // 3. Logic Xóa
+  //Xóa
   void _handleDelete(IngredientModel model) {
     _pantryViewModel.deleteIngredient(model);
     if (mounted) AppToast.show(context, ActionType.delete, model.name);
@@ -97,7 +97,7 @@ class _PantryScreenState extends State<PantryScreen> {
         ),
       ),
 
-      // Nút mở sheet Add
+      //Add
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color(0xFF2BEE79),
         onPressed: _handleAddNew,
@@ -150,7 +150,7 @@ class _PantryScreenState extends State<PantryScreen> {
     );
   }
 
-// Có thể tách widget SearchBar ra file riêng luôn cho sạch, nhưng để đây cũng tạm ổn
+// SearchBar
   Widget _buildSearchBar() {
     return Container(
       decoration: BoxDecoration(
@@ -197,12 +197,12 @@ class _PantryScreenState extends State<PantryScreen> {
               ),
             ],
           ),
-          // Sử dụng Widget con PantryItemCard
+          //PantryItemCard
           children: (data['items'] as List).map<Widget>((itemMap) {
             return PantryItemCard(
               itemMap: itemMap,
-              onDelete: _handleDelete, // Truyền hàm xử lý
-              onEdit: _handleEdit, // Truyền hàm xử lý
+              onDelete: _handleDelete,
+              onEdit: _handleEdit,
             );
           }).toList(),
         ),

@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/constants/app_enums.dart';
+import '../../../../core/utils/dialog_helper.dart';
 import '../../models/ingredient_model.dart';
 import '../../services/spoonacular_service.dart';
+import 'barcode_scanner_page.dart';
 
 class AddIngredientSheet extends StatefulWidget {
   final IngredientModel? ingredientToEdit;
@@ -16,6 +18,7 @@ class AddIngredientSheet extends StatefulWidget {
 class _AddIngredientSheetState extends State<AddIngredientSheet> {
   final SpoonacularService _apiService = SpoonacularService();
   final _formKey = GlobalKey<FormState>();
+
   // Controllers
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _qtyController = TextEditingController();
@@ -26,13 +29,14 @@ class _AddIngredientSheetState extends State<AddIngredientSheet> {
   DateTime? _expiryDate;
   String? _imageUrl;
   String? _aisle;
+
   @override
   void initState() {
     super.initState();
     if (widget.ingredientToEdit != null) {
       final item = widget.ingredientToEdit!;
       _nameController.text = item.name;
-      _qtyController.text = item.quantity.toString(); // Bỏ chữ .0 nếu cần
+      _qtyController.text = item.quantity.toString();
       _selectedUnit = item.unit;
       _expiryDate = item.expiryDate;
       _imageUrl = item.imageUrl;
@@ -45,9 +49,89 @@ class _AddIngredientSheetState extends State<AddIngredientSheet> {
       _dateController.text = DateFormat('dd/MM/yyyy').format(_expiryDate!);
     }
   }
+
+  //QUÉT BARCODE
+  Future<void> _onScanBarcode() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const BarcodeScannerPage(),
+      ),
+    );
+
+    if (result != null && result is String) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Looking for product information..."),
+          duration: Duration(seconds: 1),
+        ),
+      );
+
+      try {
+        // Gọi API tìm sản phẩm
+        final product = await _apiService.findProductByBarcode(result);
+
+        if (!mounted) return;
+
+        if (product != null) {
+          setState(() {
+            _nameController.text = product.name;
+            _imageUrl = product.imageUrl;
+            _aisle = product.aisle;
+          });
+          DialogHelper.showScanResultDialog(
+            context: context,
+            title: "Product Found!",
+            content: "Successfully added: ${product.name}",
+            isSuccess: true,
+          );
+        } else {
+          DialogHelper.showScanResultDialog(
+            context: context,
+            title: "Not Found",
+            content: "Cannot find product with barcode: $result",
+            isSuccess: false,
+          );
+        }
+      } catch (e) {
+        print("Lỗi khi tìm sản phẩm: $e");
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Network connection error!")),
+          );
+        }
+      }
+    }
+  }
+
+  //QUÉT HÓA ĐƠN
+  void _onScanReceipt() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("The receipt scanning feature is under development!")),
+    );
+  }
+
+  void _saveIngredient() {
+    if (_formKey.currentState!.validate()) {
+      final newItem = IngredientModel(
+        id: widget.ingredientToEdit?.id ?? '',
+        name: _nameController.text,
+        quantity: double.tryParse(_qtyController.text) ?? 1,
+        unit: _selectedUnit,
+        expiryDate: _expiryDate,
+        addedDate: widget.ingredientToEdit?.addedDate ?? DateTime.now(),
+        imageUrl: _imageUrl,
+        aisle: _aisle ?? 'Pantry',
+      );
+
+      Navigator.pop(context, newItem);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Tiêu đề thay đổi tùy theo việc Thêm hay Sửa
     final isEditing = widget.ingredientToEdit != null;
 
     return Container(
@@ -62,26 +146,54 @@ class _AddIngredientSheetState extends State<AddIngredientSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. Header (Tiêu đề + Nút đóng)
+            // Header
             _buildHeader(isEditing ? "Update ingredient" : "Add new ingredient"),
             const SizedBox(height: 20),
 
-            // 2. Input Tên (Tìm kiếm gợi ý)
+            // Nút Scan (Chỉ hiện khi thêm mới)
+            if (!isEditing) ...[
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildScanButton(
+                        icon: Icons.qr_code_scanner,
+                        label: "Scan Barcode",
+                        color: const Color(0xFFFFE0B2),
+                        textColor: Colors.orange[900]!,
+                        onTap: _onScanBarcode
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildScanButton(
+                        icon: Icons.receipt_long,
+                        label: "Scan Receipt",
+                        color: const Color(0xFFFFEBEE),
+                        textColor: Colors.red[900]!,
+                        onTap: _onScanReceipt
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+            ],
+
+            // Input Tên (TypeAhead + Validator)
             _buildNameInputSection(),
             const SizedBox(height: 16),
 
-            // 3. Hàng Số lượng & Đơn vị
+            // Số lượng & Đơn vị
             _buildQuantityAndUnitSection(),
             const SizedBox(height: 16),
 
-            // 4. Input Ngày hết hạn
+            // Ngày hết hạn
             _buildDateInputSection(),
             const SizedBox(height: 24),
 
-            // 5. Nút Lưu
+            // Nút Lưu
             _buildSaveButton(isEditing ? "Save changes" : "Add to pantry"),
 
-            // Xử lý bàn phím che
+            // Padding bàn phím
             Padding(padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom)),
           ],
         ),
@@ -89,47 +201,16 @@ class _AddIngredientSheetState extends State<AddIngredientSheet> {
     );
   }
 
-  // Helper: Style cho các ô nhập
   InputDecoration _inputDecoration(String hint) {
     return InputDecoration(
       hintText: hint,
+      helperText: ' ',
+      helperStyle: const TextStyle(height: 0.7),
+      errorStyle: const TextStyle(height: 0.7, color: Colors.red),
       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Colors.grey)),
       enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: Colors.grey.shade300)),
     );
-  }
-
-  // Logic chọn ngày
-  Future<void> _pickDate() async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now().add(const Duration(days: 7)),
-      firstDate: DateTime.now(),
-      lastDate: DateTime(2100),
-    );
-    if (picked != null) {
-      setState(() {
-        _expiryDate = picked;
-        _dateController.text = DateFormat('dd/MM/yyyy').format(picked);
-      });
-    }
-  }
-
-  void _saveIngredient() {
-    if (_formKey.currentState!.validate()) {
-      final newItem = IngredientModel(
-        id: widget.ingredientToEdit?.id ?? '',
-        name: _nameController.text,
-        quantity: double.tryParse(_qtyController.text) ?? 1,
-        unit: _selectedUnit,
-        expiryDate: _expiryDate,
-        addedDate: widget.ingredientToEdit?.addedDate ?? DateTime.now(), // Giữ ngày thêm cũ
-        imageUrl: _imageUrl,
-        aisle: _aisle ?? 'Pantry',
-      );
-
-      Navigator.pop(context, newItem);
-    }
   }
 
   Widget _buildHeader(String title) {
@@ -145,24 +226,44 @@ class _AddIngredientSheetState extends State<AddIngredientSheet> {
     );
   }
 
+  Widget _buildScanButton({required IconData icon, required String label, required Color color, required Color textColor, required VoidCallback onTap}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 20, color: textColor),
+            const SizedBox(width: 8),
+            Text(label, style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 13)),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildNameInputSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text("Ingredient name", style: TextStyle(fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
+
         TypeAheadField<IngredientModel>(
+          controller: _nameController,
+
           builder: (context, controller, focusNode) {
-            // Đồng bộ text controller nếu cần thiết
-            if (controller.text != _nameController.text) {
-              controller.text = _nameController.text;
-            }
-            return TextField(
+            return TextFormField(
               controller: controller,
               focusNode: focusNode,
-              decoration: _inputDecoration("(e.g., Rice,Gạo,."),
-              // Lưu ý: Cập nhật controller chính khi gõ
-              onChanged: (val) => _nameController.text = val,
+              decoration: _inputDecoration("Rice, Gạo..."),
+              validator: (value) => (value == null || value.trim().isEmpty) ? "Please enter ingredient name" : null,
             );
           },
           suggestionsCallback: (search) async {
@@ -172,10 +273,11 @@ class _AddIngredientSheetState extends State<AddIngredientSheet> {
           itemBuilder: (context, suggestion) {
             return ListTile(
               leading: suggestion.imageUrl != null
-                  ? Image.network(suggestion.imageUrl!, width: 30, errorBuilder: (_, __, ___) => const Icon(Icons.image))
+                  ? Image.network(suggestion.imageUrl!, width: 30,
+                  errorBuilder: (_, _, _) => const Icon(Icons.image))
                   : const Icon(Icons.food_bank),
               title: Text(suggestion.name),
-              subtitle: Text(suggestion.aisle ?? 'Unknown aisle'),
+              subtitle: Text(suggestion.aisle ?? 'Unknown'),
             );
           },
           onSelected: (suggestion) {
@@ -185,10 +287,7 @@ class _AddIngredientSheetState extends State<AddIngredientSheet> {
               _aisle = suggestion.aisle;
             });
           },
-          emptyBuilder: (context) => const Padding(
-            padding: EdgeInsets.all(8.0),
-            child: Text('Item not found'),
-          ),
+          emptyBuilder: (context) => const Padding(padding: EdgeInsets.all(8.0), child: Text('Item not found')),
         ),
       ],
     );
@@ -197,7 +296,6 @@ class _AddIngredientSheetState extends State<AddIngredientSheet> {
   Widget _buildQuantityAndUnitSection() {
     return Row(
       children: [
-        // Cột Số lượng
         Expanded(
           flex: 1,
           child: Column(
@@ -215,7 +313,6 @@ class _AddIngredientSheetState extends State<AddIngredientSheet> {
           ),
         ),
         const SizedBox(width: 16),
-        // Cột Đơn vị
         Expanded(
           flex: 1,
           child: Column(
@@ -227,10 +324,7 @@ class _AddIngredientSheetState extends State<AddIngredientSheet> {
                 value: _selectedUnit,
                 decoration: _inputDecoration(""),
                 items: MeasureUnit.values.map((unit) {
-                  return DropdownMenuItem(
-                    value: unit,
-                    child: Text(unit.name),
-                  );
+                  return DropdownMenuItem(value: unit, child: Text(unit.name));
                 }).toList(),
                 onChanged: (val) => setState(() => _selectedUnit = val!),
               ),
@@ -258,6 +352,21 @@ class _AddIngredientSheetState extends State<AddIngredientSheet> {
         ),
       ],
     );
+  }
+
+  Future<void> _pickDate() async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now().add(const Duration(days: 7)),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2100),
+    );
+    if (picked != null) {
+      setState(() {
+        _expiryDate = picked;
+        _dateController.text = DateFormat('dd/MM/yyyy').format(picked);
+      });
+    }
   }
 
   Widget _buildSaveButton(String label) {

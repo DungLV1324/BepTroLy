@@ -14,7 +14,7 @@ dependencies:
   provider: ^6.1.5+1
   flutter_dotenv: ^6.0.0
   flutter_typeahead: ^5.2.0
-
+  mobile_scanner: ^5.1.0
   # Đã thêm:
   google_fonts: ^6.2.1
 
