@@ -9,9 +9,9 @@ import 'package:go_router/go_router.dart';
 import 'features/auth/views/login_screen.dart';
 import 'features/auth/views/login_email.dart' as login_email;
 import 'features/auth/views/register_screen.dart';
-import 'features/goi_y_mon_an/views/recipe_feed_screen.dart';
 import 'features/home/views/home_screen.dart';
 import 'features/ke_hoach/views/shopping_list_screen.dart';
+import 'features/goi_y_mon_an/views/recipe_feed_screen.dart';
 import 'features/kho_nguyen_lieu/views/pantry_screen.dart';
 import 'features/setting/views/edit_profile_screen.dart';
 import 'features/setting/views/setting_screen.dart';
@@ -52,7 +52,7 @@ final appRouter = GoRouter(
 
     GoRoute(
       path: '/recipe_detail',
-      parentNavigatorKey: _rootNavigatorKey, // Che BottomBar
+      parentNavigatorKey: _rootNavigatorKey,
       builder: (context, state) {
         final recipe = state.extra as RecipeModel;
         return RecipeDetailScreen(recipe: recipe);
@@ -83,7 +83,7 @@ final appRouter = GoRouter(
                 GoRoute(
                   path: 'recipe_detail',
                   parentNavigatorKey:
-                      _rootNavigatorKey, // Che BottomBar khi xem chi tiết (Tùy chọn)
+                      _rootNavigatorKey,
                   builder: (context, state) {
                     final recipe = state.extra as RecipeModel;
                     return RecipeDetailScreen(recipe: recipe);

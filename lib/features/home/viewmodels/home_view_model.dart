@@ -1,80 +1,65 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
-import '../../../core/constants/app_enums.dart';
-import '../../goi_y_mon_an/models/recipe_model.dart';
 import '../../kho_nguyen_lieu/models/ingredient_model.dart';
+import '../services/home_service.dart';
 
 class HomeViewModel extends ChangeNotifier {
+  final HomeService _homeService = HomeService();
+
+  // State
   bool _isLoading = false;
   List<IngredientModel> _expiringIngredients = [];
-  List<RecipeModel> _recommendedRecipes = [];
+  String _userName = 'My friend';
+  String? _photoUrl;
 
+  // Quản lý Stream
+  StreamSubscription? _pantrySubscription;
+
+  // Getters
   bool get isLoading => _isLoading;
   List<IngredientModel> get expiringIngredients => _expiringIngredients;
-  List<RecipeModel> get recommendedRecipes => _recommendedRecipes;
+  String get userName => _userName;
+  String? get photoUrl => _photoUrl;
 
-  Future<void> loadHomeData() async {
+  // Hàm khởi tạo dữ liệu
+  void loadHomeData() {
     _isLoading = true;
     notifyListeners();
 
-    await Future.delayed(const Duration(milliseconds: 500));
+    _loadUserInfo();
 
-    final now = DateTime.now();
-    _expiringIngredients = [
-      IngredientModel(
-        id: '1',
-        name: 'Cà chua',
-        quantity: 2,
-        unit: MeasureUnit.piece,
-        expiryDate: now.add(const Duration(days: 2)),
-        imageUrl: 'assets/images/bruschetta.jpg',
-        addedDate: now.subtract(const Duration(days: 5)),
-      ),
-      IngredientModel(
-        id: '2',
-        name: 'Xà lách',
-        quantity: 300,
-        unit: MeasureUnit.g,
-        expiryDate: now.add(const Duration(days: 3)),
-        imageUrl: 'assets/images/bruschetta.jpg',
-        addedDate: now.subtract(const Duration(days: 2)),
-      ),
-      IngredientModel(
-        id: '3',
-        name: 'Sữa tươi',
-        quantity: 1,
-        unit: MeasureUnit.l,
-        expiryDate: now.add(const Duration(days: 4)),
-        imageUrl: 'assets/images/bruschetta.jpg',
-        addedDate: now.subtract(const Duration(days: 10)),
-      ),
-    ];
+    _listenToExpiringItems();
+  }
 
-    _recommendedRecipes = [
-      RecipeModel(
-        id: '101',
-        name: 'Phở Bò Hà Nội',
-        description: 'Món ăn truyền thống...',
-        cookingTimeMinutes: 45,
-        instructions: ['Hầm xương', 'Thái thịt', 'Chan nước dùng'],
-        ingredients: [],
-        imageUrl: 'assets/images/bruschetta.jpg',
-        missedIngredientCount: 1,
-        usedIngredientCount: 5,
-      ),
-      RecipeModel(
-        id: '102',
-        name: 'Bánh Xèo',
-        description: 'Bánh xèo miền Tây...',
-        cookingTimeMinutes: 30,
-        instructions: ['Pha bột', 'Đổ bánh', 'Cuốn rau'],
-        ingredients: [],
-        imageUrl: 'assets/images/bruschetta.jpg',
-        missedIngredientCount: 0,
-        usedIngredientCount: 8,
-      ),
-    ];
+  void _listenToExpiringItems() {
+    _pantrySubscription?.cancel(); // Hủy đăng ký cũ nếu có
 
-    _isLoading = false;
+    // Gọi Stream đã được xử lý từ Service
+    _pantrySubscription = _homeService.getExpiringIngredientsStream().listen(
+          (processedList) {
+        _expiringIngredients = processedList;
+        _isLoading = false;
+        notifyListeners(); // Cập nhật UI ngay khi có thay đổi
+      },
+      onError: (error) {
+        print("Lỗi ViewModel: $error");
+        _isLoading = false;
+        notifyListeners();
+      },
+    );
+  }
+
+  Future<void> _loadUserInfo() async {
+    final userProfile = await _homeService.getUserProfile();
+
+    _userName = userProfile['name'] ?? 'My friend';
+    _photoUrl = userProfile['photoUrl'];
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _pantrySubscription?.cancel();
+    super.dispose();
   }
 }

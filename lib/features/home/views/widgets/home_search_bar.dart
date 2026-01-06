@@ -1,0 +1,42 @@
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+
+class HomeSearchBar extends StatelessWidget {
+  const HomeSearchBar({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: TextField(
+        textInputAction: TextInputAction.search,
+        onSubmitted: (value) {
+          if (value.trim().isNotEmpty) {
+            context.push('/recipes', extra: value);
+            // Log kiểm tra
+            print("Đang tìm kiếm: $value");
+          }
+        },
+
+        decoration: const InputDecoration(
+          border: InputBorder.none,
+          icon: Icon(Icons.search, color: Colors.grey),
+          hintText: 'Find food...',
+          hintStyle: TextStyle(color: Colors.grey),
+          contentPadding: EdgeInsets.symmetric(vertical: 14),
+        ),
+      ),
+    );
+  }
+}
