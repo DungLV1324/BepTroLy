@@ -117,7 +117,7 @@ class _LoginScreenUI extends StatelessWidget {
                       ),
                       const SizedBox(height: 24),
                       const Text(
-                        'Chào mừng trở lại! 👋',
+                        'Welcome Back!',
                         style: TextStyle(
                           color: Color(0xFF1F2937),
                           fontSize: 22,
@@ -128,7 +128,7 @@ class _LoginScreenUI extends StatelessWidget {
                       _buildSocialButton(
                         icon: Icons.g_mobiledata,
                         iconColor: const Color(0xFFDB4437),
-                        text: 'Tiếp tục với Google',
+                        text: 'Login with Google',
                         onTap: () => _handleGoogleSignIn(context),
                       ),
                       const SizedBox(height: 20),
@@ -138,7 +138,7 @@ class _LoginScreenUI extends StatelessWidget {
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 12),
                             child: Text(
-                              'hoặc',
+                              'Or',
                               style: TextStyle(color: Colors.grey[400], fontSize: 12),
                             ),
                           ),
@@ -149,7 +149,7 @@ class _LoginScreenUI extends StatelessWidget {
                       _buildSocialButton(
                         icon: Icons.email_outlined,
                         iconColor: const Color(0xFF374151),
-                        text: 'Đăng nhập với Email',
+                        text: 'Login With Email',
                         onTap: () => _handleEmailSignIn(context),
                       ),
                       const SizedBox(height: 30),
@@ -161,14 +161,14 @@ class _LoginScreenUI extends StatelessWidget {
                           text: const TextSpan(
                             children: [
                               TextSpan(
-                                text: 'Chưa có tài khoản? ',
+                                text: 'No account yet. ',
                                 style: TextStyle(
                                   color: Color(0xFF9CA3AF),
                                   fontSize: 14,
                                 ),
                               ),
                               TextSpan(
-                                text: 'Đăng ký ngay',
+                                text: 'Resgister',
                                 style: TextStyle(
                                   color: Color(0xFF66BB6A),
                                   fontSize: 14,
