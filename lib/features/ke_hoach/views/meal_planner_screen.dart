@@ -121,8 +121,7 @@ class _AddMealPlanScreenContentState extends State<AddMealPlanScreenContent> {
                   const SizedBox(height: 16),
                   _buildAddMealButton(context, viewModel, isMore: hasMeals),
 
-                  if (hasMeals && plan.servings < viewModel.originalServings)
-                    _buildMissingIngredientsBanner(),
+
 
                   const SizedBox(height: 24),
                   _buildTimeSection(context, viewModel),
@@ -301,15 +300,7 @@ class _AddMealPlanScreenContentState extends State<AddMealPlanScreenContent> {
     );
   }
 
-  Widget _buildMissingIngredientsBanner() {
-    return Container(
-      margin: const EdgeInsets.only(top: 16),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(color: AppColors.lightOrange, borderRadius: BorderRadius.circular(16)),
-      child: const Text('Missing some ingredients for the reduced servings',
-          style: TextStyle(color: AppColors.primaryOrange, fontSize: 13)),
-    );
-  }
+
 
   Widget _buildTimeSection(BuildContext context, MealPlannerViewModel viewModel) {
     return Column(

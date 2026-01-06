@@ -51,15 +51,10 @@ class MealPlannerViewModel with ChangeNotifier {
 
       _availableMeals = snapshot.docs.map((doc) {
         final data = doc.data();
-
-        // MAPPING DỮ LIỆU TỪ ẢNH image_c58e6c.png
         return Meal(
           id: doc.id,
-          // Trong ảnh, tên món nằm ở trường 'title' chứ không phải 'description'
           name: data['title'] ?? 'Món ăn không tên',
-          // Ảnh không có field image_url, tạm dùng placeholder
-          imageUrl: 'assets/images/placeholder.jpg',
-          // Trong ảnh dùng 'cooking_time'
+          imageUrl: data['imageUrl'] ?? 'assets/images/chicken_butter.jpg',
           preparationTimeMinutes: data['cooking_time'] ?? 0,
           kcal: data['kcal'] ?? 0,
         );

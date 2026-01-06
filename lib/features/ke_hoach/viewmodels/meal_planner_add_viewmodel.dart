@@ -9,7 +9,6 @@ class WeeklyMealPlannerViewModel with ChangeNotifier {
 
   List<DailyPlan> _weeklyPlans = [];
   bool _isLoading = true;
-
   List<DailyPlan> get weeklyPlans => _weeklyPlans;
   bool get isLoading => _isLoading;
 
@@ -17,7 +16,7 @@ class WeeklyMealPlannerViewModel with ChangeNotifier {
     listenToMealPlans();
   }
 
-  void listenToMealPlans() {
+  void listenToMealPlans() async {
     final user = _auth.currentUser;
     if (user == null) {
       _isLoading = false;
@@ -25,17 +24,52 @@ class WeeklyMealPlannerViewModel with ChangeNotifier {
       return;
     }
 
+    // 1. Tải dữ liệu Recipes làm tham chiếu kcal
+    Map<String, dynamic> recipeMap = {};
+    try {
+      final recipeSnapshot = await _db.collection('Recipes').get();
+      for (var doc in recipeSnapshot.docs) {
+        recipeMap[doc.id.trim()] = doc.data();
+      }
+    } catch (e) {
+      debugPrint("Lỗi tải Recipes: $e");
+    }
+
+    // 2. Lắng nghe kế hoạch bữa ăn
     _db.collection('users')
         .doc(user.uid)
         .collection('meal_plans')
         .orderBy('date', descending: false)
         .snapshots()
         .listen((snapshot) {
-      final allPlans = snapshot.docs.map((doc) => MealPlanModel.fromFirestore(doc)).toList();
+
+      final allPlans = snapshot.docs.map((doc) {
+        final plan = MealPlanModel.fromFirestore(doc);
+
+        // 3. THAM CHIẾU KCAL TỪ RECIPES
+        final updatedMeals = plan.selectedMeals.map((meal) {
+          final recipeData = recipeMap[meal.id];
+          if (recipeData != null) {
+            return Meal(
+              id: meal.id,
+              name: recipeData['title'] ?? meal.name,
+              imageUrl: meal.imageUrl,
+              // Lấy cooking_time và kcal từ collection Recipes
+              preparationTimeMinutes: recipeData['cooking_time'] is int
+                  ? recipeData['cooking_time']
+                  : int.tryParse(recipeData['cooking_time'].toString()) ?? 0,
+              kcal: recipeData['kcal'] is int
+                  ? recipeData['kcal']
+                  : int.tryParse(recipeData['kcal'].toString()) ?? 0,
+            );
+          }
+          return meal;
+        }).toList();
+
+        return plan.copyWith(selectedMeals: updatedMeals);
+      }).toList();
+
       _weeklyPlans = _groupPlansByDate(allPlans);
-      _isLoading = false;
-      notifyListeners();
-    }, onError: (error) {
       _isLoading = false;
       notifyListeners();
     });
@@ -48,7 +82,7 @@ class WeeklyMealPlannerViewModel with ChangeNotifier {
       if (grouped[dateKey] == null) grouped[dateKey] = [];
       grouped[dateKey]!.add(plan);
     }
-    final List<DailyPlan> dailyPlans = grouped.entries.map((e) => DailyPlan(date: e.value.first.date, meals: e.value)).toList();
+    final List<DailyPlan> dailyPlans = grouped.entries.map((e) => DailyPlan(date: e.value.first.date, mealPlans: e.value)).toList();
     dailyPlans.sort((a, b) => a.date.compareTo(b.date));
     return dailyPlans;
   }
@@ -58,7 +92,4 @@ class WeeklyMealPlannerViewModel with ChangeNotifier {
     if (user == null) return;
     await _db.collection('users').doc(user.uid).collection('meal_plans').doc(planId).delete();
   }
-
-  void nextWeek() { notifyListeners(); }
-  void previousWeek() { notifyListeners(); }
 }

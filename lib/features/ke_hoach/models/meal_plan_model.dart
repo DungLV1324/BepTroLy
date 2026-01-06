@@ -17,7 +17,6 @@ class Meal {
     this.kcal = 0,
   });
 
-  // Chuyển đổi từ Map (Firebase) sang đối tượng Meal
   factory Meal.fromMap(Map<String, dynamic> map) {
     return Meal(
       id: map['mealId'] ?? '',
@@ -31,12 +30,16 @@ class Meal {
 
 class DailyPlan {
   final DateTime date;
-  final List<MealPlanModel> meals;
+  final List<MealPlanModel> mealPlans; // Danh sách các bữa trong ngày
 
-  DailyPlan({required this.date, required this.meals});
+  DailyPlan({required this.date, required this.mealPlans});
 
+  // Tính tổng Calo của tất cả món ăn trong tất cả các bữa (Sáng, Trưa, Tối) của ngày
   int get totalKcal {
-    return meals.fold(0, (sum, plan) => sum + (plan.selectedMeal?.kcal ?? 0));
+    return mealPlans.fold(0, (sum, plan) {
+      final planKcal = plan.selectedMeals.fold(0, (s, m) => s + m.kcal);
+      return sum + planKcal;
+    });
   }
 }
 
@@ -44,7 +47,7 @@ class MealPlanModel {
   final String id;
   final DateTime date;
   final MealType mealType;
-  final Meal? selectedMeal;
+  final List<Meal> selectedMeals; // Danh sách các món ăn trong một bữa
   final int servings;
   final TimeOfDay specificTime;
   final String notes;
@@ -54,43 +57,37 @@ class MealPlanModel {
     String? id,
     required this.date,
     required this.mealType,
-    this.selectedMeal,
+    this.selectedMeals = const [],
     this.servings = 2,
     this.specificTime = const TimeOfDay(hour: 12, minute: 0),
     this.notes = '',
     this.repeatDays = const {
-      'T2': false,
-      'T3': false,
-      'T4': false,
-      'T5': false,
-      'T6': false,
-      'T7': false,
-      'CN': false
+      'T2': false, 'T3': false, 'T4': false, 'T5': false, 'T6': false, 'T7': false, 'CN': false
     },
   }) : id = id ?? DateTime.now().millisecondsSinceEpoch.toString();
 
-  // Chuyển đổi dữ liệu từ Firestore Document sang MealPlanModel
   factory MealPlanModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
 
-    // Xử lý thời gian từ chuỗi "HH:mm" sang TimeOfDay
     final timeParts = (data['specificTime'] as String? ?? "12:0").split(':');
     final timeOfDay = TimeOfDay(
       hour: int.parse(timeParts[0]),
       minute: int.parse(timeParts[1]),
     );
 
-    // Xử lý danh sách meals (lấy món đầu tiên nếu có)
-    Meal? selected;
-    if (data['meals'] != null && (data['meals'] as List).isNotEmpty) {
-      selected = Meal.fromMap(data['meals'][0]);
+    // Lấy toàn bộ danh sách món ăn từ mảng 'meals' trong Firestore
+    List<Meal> selectedMealsList = [];
+    if (data['meals'] != null && data['meals'] is List) {
+      selectedMealsList = (data['meals'] as List)
+          .map((m) => Meal.fromMap(m as Map<String, dynamic>))
+          .toList();
     }
 
     return MealPlanModel(
       id: doc.id,
       date: (data['date'] as Timestamp).toDate(),
       mealType: _parseMealType(data['mealType']),
-      selectedMeal: selected,
+      selectedMeals: selectedMealsList,
       servings: data['servings'] ?? 2,
       specificTime: timeOfDay,
       notes: data['notes'] ?? '',
@@ -112,7 +109,7 @@ class MealPlanModel {
     String? id,
     DateTime? date,
     MealType? mealType,
-    Meal? selectedMeal,
+    List<Meal>? selectedMeals,
     int? servings,
     TimeOfDay? specificTime,
     String? notes,
@@ -122,7 +119,7 @@ class MealPlanModel {
       id: id ?? this.id,
       date: date ?? this.date,
       mealType: mealType ?? this.mealType,
-      selectedMeal: selectedMeal ?? this.selectedMeal,
+      selectedMeals: selectedMeals ?? this.selectedMeals,
       servings: servings ?? this.servings,
       specificTime: specificTime ?? this.specificTime,
       notes: notes ?? this.notes,
