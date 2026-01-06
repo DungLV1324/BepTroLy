@@ -118,9 +118,9 @@ class _Login_EmailState extends State<Login_Email> {
                 child: viewModel.isLoading
                     ? const CircularProgressIndicator(color: Color(0xFF66BB6A))
                     : const Text(
-                        'Login',
-                        style: TextStyle(color: Color(0xFF66BB6A), fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
+                  'Login',
+                  style: TextStyle(color: Color(0xFF66BB6A), fontSize: 16, fontWeight: FontWeight.bold),
+                ),
               ),
             ),
           ],

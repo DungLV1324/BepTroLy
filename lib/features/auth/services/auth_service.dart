@@ -161,7 +161,7 @@ class AuthService {
       case 'operation-not-allowed':
         return 'Phương thức đăng nhập này chưa được cho phép.';
       default:
-        return 'Lỗi hệ thống: ${e.message}'; // Hiển thị lỗi gốc từ Firebase
+        return 'Lỗi hệ thống: ${e.message}';
     }
   }
 }

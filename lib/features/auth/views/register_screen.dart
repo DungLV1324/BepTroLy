@@ -25,7 +25,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _handleSignUp(BuildContext context) async {
-    // Kiểm tra xem form có hợp lệ không
     if (!_formKey.currentState!.validate()) {
       return;
     }
