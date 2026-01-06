@@ -1,6 +1,5 @@
 import 'features/auth/viewmodels/login_view_model.dart';
 import 'features/home/viewmodels/splash_view_model.dart';
-import 'features/ke_hoach/viewmodels/shopping_list_view_model.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:beptroly/firebase_options.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'app_routes.dart';
 import 'features/goi_y_mon_an/viewmodels/recipe_view_model.dart';
 import 'features/home/viewmodels/home_view_model.dart';
+import 'features/ke_hoach/viewmodels/shopping_list_view_model.dart';
 import 'features/thongbao/services/notification_service.dart';
 
 Future<void> main() async {

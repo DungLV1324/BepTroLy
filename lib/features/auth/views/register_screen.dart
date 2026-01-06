@@ -25,7 +25,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _handleSignUp(BuildContext context) async {
-    // Kiểm tra xem form có hợp lệ không
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -67,19 +66,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Đăng ký Tài Khoản Mới', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
+                      const Text('Register a New Account', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 8),
-                      const Text('Tạo tài khoản để bắt đầu', style: TextStyle(color: Color(0xFF6C707A), fontSize: 14)),
+                      const Text('Create an account to get started.', style: TextStyle(color: Color(0xFF6C707A), fontSize: 14)),
                       const SizedBox(height: 32),
 
                       // Đã sửa: Sử dụng TextFormField với validation
-                      _buildLabel('Họ và Tên'),
+                      _buildLabel('Full name'),
                       TextFormField(
                         controller: _nameController,
-                        decoration: _buildInputDecoration(hintText: 'Nguyễn Văn A'),
+                        decoration: _buildInputDecoration(hintText: 'Your name'),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Vui lòng nhập họ và tên.';
+                            return 'Please enter your first and last name..';
                           }
                           return null;
                         },
@@ -92,26 +91,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         keyboardType: TextInputType.emailAddress,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Vui lòng nhập email.';
+                            return 'Please enter your email address..';
                           }
                           if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-                            return 'Email không hợp lệ.';
+                            return 'Invalid email.';
                           }
                           return null;
                         },
                       ),
                       const SizedBox(height: 16),
-                      _buildLabel('Mật khẩu'),
+                      _buildLabel('Password'),
                       TextFormField(
                         controller: _passwordController,
                         decoration: _buildInputDecoration(hintText: '••••••••', isPassword: true),
                         obscureText: true,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Vui lòng nhập mật khẩu.';
+                            return 'Please enter the password.';
                           }
                           if (value.length < 6) {
-                            return 'Mật khẩu phải có ít nhất 6 ký tự.';
+                            return 'Invalid Password.';
                           }
                           return null;
                         },
@@ -136,11 +135,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                           child: viewModel.isLoading
                               ? const CircularProgressIndicator(color: Colors.white)
-                              : const Text('Đăng ký', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white)),
+                              : const Text('Register', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white)),
                         ),
                       ),
                       const SizedBox(height: 32),
-                      // ... (Phần UI còn lại giữ nguyên)
                     ],
                   ),
                 ),
