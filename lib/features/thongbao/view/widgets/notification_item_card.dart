@@ -22,7 +22,7 @@ class NotificationItemCard extends StatelessWidget {
     return Card(
       elevation: isRead ? 0 : 3,
       margin: EdgeInsets.zero,
-      color: isRead ? Colors.white : const Color(0xFFF0FDF4), // Xanh nhạt nếu chưa đọc
+      color: isRead ? Colors.white : const Color(0xFFF0FDF4),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: isRead ? BorderSide.none : const BorderSide(color: Color(0xFF4CAF50), width: 1),
@@ -59,7 +59,7 @@ class NotificationItemCard extends StatelessWidget {
             ),
           ],
         ),
-        onTap: onTap, // Gọi hàm xử lý từ bên ngoài truyền vào
+        onTap: onTap,
       ),
     );
   }

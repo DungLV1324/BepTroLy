@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest.dart' as tzdata;
@@ -6,23 +7,22 @@ import 'package:timezone/timezone.dart' as tz;
 import 'package:flutter_timezone/flutter_timezone.dart';
 
 class NotificationService {
-  // Singleton pattern (để gọi ở đâu cũng được)
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
   NotificationService._internal();
 
   final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
-  // TODO: Thay thế bằng ID user thật từ Auth Service
-  final String _userId = "user_test_01";
-
   bool _isInitialized = false;
+
+  String? get currentUserId => _auth.currentUser?.uid;
 
   Future<void> init() async {
     if (_isInitialized) return;
 
-    // A. Cấu hình Timezone
+    //Cấu hình Timezone
     tzdata.initializeTimeZones();
     if (!kIsWeb) {
       try {
@@ -68,7 +68,6 @@ class NotificationService {
         ?.requestNotificationsPermission();
   }
 
-  //Hàm lên lịch thông báo
   Future<void> scheduleExpiryNotification({
     required int id,
     required String title,
@@ -76,9 +75,35 @@ class NotificationService {
     required DateTime expiryDate,
   }) async {
     final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
-    final tz.TZDateTime scheduledTime = now.add(const Duration(seconds: 60));
 
-    print("Đang đặt lịch thông báo vào lúc: $scheduledTime"); // Xem log để chắc chắn
+    tz.TZDateTime scheduledTime = tz.TZDateTime.from(expiryDate, tz.local);
+
+    scheduledTime = tz.TZDateTime(
+      tz.local,
+      scheduledTime.year,
+      scheduledTime.month,
+      scheduledTime.day,
+      6, 0, 0,
+    );
+
+    if (scheduledTime.isBefore(now)) {
+
+      // Kiểm tra có phải hôm nay không
+      if (scheduledTime.year == now.year &&
+          scheduledTime.month == now.month &&
+          scheduledTime.day == now.day) {
+
+        print("⚠️ Là hôm nay! Set lại lịch +20 giây.");
+        scheduledTime = now.add(const Duration(seconds: 20));
+
+      } else {
+        return;
+      }
+    } else {
+      print("✅ Logic: Scheduled > Now -> Chưa đến 8h sáng, đặt lịch bình thường.");
+    }
+
+    print("🚀 CHỐT LỊCH ID $id: $scheduledTime");
 
     await _flutterLocalNotificationsPlugin.zonedSchedule(
       id,
@@ -89,10 +114,11 @@ class NotificationService {
         android: AndroidNotificationDetails(
           'pantry_expiry_channel',
           'Pantry Expiry',
-          channelDescription: 'Expired food notification',
+          channelDescription: 'Thông báo hết hạn thực phẩm',
           importance: Importance.max,
           priority: Priority.high,
-          icon: '@mipmap/ic_launcher'),
+          icon: '@mipmap/ic_launcher',
+        ),
         iOS: DarwinNotificationDetails(),
       ),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
@@ -104,21 +130,29 @@ class NotificationService {
     await _flutterLocalNotificationsPlugin.cancel(id);
   }
 
-  //FIRESTORE
   CollectionReference get _notificationRef {
-    return _db.collection('users').doc(_userId).collection('notifications');
+    final user = _auth.currentUser;
+    // 3. Kiểm tra đăng nhập
+    if (user == null) {
+      throw Exception("Người dùng chưa đăng nhập! Không thể truy cập thông báo.");
+    }
+    // Lấy ID động từ Firebase Auth
+    return _db.collection('users').doc(user.uid).collection('notifications');
   }
 
   // 2. Hàm lấy danh sách thông báo (Stream)
   Stream<List<Map<String, dynamic>>> getNotificationStream() {
-    // Sắp xếp: Cái mới nhất (hoặc sắp diễn ra) lên đầu
+    if (_auth.currentUser == null) {
+      return Stream.value([]);
+    }
+
     return _notificationRef
         .orderBy('scheduledTime', descending: true)
         .snapshots()
         .map((snapshot) {
       return snapshot.docs.map((doc) {
         final data = doc.data() as Map<String, dynamic>;
-        data['id'] = doc.id; // Lưu lại ID để xử lý đọc/xóa
+        data['id'] = doc.id;
         return data;
       }).toList();
     });
@@ -131,6 +165,7 @@ class NotificationService {
     required String body,
     required DateTime scheduledTime,
   }) async {
+    if (_auth.currentUser == null) return;
     await _notificationRef.add({
       'notificationId': notificationId,
       'title': title,
@@ -153,7 +188,7 @@ class NotificationService {
         .where('notificationId', isEqualTo: notificationId)
         .get();
 
-    // Xóa tất cả các document tìm được (thường chỉ có 1 cái)
+    // Xóa tất cả các document tìm được
     for (var doc in querySnapshot.docs) {
       await doc.reference.delete();
     }
@@ -163,7 +198,7 @@ class NotificationService {
     await _notificationRef.doc(docId).delete();
   }
 
-  // Hàm xóa TẤT CẢ thông báo (Tiện ích làm thêm nếu muốn nút "Xóa hết")
+  // Hàm xóa TẤT CẢ thông báo
   Future<void> deleteAllNotifications() async {
     var snapshots = await _notificationRef.get();
     for (var doc in snapshots.docs) {
