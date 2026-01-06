@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 class DialogHelper {
+
   static Future<bool?> showDeleteConfirmation(BuildContext context, String itemName) {
     return showDialog<bool>(
       context: context,
@@ -61,6 +62,59 @@ class DialogHelper {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
             child: Text(confirmText, style: const TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static Future<void> showScanResultDialog({
+    required BuildContext context,
+    required String title,
+    required String content,
+    bool isSuccess = true,
+  }) {
+
+    final Color themeColor = isSuccess ? Colors.green : Colors.red;
+    final IconData icon = isSuccess ? Icons.check_circle : Icons.error;
+
+    return showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+
+        title: Row(
+          children: [
+            Icon(icon, color: themeColor, size: 28),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+
+        content: Text(
+          content,
+          style: const TextStyle(fontSize: 16),
+        ),
+
+        actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+
+        actions: [
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: themeColor,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              child: const Text("OK", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            ),
           ),
         ],
       ),
