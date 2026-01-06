@@ -14,7 +14,9 @@ import 'features/setting/viewmodels/setting_view_model.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   await NotificationService().init();
   await dotenv.load(fileName: ".env");
   runApp(const BepTroLyApp());
@@ -27,9 +29,7 @@ class BepTroLyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-          create: (_) => SettingViewModel()..fetchUserSettings(),
-        ),
+        ChangeNotifierProvider(create: (_) => SettingViewModel()..fetchUserSettings(),),
         ChangeNotifierProvider(create: (_) => LoginViewModel()),
         ChangeNotifierProvider(create: (_) => HomeViewModel()),
         ChangeNotifierProvider(create: (_) => RecipeViewModel()),
