@@ -55,14 +55,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
     );
   }
 
-  // ✅ HÀM ĐÃ CẬP NHẬT: Loại bỏ "unknown" và format Enum
   String _formatUnit(dynamic unit) {
-    String unitStr = unit
-        .toString()
-        .split('.')
-        .last; // Lấy phần chữ sau dấu chấm
-
-    // Nếu là unknown thì trả về chuỗi rỗng để không hiện lên màn hình
+    String unitStr = unit.toString().split('.').last;
     if (unitStr.toLowerCase() == 'unknown') {
       return "";
     }
@@ -72,13 +66,13 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     const Color greenColor = Color(0xFF4CAF50);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
       body: Stack(
         children: [
-          // 1. ẢNH HEADER (Cố định ở nền)
           Positioned(
             top: 0,
             left: 0,
@@ -96,12 +90,14 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
             top: MediaQuery.of(context).padding.top + 10,
             left: 20,
             child: CircleAvatar(
-              backgroundColor: Colors.white.withOpacity(0.9),
+              backgroundColor: isDark
+                  ? Colors.black.withOpacity(0.5)
+                  : Colors.white.withOpacity(0.9),
               radius: 20,
               child: IconButton(
-                icon: const Icon(
+                icon: Icon(
                   Icons.arrow_back,
-                  color: Colors.black,
+                  color: isDark ? Colors.white : Colors.black,
                   size: 20,
                 ),
                 onPressed: () => Navigator.pop(context),
@@ -111,9 +107,9 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
 
           // 3. SHEET NỘI DUNG (CÓ THỂ KÉO LÊN/XUỐNG)
           DraggableScrollableSheet(
-            initialChildSize: 0.65, // Chiều cao ban đầu
-            minChildSize: 0.6, // Chiều cao tối thiểu
-            maxChildSize: 0.95, // Chiều cao tối đa khi kéo hết cỡ
+            initialChildSize: 0.65,
+            minChildSize: 0.6,
+            maxChildSize: 0.95,
             builder: (context, scrollController) {
               return Container(
                 decoration: const BoxDecoration(
@@ -128,16 +124,15 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
                   ],
                 ),
                 child: SingleChildScrollView(
-                  controller: scrollController, // Gán controller để kéo được
+                  controller: scrollController,
                   child: Column(
                     children: [
                       const SizedBox(height: 12),
-                      // Thanh gạch ngang giả làm tay cầm kéo
                       Container(
                         width: 40,
                         height: 5,
                         decoration: BoxDecoration(
-                          color: Colors.grey[300],
+                          color: isDark ? Colors.grey[700] : Colors.grey[300],
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
@@ -190,8 +185,10 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
 
                             TabBar(
                               controller: _tabController,
-                              labelColor: Colors.black,
-                              unselectedLabelColor: Colors.grey,
+                              labelColor: isDark ? Colors.white : Colors.black,
+                              unselectedLabelColor: isDark
+                                  ? Colors.white54
+                                  : Colors.grey,
                               indicatorColor: greenColor,
                               indicatorWeight: 3,
                               tabs: const [
@@ -203,8 +200,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
 
                             // NỘI DUNG TAB (Bọc trong SizedBox để không bị lỗi layout khi kéo)
                             SizedBox(
-                              height:
-                                  500, // Chiều cao vùng nội dung bên trong sheet
+                              height: 500,
                               child: _isLoading
                                   ? const Center(
                                       child: CircularProgressIndicator(
@@ -273,12 +269,15 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
       itemBuilder: (context, index) {
         final item = _fullRecipe.ingredients[index];
         final bool isHave = _checkInPantry(context, item.name);
+        final isDark = Theme.of(context).brightness == Brightness.dark;
 
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
           decoration: BoxDecoration(
-            color: isHave ? greenColor.withOpacity(0.05) : Colors.grey[50],
+            color: isHave
+                ? greenColor.withOpacity(0.05)
+                : (isDark ? const Color(0xFF2C2C2C) : Colors.grey[50]),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
@@ -291,7 +290,6 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
               const SizedBox(width: 16),
               Expanded(
                 child: Text(
-                  // CẬP NHẬT: toStringAsFixed(1) để làm tròn và dùng _formatUnit mới
                   "${item.quantity.toStringAsFixed(1)} ${_formatUnit(item.unit)} ${item.name}",
                   style: TextStyle(
                     fontSize: 15,

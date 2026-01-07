@@ -27,6 +27,7 @@ class MealPlannerScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return ChangeNotifierProvider(
       create: (_) => MealPlannerViewModel(),
       child: const AddMealPlanScreenContent(),
@@ -38,7 +39,8 @@ class AddMealPlanScreenContent extends StatefulWidget {
   const AddMealPlanScreenContent({super.key});
 
   @override
-  State<AddMealPlanScreenContent> createState() => _AddMealPlanScreenContentState();
+  State<AddMealPlanScreenContent> createState() =>
+      _AddMealPlanScreenContentState();
 }
 
 class _AddMealPlanScreenContentState extends State<AddMealPlanScreenContent> {
@@ -46,8 +48,13 @@ class _AddMealPlanScreenContentState extends State<AddMealPlanScreenContent> {
 
   String _formatDate(DateTime date) {
     const dayOfWeekMap = {
-      1: 'Monday', 2: 'Tuesday', 3: 'Wednesday', 4: 'Thursday',
-      5: 'Friday', 6: 'Saturday', 7: 'Sunday'
+      1: 'Monday',
+      2: 'Tuesday',
+      3: 'Wednesday',
+      4: 'Thursday',
+      5: 'Friday',
+      6: 'Saturday',
+      7: 'Sunday',
     };
     final day = date.day.toString().padLeft(2, '0');
     final month = date.month.toString().padLeft(2, '0');
@@ -64,29 +71,36 @@ class _AddMealPlanScreenContentState extends State<AddMealPlanScreenContent> {
       borderRadius: BorderRadius.circular(16),
       child: cleanPath.startsWith('http')
           ? Image.network(
-        cleanPath,
-        width: size,
-        height: size,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => Container(
-          width: size, height: size, color: Colors.grey[200],
-          child: const Icon(Icons.broken_image, color: Colors.grey),
-        ),
-      )
+              cleanPath,
+              width: size,
+              height: size,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => Container(
+                width: size,
+                height: size,
+                color: Colors.grey[200],
+                child: const Icon(Icons.broken_image, color: Colors.grey),
+              ),
+            )
           : Image.asset(
-        cleanPath,
-        width: size,
-        height: size,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => Container(
-          width: size, height: size, color: Colors.grey[200],
-          child: const Icon(Icons.fastfood, color: Colors.grey),
-        ),
-      ),
+              cleanPath,
+              width: size,
+              height: size,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => Container(
+                width: size,
+                height: size,
+                color: Colors.grey[200],
+                child: const Icon(Icons.fastfood, color: Colors.grey),
+              ),
+            ),
     );
   }
 
-  Future<void> _handleSave(BuildContext context, MealPlannerViewModel viewModel) async {
+  Future<void> _handleSave(
+    BuildContext context,
+    MealPlannerViewModel viewModel,
+  ) async {
     final success = await viewModel.saveMealPlan();
 
     if (context.mounted) {
@@ -103,9 +117,14 @@ class _AddMealPlanScreenContentState extends State<AddMealPlanScreenContent> {
           context: context,
           builder: (context) => AlertDialog(
             title: const Text("Error"),
-            content: Text(viewModel.errorMessage ?? "An unknown error occurred."),
+            content: Text(
+              viewModel.errorMessage ?? "An unknown error occurred.",
+            ),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(context), child: const Text("OK")),
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text("OK"),
+              ),
             ],
           ),
         );
@@ -115,12 +134,15 @@ class _AddMealPlanScreenContentState extends State<AddMealPlanScreenContent> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Consumer<MealPlannerViewModel>(
       builder: (context, viewModel, child) {
         final hasMeals = viewModel.selectedMeals.isNotEmpty;
 
         return Scaffold(
-          backgroundColor: AppColors.background,
+          backgroundColor: isDark
+              ? const Color(0xFF121212)
+              : AppColors.background,
           appBar: _buildAppBar(context, viewModel, hasMeals),
           body: Stack(
             children: [
@@ -131,10 +153,12 @@ class _AddMealPlanScreenContentState extends State<AddMealPlanScreenContent> {
                     const SizedBox(height: 16),
                     _buildMealLabel(),
                     const SizedBox(height: 8),
-                    ...viewModel.selectedMeals.map((meal) => Padding(
-                      padding: const EdgeInsets.only(bottom: 12.0),
-                      child: _buildMealInfo(context, viewModel, meal),
-                    )),
+                    ...viewModel.selectedMeals.map(
+                      (meal) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12.0),
+                        child: _buildMealInfo(context, viewModel, meal),
+                      ),
+                    ),
                   ],
                   const SizedBox(height: 16),
                   _buildAddMealButton(context, viewModel, isMore: hasMeals),
@@ -155,61 +179,113 @@ class _AddMealPlanScreenContentState extends State<AddMealPlanScreenContent> {
                 Container(
                   color: Colors.black12,
                   child: const Center(
-                    child: CircularProgressIndicator(color: AppColors.primaryGreen),
+                    child: CircularProgressIndicator(
+                      color: AppColors.primaryGreen,
+                    ),
                   ),
                 ),
             ],
           ),
-          bottomNavigationBar: _buildBottomActions(context, viewModel, hasMeals),
+          bottomNavigationBar: _buildBottomActions(
+            context,
+            viewModel,
+            hasMeals,
+          ),
         );
       },
     );
   }
 
-  PreferredSizeWidget _buildAppBar(BuildContext context, MealPlannerViewModel viewModel, bool hasMeals) {
+  PreferredSizeWidget _buildAppBar(
+    BuildContext context,
+    MealPlannerViewModel viewModel,
+    bool hasMeals,
+  ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return AppBar(
-      backgroundColor: AppColors.background,
+      backgroundColor: isDark ? const Color(0xFF121212) : AppColors.background,
       elevation: 0,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back, color: AppColors.darkText),
+        icon: Icon(
+          Icons.arrow_back,
+          color: isDark ? Colors.white : AppColors.darkText,
+        ),
         onPressed: () => GoRouter.of(context).pop(),
       ),
       centerTitle: true,
-      title: const Text('Add Plan',
-          style: TextStyle(color: AppColors.darkText, fontSize: 18, fontWeight: FontWeight.w700)),
+      title: Text(
+        'Add Plan',
+        style: TextStyle(
+          color: isDark ? Colors.white : AppColors.darkText,
+          fontSize: 18,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
       actions: [
         Padding(
           padding: const EdgeInsets.only(right: 16.0),
           child: viewModel.isLoading
-              ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
+              ? const SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
               : ElevatedButton(
-            onPressed: hasMeals ? () => _handleSave(context, viewModel) : null,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: hasMeals ? AppColors.primaryGreen : AppColors.greyBackground,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9999)),
-              minimumSize: Size.zero,
-            ),
-            child: Text('Save',
-                style: TextStyle(
-                    color: hasMeals ? AppColors.white : AppColors.greyText,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700)),
-          ),
+                  onPressed: hasMeals
+                      ? () => _handleSave(context, viewModel)
+                      : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: hasMeals
+                        ? AppColors.primaryGreen
+                        : AppColors.greyBackground,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 8,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(9999),
+                    ),
+                    minimumSize: Size.zero,
+                  ),
+                  child: Text(
+                    'Save',
+                    style: TextStyle(
+                      color: hasMeals ? AppColors.white : AppColors.greyText,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
         ),
       ],
       bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1.0),
-          child: Container(color: AppColors.greyDivider, height: 1.0)),
+        preferredSize: const Size.fromHeight(1.0),
+        child: Container(
+          color: isDark ? Colors.grey[800]! : AppColors.greyDivider,
+          height: 1,
+        ),
+      ),
     );
   }
 
-  Widget _buildBottomActions(BuildContext context, MealPlannerViewModel viewModel, bool hasMeals) {
+  Widget _buildBottomActions(
+    BuildContext context,
+    MealPlannerViewModel viewModel,
+    bool hasMeals,
+  ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      padding: const EdgeInsets.all(16).copyWith(bottom: MediaQuery.of(context).padding.bottom + 16),
-      decoration: const BoxDecoration(
-        color: AppColors.background,
-        border: Border(top: BorderSide(width: 1, color: AppColors.greyDivider)),
+      padding: const EdgeInsets.all(
+        16,
+      ).copyWith(bottom: MediaQuery.of(context).padding.bottom + 16),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E1E1E) : AppColors.background,
+        border: Border(
+          top: BorderSide(
+            width: 1,
+            color: isDark ? Colors.grey[800]! : AppColors.greyDivider,
+          ),
+        ),
       ),
       child: Row(
         children: [
@@ -218,31 +294,59 @@ class _AddMealPlanScreenContentState extends State<AddMealPlanScreenContent> {
               onPressed: hasMeals ? () {} : null,
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9999)),
-                side: BorderSide(color: hasMeals ? AppColors.primaryGreen : AppColors.greyDivider, width: 1),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(9999),
+                ),
+                side: BorderSide(
+                  color: hasMeals
+                      ? AppColors.primaryGreen
+                      : AppColors.greyDivider,
+                  width: 1,
+                ),
               ),
-              child: Text('View Recipe',
-                  style: TextStyle(
-                      color: hasMeals ? AppColors.primaryGreen : AppColors.greyText,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700)),
+              child: Text(
+                'View Recipe',
+                style: TextStyle(
+                  color: hasMeals ? AppColors.primaryGreen : AppColors.greyText,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ),
           ),
           const SizedBox(width: 16),
           Expanded(
             child: ElevatedButton(
-              onPressed: hasMeals && !viewModel.isLoading ? () => _handleSave(context, viewModel) : null,
+              onPressed: hasMeals && !viewModel.isLoading
+                  ? () => _handleSave(context, viewModel)
+                  : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor: hasMeals ? AppColors.primaryGreen : AppColors.greyBackground,
+                backgroundColor: hasMeals
+                    ? AppColors.primaryGreen
+                    : AppColors.greyBackground,
                 padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9999)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(9999),
+                ),
                 elevation: hasMeals ? 4 : 0,
               ),
               child: viewModel.isLoading
                   ? const SizedBox(
-                  width: 20, height: 20,
-                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                  : const Text('Save Plan', style: TextStyle(color: AppColors.white, fontSize: 16, fontWeight: FontWeight.w700)),
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : const Text(
+                      'Save Plan',
+                      style: TextStyle(
+                        color: AppColors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
             ),
           ),
         ],
@@ -252,35 +356,64 @@ class _AddMealPlanScreenContentState extends State<AddMealPlanScreenContent> {
 
   Widget _buildMealLabel() {
     return const Text.rich(
-      TextSpan(children: [
-        TextSpan(
+      TextSpan(
+        children: [
+          TextSpan(
             text: 'Selected Meals ',
-            style: TextStyle(color: AppColors.greyText, fontSize: 16, fontWeight: FontWeight.w600)),
-        TextSpan(
+            style: TextStyle(
+              color: AppColors.greyText,
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          TextSpan(
             text: '* ',
-            style: TextStyle(color: AppColors.primaryRed, fontSize: 16, fontWeight: FontWeight.w600))
-      ]),
+            style: TextStyle(
+              color: AppColors.primaryRed,
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildAddMealButton(BuildContext context, MealPlannerViewModel viewModel, {bool isMore = false}) {
+  Widget _buildAddMealButton(
+    BuildContext context,
+    MealPlannerViewModel viewModel, {
+    bool isMore = false,
+  }) {
     return Align(
       alignment: Alignment.centerLeft,
       child: ElevatedButton.icon(
         onPressed: () => _showMealSelectionDialog(context, viewModel),
         icon: const Icon(Icons.add, color: AppColors.white, size: 20),
-        label: Text(isMore ? 'Add More Meal' : 'Add Meal',
-            style: const TextStyle(color: AppColors.white, fontSize: 16, fontWeight: FontWeight.w700)),
+        label: Text(
+          isMore ? 'Add More Meal' : 'Add Meal',
+          style: const TextStyle(
+            color: AppColors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primaryRed,
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9999)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(9999),
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildMealInfo(BuildContext context, MealPlannerViewModel viewModel, dynamic meal) {
+  Widget _buildMealInfo(
+    BuildContext context,
+    MealPlannerViewModel viewModel,
+    dynamic meal,
+  ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: _buildBoxDecoration(),
@@ -292,9 +425,21 @@ class _AddMealPlanScreenContentState extends State<AddMealPlanScreenContent> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(meal.name, style: const TextStyle(color: AppColors.darkText, fontSize: 16, fontWeight: FontWeight.w700)),
-                Text('${meal.preparationTimeMinutes} min • ${meal.kcal} kcal',
-                    style: const TextStyle(color: AppColors.greyText, fontSize: 14)),
+                Text(
+                  meal.name,
+                  style: TextStyle(
+                    color: isDark ? Colors.white : AppColors.darkText,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                Text(
+                  '${meal.preparationTimeMinutes} min • ${meal.kcal} kcal',
+                  style: const TextStyle(
+                    color: AppColors.greyText,
+                    fontSize: 14,
+                  ),
+                ),
               ],
             ),
           ),
@@ -307,11 +452,21 @@ class _AddMealPlanScreenContentState extends State<AddMealPlanScreenContent> {
     );
   }
 
-  Widget _buildTimeSection(BuildContext context, MealPlannerViewModel viewModel) {
+  Widget _buildTimeSection(
+    BuildContext context,
+    MealPlannerViewModel viewModel,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Time', style: TextStyle(color: AppColors.greyText, fontSize: 16, fontWeight: FontWeight.w600)),
+        const Text(
+          'Time',
+          style: TextStyle(
+            color: AppColors.greyText,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         const SizedBox(height: 12),
         _buildDateRow(context, viewModel),
         const SizedBox(height: 12),
@@ -323,18 +478,39 @@ class _AddMealPlanScreenContentState extends State<AddMealPlanScreenContent> {
   }
 
   Widget _buildDateRow(BuildContext context, MealPlannerViewModel viewModel) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return _buildPlanDetailRow(
       icon: Icons.calendar_today,
-      title: const Text.rich(TextSpan(children: [
+      title: Text.rich(
         TextSpan(
-            text: 'Cooking Date ',
-            style: TextStyle(color: AppColors.darkText, fontSize: 16, fontWeight: FontWeight.w500)),
-        TextSpan(
-            text: '* ',
-            style: TextStyle(color: AppColors.primaryRed, fontSize: 16, fontWeight: FontWeight.w500))
-      ])),
-      value: Text(_formatDate(viewModel.plan.date),
-          style: const TextStyle(color: AppColors.darkText, fontSize: 16, fontWeight: FontWeight.w500)),
+          children: [
+            TextSpan(
+              text: 'Cooking Date ',
+              style: TextStyle(
+                color: isDark ? Colors.white : AppColors.darkText,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            TextSpan(
+              text: '* ',
+              style: TextStyle(
+                color: AppColors.primaryRed,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+      value: Text(
+        _formatDate(viewModel.plan.date),
+        style: TextStyle(
+          color: isDark ? Colors.white : AppColors.darkText,
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
       onTap: () async {
         final DateTime? picked = await showDatePicker(
           context: context,
@@ -347,14 +523,23 @@ class _AddMealPlanScreenContentState extends State<AddMealPlanScreenContent> {
     );
   }
 
-  Widget _buildMealTypeSegmentedControl(BuildContext context, MealPlannerViewModel viewModel) {
+  Widget _buildMealTypeSegmentedControl(
+    BuildContext context,
+    MealPlannerViewModel viewModel,
+  ) {
     return Container(
       height: 48,
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: const [BoxShadow(color: Color(0x0C000000), blurRadius: 2, offset: Offset(0, 1))],
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x0C000000),
+            blurRadius: 2,
+            offset: Offset(0, 1),
+          ),
+        ],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -366,13 +551,19 @@ class _AddMealPlanScreenContentState extends State<AddMealPlanScreenContent> {
               child: Container(
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: isSelected ? AppColors.lightYellow : Colors.transparent,
+                  color: isSelected
+                      ? AppColors.lightYellow
+                      : Colors.transparent,
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: Text(type.name.toUpperCase(),
-                    style: TextStyle(
-                        color: isSelected ? AppColors.yellow : AppColors.greyText,
-                        fontSize: 14, fontWeight: FontWeight.w500)),
+                child: Text(
+                  type.name.toUpperCase(),
+                  style: TextStyle(
+                    color: isSelected ? AppColors.yellow : AppColors.greyText,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ),
             ),
           );
@@ -381,24 +572,55 @@ class _AddMealPlanScreenContentState extends State<AddMealPlanScreenContent> {
     );
   }
 
-  Widget _buildSpecificTimeRow(BuildContext context, MealPlannerViewModel viewModel) {
+  Widget _buildSpecificTimeRow(
+    BuildContext context,
+    MealPlannerViewModel viewModel,
+  ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return _buildPlanDetailRow(
       icon: Icons.access_time_filled,
-      title: const Text('Specific Time', style: TextStyle(color: AppColors.darkText, fontSize: 16, fontWeight: FontWeight.w500)),
-      value: Text(viewModel.plan.specificTime.format(context),
-          style: const TextStyle(color: AppColors.darkText, fontSize: 16, fontWeight: FontWeight.w500)),
+      title: Text(
+        'Specific Time',
+        style: TextStyle(
+          color: isDark ? Colors.white : AppColors.darkText,
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      value: Text(
+        viewModel.plan.specificTime.format(context),
+        style: TextStyle(
+          color: isDark ? Colors.white : AppColors.darkText,
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
       onTap: () async {
-        final TimeOfDay? picked = await showTimePicker(context: context, initialTime: viewModel.plan.specificTime);
+        final TimeOfDay? picked = await showTimePicker(
+          context: context,
+          initialTime: viewModel.plan.specificTime,
+        );
         if (picked != null) viewModel.setSpecificTime(picked);
       },
     );
   }
 
-  Widget _buildServingSizeSection(BuildContext context, MealPlannerViewModel viewModel) {
+  Widget _buildServingSizeSection(
+    BuildContext context,
+    MealPlannerViewModel viewModel,
+  ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Servings', style: TextStyle(color: AppColors.greyText, fontSize: 16, fontWeight: FontWeight.w600)),
+        const Text(
+          'Servings',
+          style: TextStyle(
+            color: AppColors.greyText,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.all(12),
@@ -410,9 +632,19 @@ class _AddMealPlanScreenContentState extends State<AddMealPlanScreenContent> {
                   _buildIconBox(Icons.people),
                   const SizedBox(width: 16),
                   const Expanded(
-                      child: Text('Number of servings',
-                          style: TextStyle(color: AppColors.darkText, fontSize: 16, fontWeight: FontWeight.w500))),
-                  _buildQuantityControl(viewModel.plan.servings, (delta) => viewModel.changeServings(delta)),
+                    child: Text(
+                      'Number of servings',
+                      style: TextStyle(
+                        color: AppColors.darkText,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  _buildQuantityControl(
+                    viewModel.plan.servings,
+                    (delta) => viewModel.changeServings(delta),
+                  ),
                 ],
               ),
             ],
@@ -426,7 +658,14 @@ class _AddMealPlanScreenContentState extends State<AddMealPlanScreenContent> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Notes', style: TextStyle(color: AppColors.greyText, fontSize: 16, fontWeight: FontWeight.w600)),
+        const Text(
+          'Notes',
+          style: TextStyle(
+            color: AppColors.greyText,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.all(8),
@@ -436,10 +675,11 @@ class _AddMealPlanScreenContentState extends State<AddMealPlanScreenContent> {
             onChanged: (value) => viewModel.updateNotes(value),
             maxLines: 4,
             decoration: const InputDecoration(
-                hintText: 'e.g. For guests, make more...',
-                hintStyle: TextStyle(color: Color(0xFF6B7280)),
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.all(4)),
+              hintText: 'e.g. For guests, make more...',
+              hintStyle: TextStyle(color: Color(0xFF6B7280)),
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.all(4),
+            ),
             style: const TextStyle(fontSize: 14, color: AppColors.darkText),
           ),
         ),
@@ -447,97 +687,205 @@ class _AddMealPlanScreenContentState extends State<AddMealPlanScreenContent> {
     );
   }
 
-  Widget _buildRepeatSection(BuildContext context, MealPlannerViewModel viewModel) {
-    final selectedDaysSummary = viewModel.plan.repeatDays.entries.where((e) => e.value).map((e) => e.key).join(', ');
+  Widget _buildRepeatSection(
+    BuildContext context,
+    MealPlannerViewModel viewModel,
+  ) {
+    final selectedDaysSummary = viewModel.plan.repeatDays.entries
+        .where((e) => e.value)
+        .map((e) => e.key)
+        .join(', ');
     return _buildPlanDetailRow(
       icon: Icons.repeat,
-      title: const Text('Repeat this plan', style: TextStyle(color: AppColors.darkText, fontSize: 16, fontWeight: FontWeight.w500)),
+      title: const Text(
+        'Repeat this plan',
+        style: TextStyle(
+          color: AppColors.darkText,
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
       value: Expanded(
-          child: Text(selectedDaysSummary.isEmpty ? 'None' : selectedDaysSummary,
-              textAlign: TextAlign.end,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                  color: selectedDaysSummary.isEmpty ? AppColors.greyText : AppColors.primaryGreen,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500))),
+        child: Text(
+          selectedDaysSummary.isEmpty ? 'None' : selectedDaysSummary,
+          textAlign: TextAlign.end,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: selectedDaysSummary.isEmpty
+                ? AppColors.greyText
+                : AppColors.primaryGreen,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
       onTap: () => _showRepeatDialog(context, viewModel),
     );
   }
 
   BoxDecoration _buildBoxDecoration() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.greyDivider, width: 1),
-        boxShadow: const [BoxShadow(color: Color(0x0C000000), blurRadius: 2, offset: Offset(0, 1))]);
+      color: isDark ? const Color(0xFF1E1E1E) : AppColors.white,
+      borderRadius: BorderRadius.circular(24),
+      border: Border.all(color: AppColors.greyDivider, width: 1),
+      boxShadow: const [
+        BoxShadow(
+          color: Color(0x0C000000),
+          blurRadius: 2,
+          offset: Offset(0, 1),
+        ),
+      ],
+    );
   }
 
-  Widget _buildPlanDetailRow({required IconData icon, required Widget title, required Widget value, VoidCallback? onTap}) {
+  Widget _buildPlanDetailRow({
+    required IconData icon,
+    required Widget title,
+    required Widget value,
+    VoidCallback? onTap,
+  }) {
     return InkWell(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: _buildBoxDecoration(),
-        child: Row(children: [_buildIconBox(icon), const SizedBox(width: 16), Expanded(child: title), value]),
+        child: Row(
+          children: [
+            _buildIconBox(icon),
+            const SizedBox(width: 16),
+            Expanded(child: title),
+            value,
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildIconBox(IconData icon) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-        width: 40, height: 40,
-        decoration: BoxDecoration(color: AppColors.lightGreen, borderRadius: BorderRadius.circular(16)),
-        child: Icon(icon, color: AppColors.primaryGreen, size: 24));
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        color: isDark ? Colors.green.withOpacity(0.15) : AppColors.lightGreen,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Icon(icon, color: AppColors.primaryGreen, size: 24),
+    );
   }
 
   Widget _buildQuantityControl(int quantity, Function(int) onChanged) {
-    return Row(mainAxisSize: MainAxisSize.min, children: [
-      _buildCircularButton(Icons.remove, AppColors.greyBackground, AppColors.darkText, () => onChanged(-1)),
-      SizedBox(
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _buildCircularButton(
+          Icons.remove,
+          AppColors.greyBackground,
+          AppColors.darkText,
+          () => onChanged(-1),
+        ),
+        SizedBox(
           width: 32,
-          child: Text('$quantity',
-              textAlign: TextAlign.center, style: const TextStyle(color: AppColors.darkText, fontSize: 18, fontWeight: FontWeight.w700))),
-      _buildCircularButton(Icons.add, AppColors.primaryGreen, AppColors.white, () => onChanged(1))
-    ]);
+          child: Text(
+            '$quantity',
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: AppColors.darkText,
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+        _buildCircularButton(
+          Icons.add,
+          AppColors.primaryGreen,
+          AppColors.white,
+          () => onChanged(1),
+        ),
+      ],
+    );
   }
 
-  Widget _buildCircularButton(IconData icon, Color bgColor, Color iconColor, VoidCallback onPressed) {
+  Widget _buildCircularButton(
+    IconData icon,
+    Color bgColor,
+    Color iconColor,
+    VoidCallback onPressed,
+  ) {
     return Container(
-        width: 32, height: 32,
-        decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(9999)),
-        child: IconButton(padding: EdgeInsets.zero, icon: Icon(icon, size: 16, color: iconColor), onPressed: onPressed));
+      width: 32,
+      height: 32,
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(9999),
+      ),
+      child: IconButton(
+        padding: EdgeInsets.zero,
+        icon: Icon(icon, size: 16, color: iconColor),
+        onPressed: onPressed,
+      ),
+    );
   }
 
   Widget _buildReminderSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Reminder', style: TextStyle(color: AppColors.greyText, fontSize: 16, fontWeight: FontWeight.w600)),
+        const Text(
+          'Reminder',
+          style: TextStyle(
+            color: AppColors.greyText,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.all(12),
           decoration: _buildBoxDecoration(),
-          child: Column(children: [
-            Row(children: [
-              _buildIconBox(Icons.notifications_active),
-              const SizedBox(width: 16),
-              const Expanded(
-                  child: Text('Set Reminder', style: TextStyle(color: AppColors.darkText, fontSize: 16, fontWeight: FontWeight.w500))),
-              Switch(value: _isReminderOn, onChanged: (val) => setState(() => _isReminderOn = val), activeColor: AppColors.primaryGreen)
-            ]),
-          ]),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  _buildIconBox(Icons.notifications_active),
+                  const SizedBox(width: 16),
+                  const Expanded(
+                    child: Text(
+                      'Set Reminder',
+                      style: TextStyle(
+                        color: AppColors.darkText,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  Switch(
+                    value: _isReminderOn,
+                    onChanged: (val) => setState(() => _isReminderOn = val),
+                    activeColor: AppColors.primaryGreen,
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ],
     );
   }
 
-  void _showMealSelectionDialog(BuildContext context, MealPlannerViewModel viewModel) {
+  void _showMealSelectionDialog(
+    BuildContext context,
+    MealPlannerViewModel viewModel,
+  ) {
     final searchController = TextEditingController();
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (modalContext) {
         return StatefulBuilder(
           builder: (context, setModalState) {
@@ -547,14 +895,19 @@ class _AddMealPlanScreenContentState extends State<AddMealPlanScreenContent> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Select a Meal', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  const Text(
+                    'Select a Meal',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
                   const SizedBox(height: 12),
                   TextField(
                     controller: searchController,
                     decoration: InputDecoration(
                       hintText: 'Search online (Spoonacular)...',
                       prefixIcon: const Icon(Icons.search),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                     onSubmitted: (value) async {
                       await viewModel.searchMeals(value);
@@ -566,9 +919,15 @@ class _AddMealPlanScreenContentState extends State<AddMealPlanScreenContent> {
                     child: ListenableBuilder(
                       listenable: viewModel,
                       builder: (context, _) {
-                        if (viewModel.isLoading) return const Center(child: CircularProgressIndicator());
+                        if (viewModel.isLoading)
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
                         final list = viewModel.availableMeals;
-                        if (list.isEmpty) return const Center(child: Text("No meals found. Try searching."));
+                        if (list.isEmpty)
+                          return const Center(
+                            child: Text("No meals found. Try searching."),
+                          );
 
                         return ListView.builder(
                           itemCount: list.length,
@@ -576,8 +935,15 @@ class _AddMealPlanScreenContentState extends State<AddMealPlanScreenContent> {
                             final meal = list[index];
                             return ListTile(
                               leading: _buildSafeImage(meal.imageUrl, size: 50),
-                              title: Text(meal.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                              subtitle: Text('${meal.preparationTimeMinutes} min • ${meal.kcal} kcal'),
+                              title: Text(
+                                meal.name,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              subtitle: Text(
+                                '${meal.preparationTimeMinutes} min • ${meal.kcal} kcal',
+                              ),
                               onTap: () {
                                 viewModel.selectMeal(meal);
                                 Navigator.pop(modalContext);
@@ -605,7 +971,15 @@ class _AddMealPlanScreenContentState extends State<AddMealPlanScreenContent> {
           title: const Text('Weekly Repeat'),
           content: StatefulBuilder(
             builder: (BuildContext context, StateSetter setState) {
-              final dayMap = {'T2': 'Mon', 'T3': 'Tue', 'T4': 'Wed', 'T5': 'Thu', 'T6': 'Fri', 'T7': 'Sat', 'CN': 'Sun'};
+              final dayMap = {
+                'T2': 'Mon',
+                'T3': 'Tue',
+                'T4': 'Wed',
+                'T5': 'Thu',
+                'T6': 'Fri',
+                'T7': 'Sat',
+                'CN': 'Sun',
+              };
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 children: viewModel.plan.repeatDays.keys.map((dayKey) {
@@ -614,7 +988,9 @@ class _AddMealPlanScreenContentState extends State<AddMealPlanScreenContent> {
                     value: viewModel.plan.repeatDays[dayKey] ?? false,
                     onChanged: (bool? newValue) {
                       if (newValue != null) {
-                        setState(() { viewModel.toggleRepeatDay(dayKey); });
+                        setState(() {
+                          viewModel.toggleRepeatDay(dayKey);
+                        });
                       }
                     },
                   );
@@ -622,7 +998,12 @@ class _AddMealPlanScreenContentState extends State<AddMealPlanScreenContent> {
               );
             },
           ),
-          actions: [TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Done'))],
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Done'),
+            ),
+          ],
         );
       },
     );

@@ -41,13 +41,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark
+          ? const Color(0xFF121212)
+          : const Color(0xFFF9F9F9),
       body: SafeArea(
         child: Consumer<HomeViewModel>(
           builder: (context, viewModel, child) {
             if (viewModel.isLoading) {
-              return const Center(child: CircularProgressIndicator(color: Colors.orange));
+              return const Center(
+                child: CircularProgressIndicator(color: Colors.orange),
+              );
             }
 
             return RefreshIndicator(

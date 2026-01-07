@@ -6,7 +6,6 @@ import 'dart:async';
 import 'package:beptroly/features/goi_y_mon_an/viewmodels/recipe_view_model.dart';
 import 'package:beptroly/features/goi_y_mon_an/models/recipe_model.dart';
 import 'package:beptroly/features/goi_y_mon_an/views/widgets/recipe_filter_sheet.dart';
-// ĐÃ KẾT NỐI: Import PantryViewModel thật
 import 'package:beptroly/features/kho_nguyen_lieu/view_models/pantry_view_model.dart';
 
 class RecipeFeedScreen extends StatefulWidget {
@@ -17,8 +16,6 @@ class RecipeFeedScreen extends StatefulWidget {
 }
 
 class _RecipeFeedScreenState extends State<RecipeFeedScreen> {
-  // ĐÃ XÓA: Danh sách _myPantryIngredients giả lập
-
   int _selectedFilterIndex = 0;
   Timer? _debounce;
 
@@ -46,7 +43,6 @@ class _RecipeFeedScreenState extends State<RecipeFeedScreen> {
     super.dispose();
   }
 
-  // --- HÀM LẤY TÊN NGUYÊN LIỆU TỪ TỦ LẠNH THẬT ---
   List<String> _getCurrentPantryNames() {
     final pantryVM = context.read<PantryViewModel>();
     return pantryVM.ingredients.map((e) => e.name).toList();
@@ -102,22 +98,28 @@ class _RecipeFeedScreenState extends State<RecipeFeedScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final recipeVM = context.watch<RecipeViewModel>();
-    // Lắng nghe Pantry để khi bạn mình thêm/xóa đồ, UI tự update theo
     final pantryVM = context.watch<PantryViewModel>();
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(
+            Icons.arrow_back,
+            color: isDark ? Colors.white : Colors.black,
+          ),
           onPressed: () => context.pop(),
         ),
-        title: const Text(
+        title: Text(
           "Recipe Suggestions",
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: isDark ? Colors.white : Colors.black,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         centerTitle: true,
       ),
@@ -126,7 +128,7 @@ class _RecipeFeedScreenState extends State<RecipeFeedScreen> {
           children: [
             // HEADER & SEARCH BAR
             Container(
-              color: Colors.white,
+              color: isDark ? const Color(0xFF121212) : Colors.white,
               padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -163,7 +165,9 @@ class _RecipeFeedScreenState extends State<RecipeFeedScreen> {
                         onPressed: _openFilterSheet,
                       ),
                       filled: true,
-                      fillColor: Colors.grey[100],
+                      fillColor: isDark
+                          ? const Color(0xFF2C2C2C)
+                          : Colors.grey[100],
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide.none,
@@ -194,24 +198,32 @@ class _RecipeFeedScreenState extends State<RecipeFeedScreen> {
                               size: 18,
                               color: isSelected
                                   ? Colors.white
-                                  : Colors.grey[600],
+                                  : (isDark
+                                        ? Colors.grey[400]
+                                        : Colors.grey[600]),
                             ),
                             label: Text(filter['label']),
                             labelStyle: TextStyle(
                               color: isSelected
                                   ? Colors.white
-                                  : Colors.grey[700],
+                                  : (isDark
+                                        ? Colors.grey[300]
+                                        : Colors.grey[700]),
                               fontWeight: FontWeight.w500,
                             ),
                             selected: isSelected,
                             selectedColor: Colors.orange,
-                            backgroundColor: Colors.white,
+                            backgroundColor: isDark
+                                ? const Color(0xFF1E1E1E)
+                                : Colors.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(20),
                               side: BorderSide(
                                 color: isSelected
                                     ? Colors.orange
-                                    : Colors.grey[300]!,
+                                    : (isDark
+                                          ? Colors.grey[800]!
+                                          : Colors.grey[300]!),
                                 width: 1,
                               ),
                             ),

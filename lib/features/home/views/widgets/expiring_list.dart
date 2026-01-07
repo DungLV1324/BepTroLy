@@ -8,13 +8,15 @@ class ExpiringList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    bool isDark = Theme.of(context).brightness == Brightness.dark;
     if (ingredients.isEmpty) {
       return Container(
         width: double.infinity,
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-            color: Colors.green.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12)),
+          color: Colors.green.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+        ),
         child: const Text(
           "Your pantry is safe! No items expiring soon.",
           textAlign: TextAlign.center,
@@ -37,7 +39,7 @@ class ExpiringList extends StatelessWidget {
             width: 120,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: isDark ? const Color(0xFF2C2C2C) : Colors.grey[100],
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
@@ -54,7 +56,10 @@ class ExpiringList extends StatelessWidget {
                 const SizedBox(height: 12),
                 Text(
                   item.name,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
                   textAlign: TextAlign.center,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -89,10 +94,10 @@ class ExpiringList extends StatelessWidget {
       child: ClipOval(
         child: (item.imageUrl != null && item.imageUrl!.isNotEmpty)
             ? Image.network(
-          item.imageUrl!,
-          fit: BoxFit.cover,
-          errorBuilder: (_, _, _) => _buildFallbackIcon(),
-        )
+                item.imageUrl!,
+                fit: BoxFit.cover,
+                errorBuilder: (_, _, _) => _buildFallbackIcon(),
+              )
             : _buildFallbackIcon(),
       ),
     );

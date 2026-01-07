@@ -21,14 +21,27 @@ class HomeHeader extends StatelessWidget {
                 context.push('/settings');
               },
               child: ClipOval(
-                child: Image(
-                  width: 48,
-                  height: 48,
-                  fit: BoxFit.cover,
-                  image: (photoUrl != null && photoUrl!.isNotEmpty)
-                      ? NetworkImage(photoUrl!) as ImageProvider
-                      : const AssetImage('assets/images/icon_app.png'),
-                ),
+                child: (photoUrl != null && photoUrl!.isNotEmpty)
+                    ? Image.network(
+                        photoUrl!,
+                        width: 48,
+                        height: 48,
+                        fit: BoxFit.cover,
+                        // Nếu link ảnh từ Firebase bị lỗi, nó sẽ tự hiện ảnh icon_app này
+                        errorBuilder: (context, error, stackTrace) =>
+                            Image.asset(
+                              'assets/images/icon_app.png',
+                              width: 48,
+                              height: 48,
+                              fit: BoxFit.cover,
+                            ),
+                      )
+                    : Image.asset(
+                        'assets/images/icon_app.png',
+                        width: 48,
+                        height: 48,
+                        fit: BoxFit.cover,
+                      ),
               ),
             ),
 
