@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-
 import '../viewmodels/meal_planner_add_viewmodel.dart';
 import '../models/meal_plan_model.dart';
 
@@ -11,7 +10,6 @@ class WeeklyMealPlannerScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      // Khởi tạo ViewModel và lắng nghe dữ liệu real-time
       create: (_) => WeeklyMealPlannerViewModel(),
       child: Consumer<WeeklyMealPlannerViewModel>(
         builder: (context, viewModel, child) {

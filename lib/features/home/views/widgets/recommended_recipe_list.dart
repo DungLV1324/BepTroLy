@@ -1,19 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import '../../../goi_y_mon_an/viewmodels/recipe_view_model.dart';
+import '../../../kho_nguyen_lieu/view_models/pantry_view_model.dart';
 
 class RecommendedRecipeList extends StatelessWidget {
   const RecommendedRecipeList({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final pantryVM = context.watch<PantryViewModel>();
+
     return Consumer<RecipeViewModel>(
       builder: (context, recipeModel, child) {
         if (recipeModel.state == RecipeViewState.loading) {
           return const SizedBox(
             height: 250,
-            child: Center(child: CircularProgressIndicator(color: Colors.orange)),
+            child: Center(
+              child: CircularProgressIndicator(color: Colors.orange),
+            ),
           );
         }
 
@@ -24,7 +29,9 @@ class RecommendedRecipeList extends StatelessWidget {
             alignment: Alignment.center,
             margin: const EdgeInsets.symmetric(horizontal: 20),
             decoration: BoxDecoration(
-                color: Colors.grey[100], borderRadius: BorderRadius.circular(12)),
+              color: Colors.grey[100],
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: const Text("No suitable suggestions found yet."),
           );
         }
@@ -38,6 +45,22 @@ class RecommendedRecipeList extends StatelessWidget {
             separatorBuilder: (_, __) => const SizedBox(width: 15),
             itemBuilder: (context, index) {
               final item = recipeModel.recipes[index];
+              final List<String> recipeIngNames = item.ingredients
+                  .map((e) => e.name)
+                  .toList();
+
+              final bool isReady =
+                  recipeIngNames.isNotEmpty &&
+                  recipeIngNames.every(
+                    (ingName) => pantryVM.ingredients.any(
+                      (p) =>
+                          ingName.toLowerCase().contains(
+                            p.name.toLowerCase(),
+                          ) ||
+                          p.name.toLowerCase().contains(ingName.toLowerCase()),
+                    ),
+                  );
+
               return GestureDetector(
                 onTap: () => context.push('/recipe_detail', extra: item),
                 child: Container(
@@ -59,12 +82,15 @@ class RecommendedRecipeList extends StatelessWidget {
                       Expanded(
                         flex: 3,
                         child: ClipRRect(
-                          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                          borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(20),
+                          ),
                           child: Image.network(
                             item.imageUrl,
                             fit: BoxFit.cover,
                             width: double.infinity,
-                            errorBuilder: (_, __, ___) => const Icon(Icons.broken_image),
+                            errorBuilder: (_, __, ___) =>
+                                const Icon(Icons.broken_image),
                           ),
                         ),
                       ),
@@ -77,21 +103,66 @@ class RecommendedRecipeList extends StatelessWidget {
                             children: [
                               Text(
                                 item.name,
-                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
                               const SizedBox(height: 8),
-                              if (item.missedIngredientCount > 0)
-                                Text(
-                                  'Lack ${item.missedIngredientCount} ingredient',
-                                  style: const TextStyle(color: Colors.redAccent, fontSize: 12, fontWeight: FontWeight.w600),
-                                )
-                              else
-                                const Text(
-                                  'Enough ingredients!',
-                                  style: TextStyle(color: Colors.green, fontSize: 12, fontWeight: FontWeight.bold),
-                                ),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      isReady
+                                          ? "Enough ingredients!"
+                                          : "Lack ingredients",
+                                      style: TextStyle(
+                                        color: isReady
+                                            ? Colors.green
+                                            : Colors.redAccent,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  if (!isReady)
+                                    InkWell(
+                                      onTap: () {
+                                        final List<String>
+                                        missed = recipeIngNames
+                                            .where(
+                                              (
+                                                name,
+                                              ) => !pantryVM.ingredients.any(
+                                                (p) =>
+                                                    name.toLowerCase().contains(
+                                                      p.name.toLowerCase(),
+                                                    ) ||
+                                                    p.name
+                                                        .toLowerCase()
+                                                        .contains(
+                                                          name.toLowerCase(),
+                                                        ),
+                                              ),
+                                            )
+                                            .toList();
+
+                                        // Điều hướng sang màn hình Shopping (trong folder kế hoạch)
+                                        context.push(
+                                          '/shopping',
+                                          extra: missed,
+                                        );
+                                      },
+                                      child: const Icon(
+                                        Icons.shopping_cart_outlined,
+                                        color: Colors.orange,
+                                        size: 20,
+                                      ),
+                                    ),
+                                ],
+                              ),
                             ],
                           ),
                         ),

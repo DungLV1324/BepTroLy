@@ -16,21 +16,25 @@ import 'features/kho_nguyen_lieu/views/pantry_screen.dart';
 import 'features/setting/views/edit_profile_screen.dart';
 import 'features/setting/views/setting_screen.dart';
 
-
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
-final _shellNavigatorHomeKey = GlobalKey<NavigatorState>(debugLabel: 'shellHome');
-final _shellNavigatorPantryKey = GlobalKey<NavigatorState>(debugLabel: 'shellPantry');
-final _shellNavigatorPlannerKey = GlobalKey<NavigatorState>(debugLabel: 'shellPlanner');
-final _shellNavigatorShoppingKey = GlobalKey<NavigatorState>(debugLabel: 'shellShopping');
+final _shellNavigatorHomeKey = GlobalKey<NavigatorState>(
+  debugLabel: 'shellHome',
+);
+final _shellNavigatorPantryKey = GlobalKey<NavigatorState>(
+  debugLabel: 'shellPantry',
+);
+final _shellNavigatorPlannerKey = GlobalKey<NavigatorState>(
+  debugLabel: 'shellPlanner',
+);
+final _shellNavigatorShoppingKey = GlobalKey<NavigatorState>(
+  debugLabel: 'shellShopping',
+);
 
 final appRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
   initialLocation: '/',
   routes: [
-    GoRoute(
-      path: '/',
-      builder: (context, state) => const SplashScreen(),
-    ),
+    GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
     GoRoute(
       path: '/login',
       builder: (context, state) => const LoginScreen(),
@@ -63,6 +67,12 @@ final appRouter = GoRouter(
       path: '/edit_profile',
       builder: (context, state) => const EditProfileScreen(),
     ),
+    GoRoute(
+      path: '/shopping',
+      builder: (context, state) {
+        return const ShoppingListScreen();
+      },
+    ),
 
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
@@ -82,8 +92,7 @@ final appRouter = GoRouter(
                 ),
                 GoRoute(
                   path: 'recipe_detail',
-                  parentNavigatorKey:
-                      _rootNavigatorKey,
+                  parentNavigatorKey: _rootNavigatorKey,
                   builder: (context, state) {
                     final recipe = state.extra as RecipeModel;
                     return RecipeDetailScreen(recipe: recipe);

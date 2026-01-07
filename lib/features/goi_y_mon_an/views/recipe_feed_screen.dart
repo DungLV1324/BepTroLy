@@ -6,6 +6,8 @@ import 'dart:async';
 import 'package:beptroly/features/goi_y_mon_an/viewmodels/recipe_view_model.dart';
 import 'package:beptroly/features/goi_y_mon_an/models/recipe_model.dart';
 import 'package:beptroly/features/goi_y_mon_an/views/widgets/recipe_filter_sheet.dart';
+// ĐÃ KẾT NỐI: Import PantryViewModel thật
+import 'package:beptroly/features/kho_nguyen_lieu/view_models/pantry_view_model.dart';
 
 class RecipeFeedScreen extends StatefulWidget {
   const RecipeFeedScreen({super.key});
@@ -15,21 +17,7 @@ class RecipeFeedScreen extends StatefulWidget {
 }
 
 class _RecipeFeedScreenState extends State<RecipeFeedScreen> {
-  final List<String> _myPantryIngredients = [
-    'chicken',
-    'egg',
-    'tomato',
-    'onion',
-    'rice',
-    'bananas',
-    'oatmeal',
-    'peanut butter',
-    'sundried tomatoes',
-    'parsley',
-    'olive oil',
-    'basil',
-    'eggs',
-  ];
+  // ĐÃ XÓA: Danh sách _myPantryIngredients giả lập
 
   int _selectedFilterIndex = 0;
   Timer? _debounce;
@@ -58,9 +46,14 @@ class _RecipeFeedScreenState extends State<RecipeFeedScreen> {
     super.dispose();
   }
 
+  // --- HÀM LẤY TÊN NGUYÊN LIỆU TỪ TỦ LẠNH THẬT ---
+  List<String> _getCurrentPantryNames() {
+    final pantryVM = context.read<PantryViewModel>();
+    return pantryVM.ingredients.map((e) => e.name).toList();
+  }
+
   // --- HÀM MỞ BẢNG LỌC NÂNG CAO ---
   Future<void> _openFilterSheet() async {
-    // Mở Bottom Sheet và đợi dữ liệu lọc trả về
     final result = await showModalBottomSheet<Map<String, dynamic>>(
       context: context,
       isScrollControlled: true,
@@ -68,10 +61,7 @@ class _RecipeFeedScreenState extends State<RecipeFeedScreen> {
       builder: (context) => const RecipeFilterSheet(),
     );
 
-    // Nếu người dùng nhấn 'Apply Filters'
     if (result != null) {
-      debugPrint("Selected filters: $result");
-
       context.read<RecipeViewModel>().fetchRecipesWithFilter(
         query: '',
         time: result['maxReadyTime'] == 'All' ? '' : result['maxReadyTime'],
@@ -85,7 +75,8 @@ class _RecipeFeedScreenState extends State<RecipeFeedScreen> {
     final type = _filters[index]['type'];
 
     if (type == 'pantry') {
-      viewModel.fetchSuggestedRecipes(_myPantryIngredients);
+      // ĐÃ SỬA: Lấy dữ liệu từ PantryViewModel thay vì list giả
+      viewModel.fetchSuggestedRecipes(_getCurrentPantryNames());
     } else if (type == 'time') {
       viewModel.fetchRecipesWithFilter(query: '', time: '< 20 mins');
     } else {
@@ -93,11 +84,13 @@ class _RecipeFeedScreenState extends State<RecipeFeedScreen> {
     }
   }
 
+  // --- HÀM CHECK THẬT TRONG TỦ LẠNH ---
   bool _checkInPantry(String name) {
-    return _myPantryIngredients.any(
+    final pantryVM = context.read<PantryViewModel>();
+    return pantryVM.ingredients.any(
       (item) =>
-          name.toLowerCase().contains(item.toLowerCase()) ||
-          item.toLowerCase().contains(name.toLowerCase()),
+          name.toLowerCase().contains(item.name.toLowerCase()) ||
+          item.name.toLowerCase().contains(name.toLowerCase()),
     );
   }
 
@@ -109,7 +102,9 @@ class _RecipeFeedScreenState extends State<RecipeFeedScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = context.watch<RecipeViewModel>();
+    final recipeVM = context.watch<RecipeViewModel>();
+    // Lắng nghe Pantry để khi bạn mình thêm/xóa đồ, UI tự update theo
+    final pantryVM = context.watch<PantryViewModel>();
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -151,7 +146,6 @@ class _RecipeFeedScreenState extends State<RecipeFeedScreen> {
                   ),
                   const SizedBox(height: 20),
 
-                  // Ô TÌM KIẾM CÓ NÚT LỌC (Tune Icon)
                   TextField(
                     onChanged: (value) {
                       if (_debounce?.isActive ?? false) _debounce!.cancel();
@@ -164,13 +158,10 @@ class _RecipeFeedScreenState extends State<RecipeFeedScreen> {
                     decoration: InputDecoration(
                       hintText: 'Search recipes...',
                       prefixIcon: const Icon(Icons.search, color: Colors.grey),
-
-                      // NÚT Lọc
                       suffixIcon: IconButton(
                         icon: const Icon(Icons.tune, color: Colors.orange),
                         onPressed: _openFilterSheet,
                       ),
-
                       filled: true,
                       fillColor: Colors.grey[100],
                       border: OutlineInputBorder(
@@ -242,23 +233,24 @@ class _RecipeFeedScreenState extends State<RecipeFeedScreen> {
             Expanded(
               child: Builder(
                 builder: (context) {
-                  if (viewModel.state == RecipeViewState.loading)
+                  if (recipeVM.state == RecipeViewState.loading)
                     return const Center(
                       child: CircularProgressIndicator(color: Colors.orange),
                     );
-                  if (viewModel.state == RecipeViewState.error)
+                  if (recipeVM.state == RecipeViewState.error)
                     return Center(
-                      child: Text('Error: ${viewModel.errorMessage}'),
+                      child: Text('Error: ${recipeVM.errorMessage}'),
                     );
-                  if (viewModel.recipes.isEmpty)
+                  if (recipeVM.recipes.isEmpty)
                     return const Center(child: Text("No recipes found!"));
 
                   return ListView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
-                    itemCount: viewModel.recipes.length,
+                    itemCount: recipeVM.recipes.length,
                     itemBuilder: (context, index) {
-                      final recipe = viewModel.recipes[index];
+                      final recipe = recipeVM.recipes[index];
 
+                      // KIỂM TRA NGUYÊN LIỆU THIẾU DỰA TRÊN KHO THẬT
                       List<String> actualMissed = [];
                       if (recipe.ingredients.isNotEmpty) {
                         actualMissed = recipe.ingredients
@@ -282,7 +274,6 @@ class _RecipeFeedScreenState extends State<RecipeFeedScreen> {
                         child: _RecipeCard(
                           title: recipe.name,
                           imageUrl: recipe.imageUrl,
-                          // FALLBACK: Không hiện See details
                           time: recipe.cookingTimeMinutes > 0
                               ? '${recipe.cookingTimeMinutes} mins'
                               : '15 mins',
@@ -306,6 +297,7 @@ class _RecipeFeedScreenState extends State<RecipeFeedScreen> {
   }
 }
 
+// _RecipeCard giữ nguyên cấu trúc cũ của bạn
 class _RecipeCard extends StatelessWidget {
   final String title;
   final String imageUrl;
@@ -407,7 +399,6 @@ class _RecipeCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 10),
-              // giỏ hàng
               InkWell(
                 onTap: onBuyIngredients,
                 borderRadius: BorderRadius.circular(8),

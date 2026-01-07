@@ -15,8 +15,9 @@ dependencies:
   flutter_dotenv: ^6.0.0
   flutter_typeahead: ^5.2.0
   mobile_scanner: ^5.1.0
-  # Đã thêm:
   google_fonts: ^6.2.1
+  shared_preferences: ^2.2.2
+  image_picker: ^1.1.2
 
   flutter_local_notifications: ^19.5.0
   timezone: ^0.10.1 # Để lên lịch thông báo theo giờ cụ thể
@@ -30,11 +31,11 @@ dependencies:
   json_annotation: ^4.8.1    # Dùng cho các Model có fromJson/toJson
   
   # Firebase
-  firebase_core: ^4.2.1
-  firebase_auth: ^6.1.2
-  cloud_firestore: ^6.1.0
-  firebase_storage: ^13.0.4
-  firebase_messaging: ^16.0.4
+  firebase_core: 2.32.0
+  firebase_auth: 4.20.0
+  cloud_firestore: 4.17.5
+  firebase_storage: 11.7.7
+  firebase_messaging: 14.9.4
   google_sign_in: ^6.2.1
 
   # HTTP Client

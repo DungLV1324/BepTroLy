@@ -12,16 +12,35 @@ class PantryViewModel extends ChangeNotifier {
   final NotificationService _notificationService = NotificationService();
 
   // Stream Controller
-  final StreamController<List<Map<String, dynamic>>> _uiStreamController = StreamController<List<Map<String, dynamic>>>.broadcast();
+  final StreamController<List<Map<String, dynamic>>> _uiStreamController =
+      StreamController<List<Map<String, dynamic>>>.broadcast();
 
   //State
   List<IngredientModel> _allItems = [];
   String _searchQuery = "";
   final Set<String> _selectedItemIds = {};
+  List<IngredientModel> get ingredients => _allItems;
+  bool hasIngredient(String ingredientName) {
+    return _allItems.any(
+      (pantryItem) =>
+          ingredientName.toLowerCase().contains(
+            pantryItem.name.toLowerCase(),
+          ) ||
+          pantryItem.name.toLowerCase().contains(ingredientName.toLowerCase()),
+    );
+  }
+
+  // 2. Hàm kiểm tra tổng quát cho cả Recipe (dùng cho màn Home/Feed)
+  bool isRecipeReady(List<String> recipeIngredients) {
+    if (recipeIngredients.isEmpty) return false;
+    // Nếu có bất kỳ nguyên liệu nào TRONG danh sách món ăn mà KHÔNG có trong kho -> Trả về false
+    return recipeIngredients.every((name) => hasIngredient(name));
+  }
 
   // Getters
   Set<String> get selectedItemIds => _selectedItemIds;
-  Stream<List<Map<String, dynamic>>> get pantryDataStream => _uiStreamController.stream;
+  Stream<List<Map<String, dynamic>>> get pantryDataStream =>
+      _uiStreamController.stream;
   String get searchQuery => _searchQuery;
 
   // --- CONSTRUCTOR ---
@@ -32,7 +51,8 @@ class PantryViewModel extends ChangeNotifier {
   void _initData() {
     _pantryService.getIngredientsStream().listen((items) {
       _allItems = items;
-      _applyFilterAndEmit(); // Mỗi khi data gốc đổi -> Lọc lại -> Đẩy ra UI
+      _applyFilterAndEmit();
+      notifyListeners(); // Mỗi khi data gốc đổi -> Lọc lại -> Đẩy ra UI
     });
   }
 
@@ -52,9 +72,7 @@ class PantryViewModel extends ChangeNotifier {
 
     if (_searchQuery.isNotEmpty) {
       filteredList = _allItems.where((item) {
-        return item.name
-            .toLowerCase()
-            .contains(_searchQuery.toLowerCase());
+        return item.name.toLowerCase().contains(_searchQuery.toLowerCase());
       }).toList();
     }
 
@@ -63,7 +81,9 @@ class PantryViewModel extends ChangeNotifier {
   }
 
   // Hàm logic: Gom nhóm các món ăn theo 'aisle' (ngành hàng)
-  List<Map<String, dynamic>> _groupItemsByCategory(List<IngredientModel> items) {
+  List<Map<String, dynamic>> _groupItemsByCategory(
+    List<IngredientModel> items,
+  ) {
     if (items.isEmpty) return [];
 
     // 1. Tạo Map tạm để gom nhóm
@@ -83,7 +103,9 @@ class PantryViewModel extends ChangeNotifier {
       result.add({
         "category": category,
         "count": listItems.length,
-        "items": listItems.map((item) => _mapModelToUi(item, category)).toList(),
+        "items": listItems
+            .map((item) => _mapModelToUi(item, category))
+            .toList(),
       });
     });
     return result;
@@ -105,9 +127,12 @@ class PantryViewModel extends ChangeNotifier {
   // Helper: Chọn màu dựa trên ExpiryStatus (Dùng getter trong model của bạn)
   Color _getColorStatus(ExpiryStatus status) {
     switch (status) {
-      case ExpiryStatus.expired: return const Color(0xFFFF4D4D); // Đỏ
-      case ExpiryStatus.expiringSoon: return const Color(0xFFFFC107); // Vàng
-      default: return const Color(0xFF4CAF50); // Xanh
+      case ExpiryStatus.expired:
+        return const Color(0xFFFF4D4D); // Đỏ
+      case ExpiryStatus.expiringSoon:
+        return const Color(0xFFFFC107); // Vàng
+      default:
+        return const Color(0xFF4CAF50); // Xanh
     }
   }
 
@@ -120,11 +145,16 @@ class PantryViewModel extends ChangeNotifier {
 
   IconData _getIconForCategory(String category) {
     final catLower = category.toLowerCase();
-    if (catLower.contains("dairy") || catLower.contains("egg")) return Icons.egg_alt;
-    if (catLower.contains("fruit") || catLower.contains("vegetable")) return Icons.eco;
-    if (catLower.contains("meat") || catLower.contains("fish")) return Icons.set_meal;
-    if (catLower.contains("beverage") || catLower.contains("drink")) return Icons.local_drink;
-    if (catLower.contains("grain") || catLower.contains("bread")) return Icons.breakfast_dining;
+    if (catLower.contains("dairy") || catLower.contains("egg"))
+      return Icons.egg_alt;
+    if (catLower.contains("fruit") || catLower.contains("vegetable"))
+      return Icons.eco;
+    if (catLower.contains("meat") || catLower.contains("fish"))
+      return Icons.set_meal;
+    if (catLower.contains("beverage") || catLower.contains("drink"))
+      return Icons.local_drink;
+    if (catLower.contains("grain") || catLower.contains("bread"))
+      return Icons.breakfast_dining;
     return Icons.kitchen; // Icon mặc định
   }
 
@@ -137,12 +167,17 @@ class PantryViewModel extends ChangeNotifier {
     await _pantryService.addIngredient(item);
   }
 
-  Future<void> logNotification(int notificationId,String title, String body, DateTime date) async {
+  Future<void> logNotification(
+    int notificationId,
+    String title,
+    String body,
+    DateTime date,
+  ) async {
     await _notificationService.addNotificationLog(
-        notificationId: notificationId,
-        title: title,
-        body: body,
-        scheduledTime: date
+      notificationId: notificationId,
+      title: title,
+      body: body,
+      scheduledTime: date,
     );
   }
 
@@ -156,8 +191,11 @@ class PantryViewModel extends ChangeNotifier {
     await _notificationService.deleteNotificationLog(notificationId);
   }
 
-// 2. Cập nhật món ăn
-  Future<void> updateIngredient(IngredientModel oldItem, IngredientModel newItem) async {
+  // 2. Cập nhật món ăn
+  Future<void> updateIngredient(
+    IngredientModel oldItem,
+    IngredientModel newItem,
+  ) async {
     // A. Cập nhật Firestore
     await _pantryService.updateIngredient(newItem);
 
