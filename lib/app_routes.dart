@@ -15,6 +15,7 @@ import 'features/goi_y_mon_an/views/recipe_feed_screen.dart';
 import 'features/kho_nguyen_lieu/views/pantry_screen.dart';
 import 'features/setting/views/edit_profile_screen.dart';
 import 'features/setting/views/setting_screen.dart';
+import 'features/shopping/views/shopping_history_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorHomeKey = GlobalKey<NavigatorState>(
@@ -135,6 +136,12 @@ final appRouter = GoRouter(
             GoRoute(
               path: '/shopping',
               builder: (context, state) => const ShoppingListScreen(),
+              routes: [
+                GoRoute(
+                  path: 'history',
+                  builder: (context, state) => const ShoppingHistoryScreen(),
+                ),
+              ],
             ),
           ],
         ),

@@ -3,7 +3,8 @@ import 'package:provider/provider.dart';
 import '../viewmodels/shopping_list_view_model.dart';
 import '../models/shopping_item_model.dart';
 import '../../../core/constants/app_enums.dart';
-import 'shopping_history_screen.dart';
+import 'package:go_router/go_router.dart';
+
 class ShoppingListScreen extends StatelessWidget {
   const ShoppingListScreen({super.key});
 
@@ -62,37 +63,20 @@ class ShoppingListScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.history, color: Color(0xFF1A1D26)),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ShoppingHistoryScreen()),
-              );
-            },
-          ),
+        leading: IconButton(
+          icon: const Icon(Icons.history, color: Color(0xFF1A1D26)),
+          onPressed: () => GoRouter.of(context).push('/shopping/history'),
+        ),
         title: const Text('Shopping List',
             style: TextStyle(color: Color(0xFF1A1D26), fontWeight: FontWeight.bold)),
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 8, top: 10, bottom: 10),
-            child: ElevatedButton(
-              onPressed: () => _onCompletePressed(context),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2BEE79),
-                foregroundColor: Colors.white,
-                elevation: 0,
-                shadowColor: Colors.transparent,
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                shape: const StadiumBorder(),
-              ),
-              child: const Text(
-                'COMPLETE',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 0.8,
-                ),
+          TextButton(
+            onPressed: () => _onCompletePressed(context),
+            child: const Text(
+              'COMPLETE',
+              style: TextStyle(
+                color: Color(0xFF2BEE79),
+                fontWeight: FontWeight.bold,
               ),
             ),
           ),
@@ -108,8 +92,58 @@ class ShoppingListScreen extends StatelessWidget {
         onPressed: () => _showAddItemsForm(context),
         backgroundColor: const Color(0xFF2BEE79),
         icon: const Icon(Icons.add_shopping_cart, color: Colors.white),
-        label: const Text('Add Items ',
+        label: const Text('Add Items',
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+      ),
+      bottomNavigationBar: Container(
+        decoration: const BoxDecoration(
+          border: Border(top: BorderSide(color: Color(0xFFE0E0E0), width: 0.5)),
+        ),
+        child: BottomNavigationBar(
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: const Color(0xFFFDF0ED),
+          selectedItemColor: const Color(0xFF5D4037),
+          unselectedItemColor: const Color(0xFF5D4037),
+          currentIndex: 3, // Mục "Mua sắm" đang được chọn (vị trí số 3)
+          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+          unselectedLabelStyle: const TextStyle(fontSize: 12),
+          onTap: (index) {
+            switch (index) {
+              case 0: GoRouter.of(context).go('/home'); break;
+              case 1: GoRouter.of(context).go('/fridge'); break;
+              case 2: GoRouter.of(context).go('/planner'); break;
+              case 3: break; // Đang ở Mua sắm
+            }
+          },
+          items: [
+            const BottomNavigationBarItem(
+              icon: Icon(Icons.home_outlined),
+              activeIcon: Icon(Icons.home),
+              label: 'Home',
+            ),
+            const BottomNavigationBarItem(
+              icon: Icon(Icons.kitchen_outlined),
+              activeIcon: Icon(Icons.kitchen),
+              label: 'Tủ lạnh',
+            ),
+            const BottomNavigationBarItem(
+              icon: Icon(Icons.calendar_month_outlined),
+              activeIcon: Icon(Icons.calendar_month),
+              label: 'Lên lịch',
+            ),
+            BottomNavigationBarItem(
+              icon: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFCCBC), // Hiệu ứng Pill màu cam nhạt
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Icon(Icons.shopping_cart),
+              ),
+              label: 'Mua sắm',
+            ),
+          ],
+        ),
       ),
     );
   }
