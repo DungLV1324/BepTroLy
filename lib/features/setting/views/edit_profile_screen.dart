@@ -1,5 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
+import 'package:beptroly/features/setting/viewmodels/setting_view_model.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -9,17 +13,44 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  final TextEditingController _nameController = TextEditingController(
-    text: "User Name",
-  );
-  final TextEditingController _emailController = TextEditingController(
-    text: "user.email@example.com",
-  );
-  final TextEditingController _phoneController = TextEditingController(
-    text: "0987654321",
-  );
+  late TextEditingController _nameController;
+  late TextEditingController _emailController;
 
-  // --- HÀM HIỂN THỊ OPTIONS CHỌN ẢNH ---
+  File? _imageFile;
+  final ImagePicker _picker = ImagePicker();
+
+  @override
+  void initState() {
+    super.initState();
+    final viewModel = context.read<SettingViewModel>();
+    _nameController = TextEditingController(text: viewModel.displayName);
+    _emailController = TextEditingController(text: viewModel.email);
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final XFile? pickedFile = await _picker.pickImage(
+        source: source,
+        maxWidth: 500,
+        imageQuality: 80,
+      );
+      if (pickedFile != null) {
+        setState(() {
+          _imageFile = File(pickedFile.path);
+        });
+      }
+    } catch (e) {
+      debugPrint("Error picking image: $e");
+    }
+  }
+
   void _showImagePickerOptions() {
     showModalBottomSheet(
       context: context,
@@ -44,9 +75,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ),
                 title: const Text("Choose from Gallery"),
                 onTap: () {
-                  // TODO: Thư viện image_picker xử lý tại đây
-                  debugPrint("Picking image from gallery...");
                   context.pop();
+                  _pickImage(ImageSource.gallery);
                 },
               ),
               ListTile(
@@ -56,9 +86,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ),
                 title: const Text("Take a New Photo"),
                 onTap: () {
-                  // TODO: Thư viện image_picker xử lý tại đây
-                  debugPrint("Opening camera...");
                   context.pop();
+                  _pickImage(ImageSource.camera);
                 },
               ),
               const SizedBox(height: 10),
@@ -71,6 +100,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final viewModel = context.watch<SettingViewModel>();
+
+    // --- SỬA LỖI TẠI ĐÂY: Xử lý ImageProvider rõ ràng ---
+    ImageProvider imageProvider;
+    if (_imageFile != null) {
+      imageProvider = FileImage(_imageFile!);
+    } else if (viewModel.photoUrl != null && viewModel.photoUrl!.isNotEmpty) {
+      imageProvider = NetworkImage(viewModel.photoUrl!);
+    } else {
+      imageProvider = const NetworkImage('https://i.pravatar.cc/150?img=5');
+    }
+
     return Scaffold(
       backgroundColor: const Color(0xFFF9F9F9),
       appBar: AppBar(
@@ -96,11 +137,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           children: [
             const SizedBox(height: 20),
 
-            // 1. Avatar có nút Camera edit (Đã bao bọc GestureDetector)
+            // --- AVATAR ---
             Center(
               child: GestureDetector(
-                onTap:
-                    _showImagePickerOptions, // Nhấn vào cả vùng này để chọn ảnh
+                onTap: _showImagePickerOptions,
                 child: Stack(
                   children: [
                     Container(
@@ -116,11 +156,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             color: Colors.black.withOpacity(0.1),
                           ),
                         ],
-                        image: const DecorationImage(
+                        image: DecorationImage(
                           fit: BoxFit.cover,
-                          image: NetworkImage(
-                            'https://i.pravatar.cc/150?img=5',
-                          ),
+                          image: imageProvider, // Sử dụng biến đã xử lý
                         ),
                       ),
                     ),
@@ -148,7 +186,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
             const SizedBox(height: 40),
 
-            // 2. Các ô nhập liệu
             _buildTextField(
               "Full Name",
               "Enter your name",
@@ -161,28 +198,40 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               _emailController,
               true,
             ),
-            _buildTextField(
-              "Phone Number",
-              "Enter phone number",
-              _phoneController,
-              false,
-            ),
 
             const SizedBox(height: 30),
 
-            // 3. Nút Lưu
+            // --- NÚT LƯU ---
             SizedBox(
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
-                onPressed: () {
-                  // Thông báo
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Profile updated successfully!'),
-                    ),
-                  );
-                  context.pop();
+                onPressed: () async {
+                  try {
+                    await context.read<SettingViewModel>().saveProfile(
+                      name: _nameController.text,
+                      imageFile: _imageFile,
+                    );
+
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Profile updated successfully!'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                      context.pop();
+                    }
+                  } catch (e) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Failed to update: $e'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  }
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.deepOrange,
