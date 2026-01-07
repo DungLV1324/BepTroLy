@@ -1,53 +1,150 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_enums.dart';
 import '../models/meal_plan_model.dart';
+import '../services/spoonacular_service.dart';
 
 class MealPlannerViewModel with ChangeNotifier {
-  final List<Meal> availableMeals = const [
-    Meal(
-      id: 'r1',
-      name: 'Salad ức gà và bơ',
-      imageUrl: 'assets/images/chicken_butter.jpg',
-      preparationTimeMinutes: 25,
-    ),
-    Meal(
-      id: 'r2',
-      name: 'Cá hồi áp chảo sốt chanh leo',
-      imageUrl: 'assets/images/alfredo.jpg',
-      preparationTimeMinutes: 40,
-    ),
-    Meal(
-      id: 'r3',
-      name: 'Súp bí đỏ kem tươi',
-      imageUrl: 'assets/images/bruschetta.jpg',
-      preparationTimeMinutes: 30,
-    ),
-  ];
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final SpoonacularService _spoonApi = SpoonacularService();
 
+  List<Meal> _availableMeals = [];
+  List<Meal> _searchResultMeals = [];
+
+  // Getter hiển thị danh sách món ăn (Ưu tiên kết quả tìm kiếm)
+  List<Meal> get availableMeals => _searchResultMeals.isNotEmpty ? _searchResultMeals : _availableMeals;
+
+  bool _isLoading = false;
+  bool get isLoading => _isLoading;
+
+  String? _errorMessage;
+  String? get errorMessage => _errorMessage;
+
+  // --- PHẦN SỬA LỖI CHO SCREEN ---
+
+  // 1. Dữ liệu kế hoạch (Phải có getter 'plan')
   MealPlanModel _plan;
-  final int _originalServings = 3;
+  MealPlanModel get plan => _plan;
+
+  // 2. Danh sách món ăn đã chọn (Phải có getter 'selectedMeals')
+  final List<Meal> _selectedMeals = [];
+  List<Meal> get selectedMeals => _selectedMeals;
+
+  // -------------------------------
 
   MealPlannerViewModel({MealPlanModel? initialPlan})
-      : _plan = initialPlan ??
-            MealPlanModel(
-              date: DateTime.now(),
-              mealType: MealType.lunch,
-            );
-
-  MealPlanModel get plan => _plan;
-  int get originalServings => _originalServings;
-
-  void selectMeal(Meal meal) {
-    _plan = _plan.copyWith(
-      selectedMeal: meal,
-    );
-    notifyListeners();
+      : _plan = initialPlan ?? MealPlanModel(
+      date: DateTime.now(),
+      mealType: MealType.lunch
+  ) {
+    fetchRecipesFromFirebase();
   }
 
-  void removeMeal() {
-    _plan = _plan.copyWith(
-      selectedMeal: null,
-    );
+  // --- 1. TÌM KIẾM MÓN ĂN (ONLINE & LOCAL) ---
+  Future<void> searchMeals(String query) async {
+    if (query.isEmpty) {
+      _searchResultMeals = [];
+      notifyListeners();
+      return;
+    }
+
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      _searchResultMeals = await _spoonApi.searchRecipes(query);
+    } catch (e) {
+      _errorMessage = 'Lỗi tìm kiếm online: $e';
+      // Nếu API lỗi, bạn có thể lọc tạm trên danh sách local tại đây nếu muốn
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // --- 2. LẤY DỮ LIỆU LOCAL TỪ FIREBASE ---
+  Future<void> fetchRecipesFromFirebase() async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final snapshot = await _db.collection('Recipes').get();
+      _availableMeals = snapshot.docs.map((doc) {
+        final data = doc.data();
+        return Meal(
+          id: doc.id,
+          name: data['title'] ?? data['name'] ?? 'Món ăn không tên',
+          imageUrl: (data['imageUrl'] ?? '').replaceAll(r'\', '/'),
+          preparationTimeMinutes: data['cooking_time'] ?? 0,
+          kcal: data['kcal'] ?? 0,
+        );
+      }).toList();
+    } catch (e) {
+      _errorMessage = 'Lỗi tải Recipes: $e';
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // --- 3. LƯU KẾ HOẠCH LÊN FIRESTORE ---
+  Future<bool> saveMealPlan() async {
+    final User? user = _auth.currentUser;
+    if (user == null || _selectedMeals.isEmpty) {
+      _errorMessage = "Vui lòng chọn ít nhất một món ăn";
+      notifyListeners();
+      return false;
+    }
+
+    try {
+      _isLoading = true;
+      notifyListeners();
+
+      final planData = {
+        'date': Timestamp.fromDate(_plan.date),
+        'mealType': _plan.mealType.name,
+        'specificTime': '${_plan.specificTime.hour}:${_plan.specificTime.minute}',
+        'servings': _plan.servings,
+        'notes': _plan.notes,
+        'repeatDays': _plan.repeatDays,
+        'meals': _selectedMeals.map((m) => {
+          'mealId': m.id,
+          'name': m.name,
+          'imageUrl': m.imageUrl,
+          'kcal': m.kcal,
+          'preparationTimeMinutes': m.preparationTimeMinutes,
+        }).toList(),
+        'createdAt': FieldValue.serverTimestamp(),
+      };
+
+      await _db.collection('users')
+          .doc(user.uid)
+          .collection('meal_plans')
+          .add(planData);
+
+      return true;
+    } catch (e) {
+      _errorMessage = 'Lỗi khi lưu kế hoạch: $e';
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // --- CÁC HÀM CẬP NHẬT TRẠNG THÁI ---
+  void selectMeal(Meal meal) {
+    if (!_selectedMeals.any((item) => item.id == meal.id)) {
+      _selectedMeals.add(meal);
+      notifyListeners();
+    }
+  }
+
+  void removeMeal(Meal meal) {
+    _selectedMeals.removeWhere((item) => item.id == meal.id);
     notifyListeners();
   }
 
@@ -57,17 +154,7 @@ class MealPlannerViewModel with ChangeNotifier {
   }
 
   void setMealTime(MealType newType) {
-    TimeOfDay specificTime;
-    if (newType == MealType.breakfast) {
-      specificTime = const TimeOfDay(hour: 7, minute: 0);
-    } else if (newType == MealType.lunch) {
-      specificTime = const TimeOfDay(hour: 12, minute: 0);
-    } else if (newType == MealType.dinner) {
-      specificTime = const TimeOfDay(hour: 19, minute: 0);
-    } else {
-      specificTime = const TimeOfDay(hour: 16, minute: 0); // snack
-    }
-    _plan = _plan.copyWith(mealType: newType, specificTime: specificTime);
+    _plan = _plan.copyWith(mealType: newType);
     notifyListeners();
   }
 
@@ -90,40 +177,9 @@ class MealPlannerViewModel with ChangeNotifier {
   }
 
   void toggleRepeatDay(String day) {
-    final updatedRepeatDays = Map<String, bool>.from(_plan.repeatDays);
-    updatedRepeatDays[day] = !(updatedRepeatDays[day] ?? false);
-    _plan = _plan.copyWith(repeatDays: updatedRepeatDays);
+    final newRepeatDays = Map<String, bool>.from(_plan.repeatDays);
+    newRepeatDays[day] = !newRepeatDays[day]!;
+    _plan = _plan.copyWith(repeatDays: newRepeatDays);
     notifyListeners();
-  }
-
-  // Đã sửa: Chuyển sang Future<bool> để báo hiệu thành công
-  Future<bool> saveMealPlan() async {
-    if (_plan.selectedMeal == null) {
-      print('Lỗi: Cần chọn món ăn trước khi lưu.');
-      return false; // Lưu thất bại
-    }
-
-    print('--- KẾ HOẠCH ĐÃ LƯU ---');
-    print('ID: ${_plan.id}');
-    print('Món: ${_plan.selectedMeal?.name ?? 'Không có món'}');
-    print('Ngày: ${_formatDate(_plan.date)}');
-    print('Buổi: ${_plan.mealType.toString().split('.').last}');
-    print('Giờ: ${_plan.specificTime.hour.toString().padLeft(2, '0')}:${_plan.specificTime.minute.toString().padLeft(2, '0')}');
-    print('Khẩu phần: ${_plan.servings}');
-    print('Ghi chú: ${_plan.notes}');
-    print('Lặp lại: ${_plan.repeatDays.entries.where((e) => e.value).map((e) => e.key).join(', ')}');
-    print('-----------------------');
-
-    // Ở đây bạn có thể gọi API/Service để lưu trữ.
-    // Sau khi lưu thành công, trả về true.
-    await Future.delayed(const Duration(milliseconds: 500)); // Giả lập độ trễ mạng
-    return true; // Giả định lưu thành công
-  }
-
-  String _formatDate(DateTime date) {
-    final day = date.day.toString().padLeft(2, '0');
-    final month = date.month.toString().padLeft(2, '0');
-    final year = date.year;
-    return '$day/$month/$year';
   }
 }
