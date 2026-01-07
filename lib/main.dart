@@ -10,6 +10,7 @@ import 'features/goi_y_mon_an/viewmodels/recipe_view_model.dart';
 import 'features/home/viewmodels/home_view_model.dart';
 import 'features/shopping/viewmodels/shopping_list_view_model.dart';
 import 'features/thongbao/services/notification_service.dart';
+import 'package:beptroly/features/kho_nguyen_lieu/view_models/pantry_view_model.dart';
 import 'features/setting/viewmodels/setting_view_model.dart';
 
 Future<void> main() async {
@@ -35,6 +36,8 @@ class BepTroLyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => RecipeViewModel()),
         ChangeNotifierProvider(create: (_) => ShoppingListViewModel()),
         ChangeNotifierProvider(create: (_) => SplashViewModel()),
+        ChangeNotifierProvider(create: (_) => PantryViewModel()),
+        ChangeNotifierProvider(create: (_) => RecipeViewModel()),
       ],
       child: Consumer<SettingViewModel>(
         builder: (context, settingVM, child) {
