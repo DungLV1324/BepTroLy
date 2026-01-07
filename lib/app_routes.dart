@@ -10,6 +10,7 @@ import 'features/auth/views/login_screen.dart';
 import 'features/auth/views/login_email.dart' as login_email;
 import 'features/auth/views/register_screen.dart';
 import 'features/home/views/home_screen.dart';
+import 'features/shopping/views/shopping_history_screen.dart';
 import 'features/shopping/views/shopping_list_screen.dart';
 import 'features/goi_y_mon_an/views/recipe_feed_screen.dart';
 import 'features/kho_nguyen_lieu/views/pantry_screen.dart';
@@ -66,12 +67,6 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/edit_profile',
       builder: (context, state) => const EditProfileScreen(),
-    ),
-    GoRoute(
-      path: '/shopping',
-      builder: (context, state) {
-        return const ShoppingListScreen();
-      },
     ),
 
     StatefulShellRoute.indexedStack(
@@ -135,6 +130,9 @@ final appRouter = GoRouter(
             GoRoute(
               path: '/shopping',
               builder: (context, state) => const ShoppingListScreen(),
+              routes: [GoRoute(
+                path: 'history',
+                builder: (context, state) => const ShoppingHistoryScreen())]
             ),
           ],
         ),

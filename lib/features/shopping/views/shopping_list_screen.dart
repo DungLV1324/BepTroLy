@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/shopping_list_view_model.dart';
 import '../models/shopping_item_model.dart';
 import '../../../core/constants/app_enums.dart';
-import 'shopping_history_screen.dart';
+
 class ShoppingListScreen extends StatelessWidget {
   const ShoppingListScreen({super.key});
 
+  // Xử lý khi nhấn nút hoàn tất mua sắm
   void _onCompletePressed(BuildContext context) async {
     final viewModel = Provider.of<ShoppingListViewModel>(context, listen: false);
-
     final unboughtItems = viewModel.items.where((item) => !item.isBought).toList();
 
     bool? shouldProceed = true;
@@ -19,17 +20,20 @@ class ShoppingListScreen extends StatelessWidget {
         context: context,
         builder: (context) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Text('I havent finished buying everything yet.?'),
-          content: Text('You still have ${unboughtItems.length} Items not marked as purchased. Do you want to finalize and save your selected items??'),
+          title: const Text('I haven\'t finished buying everything yet?'),
+          content: Text(
+              'You still have ${unboughtItems.length} items not marked as purchased. Do you want to finalize and save your selected items?'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Back to Shopping Lish'),
+              child: const Text('Back to Shopping List'),
             ),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.orange, elevation: 0),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange, elevation: 0),
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Still complete', style: TextStyle(color: Colors.white)),
+              child: const Text('Still complete',
+                  style: TextStyle(color: Colors.white)),
             ),
           ],
         ),
@@ -40,16 +44,18 @@ class ShoppingListScreen extends StatelessWidget {
       await viewModel.completeShoppingAndSaveHistory();
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('saved shopping history!')),
+          const SnackBar(content: Text('Saved shopping history!')),
         );
       }
     }
   }
 
+  // Hiển thị Form thêm món mới dưới dạng BottomSheet
   void _showAddItemsForm(BuildContext context) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useRootNavigator: false,
       backgroundColor: Colors.transparent,
       builder: (context) => const _AddItemsFormSheet(),
     );
@@ -62,17 +68,15 @@ class ShoppingListScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.history, color: Color(0xFF1A1D26)),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ShoppingHistoryScreen()),
-              );
-            },
-          ),
+        leading: IconButton(
+          icon: const Icon(Icons.history, color: Color(0xFF1A1D26)),
+          onPressed: () {
+            context.go('/shopping/history');
+          },
+        ),
         title: const Text('Shopping List',
-            style: TextStyle(color: Color(0xFF1A1D26), fontWeight: FontWeight.bold)),
+            style: TextStyle(
+                color: Color(0xFF1A1D26), fontWeight: FontWeight.bold)),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 8, top: 10, bottom: 10),
@@ -86,24 +90,14 @@ class ShoppingListScreen extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 shape: const StadiumBorder(),
               ),
-              child: const Text(
-                'COMPLETE',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 0.8,
-                ),
-              ),
+              child: const Text('COMPLETE',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900)),
             ),
           ),
           const SizedBox(width: 8),
         ],
       ),
-      body: Column(
-        children: [
-          Expanded(child: _ShoppingListBody()),
-        ],
-      ),
+      body: _ShoppingListBody(),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showAddItemsForm(context),
         backgroundColor: const Color(0xFF2BEE79),
@@ -115,7 +109,6 @@ class ShoppingListScreen extends StatelessWidget {
   }
 }
 
-// --- Body hiển thị danh sách duy nhất ---
 class _ShoppingListBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -125,7 +118,7 @@ class _ShoppingListBody extends StatelessWidget {
 
         if (allItems.isEmpty) {
           return const Center(
-            child: Text('The list is empty. Please add the food items you need to buy.!'),
+            child: Text('The list is empty. Please add items to buy!'),
           );
         }
 
@@ -146,10 +139,11 @@ class _ShoppingListBody extends StatelessWidget {
             ),
             const Divider(height: 1),
             ...allItems.map((item) => _ShoppingListItem(
-              item: item,
-              onToggle: () => viewModel.toggleBoughtStatus(item.id, item.isBought),
-            )),
-            const SizedBox(height: 100),
+                  item: item,
+                  onToggle: () =>
+                      viewModel.toggleBoughtStatus(item.id, item.isBought),
+                )),
+            const SizedBox(height: 120), // Tạo khoảng trống cho FAB và BottomBar
           ],
         );
       },
@@ -197,7 +191,6 @@ class _ShoppingListItem extends StatelessWidget {
   }
 }
 
-// --- Form nhập liệu Sheet ---
 class _AddItemsFormSheet extends StatefulWidget {
   const _AddItemsFormSheet();
   @override
@@ -207,16 +200,6 @@ class _AddItemsFormSheet extends StatefulWidget {
 class _AddItemsFormSheetState extends State<_AddItemsFormSheet> {
   final List<_DraftItem> _draftItems = [_DraftItem()];
 
-  void _addNewLine() {
-    setState(() => _draftItems.add(_DraftItem()));
-  }
-
-  void _removeItem(int index) {
-    if (_draftItems.length > 1) {
-      setState(() => _draftItems.removeAt(index));
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final viewModel = Provider.of<ShoppingListViewModel>(context, listen: false);
@@ -224,7 +207,9 @@ class _AddItemsFormSheetState extends State<_AddItemsFormSheet> {
     return Container(
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-        left: 20, right: 20, top: 24,
+        left: 20,
+        right: 20,
+        top: 24,
       ),
       decoration: const BoxDecoration(
         color: Colors.white,
@@ -237,7 +222,8 @@ class _AddItemsFormSheetState extends State<_AddItemsFormSheet> {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
           ConstrainedBox(
-            constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.4),
+            constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.4),
             child: ListView.separated(
               shrinkWrap: true,
               itemCount: _draftItems.length,
@@ -245,16 +231,21 @@ class _AddItemsFormSheetState extends State<_AddItemsFormSheet> {
               itemBuilder: (context, index) {
                 return _ItemInputRow(
                   item: _draftItems[index],
-                  onRemove: () => _removeItem(index),
+                  onRemove: () {
+                    if (_draftItems.length > 1) {
+                      setState(() => _draftItems.removeAt(index));
+                    }
+                  },
                 );
               },
             ),
           ),
           const SizedBox(height: 16),
           TextButton.icon(
-            onPressed: _addNewLine,
+            onPressed: () => setState(() => _draftItems.add(_DraftItem())),
             icon: const Icon(Icons.add, color: Color(0xFF2BEE79)),
-            label: const Text('New Line', style: TextStyle(color: Color(0xFF2BEE79))),
+            label: const Text('New Line',
+                style: TextStyle(color: Color(0xFF2BEE79))),
           ),
           const SizedBox(height: 16),
           SizedBox(
@@ -263,7 +254,8 @@ class _AddItemsFormSheetState extends State<_AddItemsFormSheet> {
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF2BEE79),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
               ),
               onPressed: () {
                 for (var draft in _draftItems) {
@@ -279,7 +271,8 @@ class _AddItemsFormSheetState extends State<_AddItemsFormSheet> {
                 Navigator.pop(context);
               },
               child: const Text('SAVE TO LIST',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  style: TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.bold)),
             ),
           ),
         ],
@@ -309,7 +302,8 @@ class _ItemInputRowState extends State<_ItemInputRow> {
             decoration: InputDecoration(
               hintText: 'Name Item',
               contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+              border:
+              OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
             ),
           ),
         ),
@@ -322,7 +316,8 @@ class _ItemInputRowState extends State<_ItemInputRow> {
             textAlign: TextAlign.center,
             decoration: InputDecoration(
               hintText: 'SL',
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+              border:
+              OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
             ),
           ),
         ),
@@ -340,12 +335,15 @@ class _ItemInputRowState extends State<_ItemInputRow> {
                 value: widget.item.selectedUnit,
                 isExpanded: true,
                 onChanged: (val) {
-                  if (val != null) setState(() => widget.item.selectedUnit = val);
+                  if (val != null) {
+                    setState(() => widget.item.selectedUnit = val);
+                  }
                 },
                 items: MeasureUnit.values.map((unit) {
                   return DropdownMenuItem(
                     value: unit,
-                    child: Text(unit.name, style: const TextStyle(fontSize: 13)),
+                    child:
+                    Text(unit.name, style: const TextStyle(fontSize: 13)),
                   );
                 }).toList(),
               ),
