@@ -23,15 +23,17 @@ class _PantryScreenState extends State<PantryScreen> {
     super.initState();
     _pantryViewModel.addListener(() {
       if (mounted) setState(() {});
-
-    });_notificationService.requestPermissions();
+    });
+    _notificationService.requestPermissions();
   }
 
   void _handleAddNew() async {
     final IngredientModel? result = await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (context) => const AddIngredientSheet(),
     );
 
@@ -40,13 +42,18 @@ class _PantryScreenState extends State<PantryScreen> {
 
       //Notification
       _notificationService.scheduleExpiryNotification(
-          id: notifId,
-          title: 'Expiring soon! ⚠️',
-          body: 'The item ${result.name} is about to expire.',
-          expiryDate: result.expiryDate!
+        id: notifId,
+        title: 'Expiring soon! ⚠️',
+        body: 'The item ${result.name} is about to expire.',
+        expiryDate: result.expiryDate!,
       );
       _pantryViewModel.addNewIngredient(result);
-      await _pantryViewModel.logNotification(notifId, 'Expiring soon! ⚠️', 'The item ${result.name} is about to expire.', result.expiryDate!);
+      await _pantryViewModel.logNotification(
+        notifId,
+        'Expiring soon! ⚠️',
+        'The item ${result.name} is about to expire.',
+        result.expiryDate!,
+      );
 
       if (mounted) AppToast.show(context, ActionType.add, result.name);
     }
@@ -57,7 +64,9 @@ class _PantryScreenState extends State<PantryScreen> {
     final IngredientModel? updatedItem = await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (context) => AddIngredientSheet(ingredientToEdit: model),
     );
 
@@ -75,20 +84,28 @@ class _PantryScreenState extends State<PantryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFB),
+      backgroundColor: isDark
+          ? const Color(0xFF121212)
+          : const Color(0xFFF9FAFB),
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF9FAFB),
+        backgroundColor: isDark
+            ? const Color(0xFF121212)
+            : const Color(0xFFF9FAFB),
         elevation: 0,
         centerTitle: false,
         title: Row(
-          children: const [
-            Icon(Icons.kitchen, color: Color(0xFF1A1D26)),
+          children: [
+            Icon(
+              Icons.kitchen,
+              color: isDark ? Colors.white : const Color(0xFF1A1D26),
+            ),
             SizedBox(width: 8),
             Text(
               'My Pantry',
               style: TextStyle(
-                color: Color(0xFF1A1D26),
+                color: isDark ? Colors.white : const Color(0xFF1A1D26),
                 fontWeight: FontWeight.bold,
                 fontSize: 20,
               ),
@@ -126,13 +143,9 @@ class _PantryScreenState extends State<PantryScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
             itemCount: itemCount,
             itemBuilder: (context, index) {
-
               if (index == 0) {
                 return Column(
-                  children: [
-                    _buildSearchBar(),
-                    const SizedBox(height: 24),
-                  ],
+                  children: [_buildSearchBar(), const SizedBox(height: 24)],
                 );
               }
               if (pantryData.isEmpty) {
@@ -143,27 +156,40 @@ class _PantryScreenState extends State<PantryScreen> {
               }
               final categoryData = pantryData[index - 1];
               return _buildCategorySection(categoryData);
-            }
+            },
           );
         },
       ),
     );
   }
 
-// SearchBar
+  // SearchBar
   Widget _buildSearchBar() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: TextField(
         onChanged: (val) => _pantryViewModel.search(val),
-        decoration: const InputDecoration(
+        style: TextStyle(color: isDark ? Colors.white : Colors.black),
+        decoration: InputDecoration(
           hintText: 'Search ingredients...',
-          hintStyle: TextStyle(color: Color(0xFF6B7280)),
-          prefixIcon: Icon(Icons.search, color: Color(0xFF9FA2B4)),
+          hintStyle: TextStyle(
+            color: isDark ? Colors.grey[400] : const Color(0xFF6B7280),
+          ),
+          prefixIcon: Icon(
+            Icons.search,
+            color: isDark ? Colors.white : const Color(0xFF9FA2B4),
+          ),
           border: InputBorder.none,
           contentPadding: EdgeInsets.symmetric(vertical: 14),
         ),
@@ -172,6 +198,7 @@ class _PantryScreenState extends State<PantryScreen> {
   }
 
   Widget _buildCategorySection(Map<String, dynamic> data) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Theme(
@@ -181,19 +208,31 @@ class _PantryScreenState extends State<PantryScreen> {
           tilePadding: EdgeInsets.zero,
           title: Row(
             children: [
-              Text(data['category'], style: const TextStyle(
-                  color: Color(0xFF1A1D26),
+              Text(
+                data['category'],
+                style: TextStyle(
+                  color: isDark ? Colors.white : const Color(0xFF1A1D26),
                   fontSize: 16,
-                  fontWeight: FontWeight.w700)),
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
               const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(color: const Color(0xFFEEEEEE),
-                    borderRadius: BorderRadius.circular(10)),
-                child: Text(data['count'].toString(), style: const TextStyle(
-                    color: Color(0xFF9FA2B4),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? const Color(0xFF2C2C2C)
+                      : const Color(0xFFEEEEEE),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  data['count'].toString(),
+                  style: TextStyle(
+                    color: isDark ? Colors.grey[400] : const Color(0xFF9FA2B4),
                     fontSize: 12,
-                    fontWeight: FontWeight.w600)),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
             ],
           ),

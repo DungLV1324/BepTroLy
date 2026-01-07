@@ -9,6 +9,7 @@ class RecommendedRecipeList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final pantryVM = context.watch<PantryViewModel>();
 
     return Consumer<RecipeViewModel>(
@@ -29,7 +30,7 @@ class RecommendedRecipeList extends StatelessWidget {
             alignment: Alignment.center,
             margin: const EdgeInsets.symmetric(horizontal: 20),
             decoration: BoxDecoration(
-              color: Colors.grey[100],
+              color: isDark ? const Color(0xFF2C2C2C) : Colors.grey[100],
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Text("No suitable suggestions found yet."),

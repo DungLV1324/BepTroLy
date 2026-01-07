@@ -48,12 +48,16 @@ class _RecipeFilterSheetState extends State<RecipeFilterSheet> {
 
   @override
   Widget build(BuildContext context) {
+    // 1. Xác định chế độ tối/sáng
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       height: MediaQuery.of(context).size.height * 0.75,
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: BoxDecoration(
+        // Đã bỏ const
+        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -65,7 +69,7 @@ class _RecipeFilterSheetState extends State<RecipeFilterSheet> {
               height: 4,
               margin: const EdgeInsets.only(bottom: 20),
               decoration: BoxDecoration(
-                color: Colors.grey[300],
+                color: isDark ? Colors.grey[700] : Colors.grey[300],
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -74,44 +78,55 @@ class _RecipeFilterSheetState extends State<RecipeFilterSheet> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Advanced Filters',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : Colors.black, // Màu tiêu đề
+                ),
               ),
               TextButton(
                 onPressed: _resetFilters,
-                child: const Text('Reset', style: TextStyle(color: Colors.red)),
+                child: Text(
+                  'Reset',
+                  style: TextStyle(color: isDark ? Colors.orange : Colors.red),
+                ),
               ),
             ],
           ),
-          const Divider(),
+          Divider(color: isDark ? Colors.grey[800] : Colors.grey[300]),
+
           // NỘI DUNG LỌC
           Expanded(
             child: ListView(
               children: [
                 const SizedBox(height: 10),
-                _buildSectionTitle('Cooking Time'),
+                _buildSectionTitle('Cooking Time', isDark),
                 _buildChipGroup(
                   _timeOptions,
                   _selectedTime,
                   (val) => setState(() => _selectedTime = val),
                   Colors.orange,
+                  isDark,
                 ),
                 const SizedBox(height: 24),
-                _buildSectionTitle('Difficulty'),
+                _buildSectionTitle('Difficulty', isDark),
                 _buildChipGroup(
                   _difficultyOptions,
                   _selectedDifficulty,
                   (val) => setState(() => _selectedDifficulty = val),
                   Colors.blue,
+                  isDark,
                 ),
                 const SizedBox(height: 24),
-                _buildSectionTitle('Dietary Preference'),
+                _buildSectionTitle('Dietary Preference', isDark),
                 _buildChipGroup(
                   _dietOptions,
                   _selectedDiet,
                   (val) => setState(() => _selectedDiet = val),
                   Colors.green,
+                  isDark,
                 ),
               ],
             ),
@@ -150,12 +165,17 @@ class _RecipeFilterSheetState extends State<RecipeFilterSheet> {
     );
   }
 
-  Widget _buildSectionTitle(String title) {
+  Widget _buildSectionTitle(String title, bool isDark) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0),
       child: Text(
         title,
-        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        style: TextStyle(
+          // Đã bỏ const
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          color: isDark ? Colors.white : Colors.black,
+        ),
       ),
     );
   }
@@ -165,6 +185,7 @@ class _RecipeFilterSheetState extends State<RecipeFilterSheet> {
     String selected,
     Function(String) onSelect,
     Color color,
+    bool isDark, // Đã thêm tham số
   ) {
     return Wrap(
       spacing: 10,
@@ -175,8 +196,22 @@ class _RecipeFilterSheetState extends State<RecipeFilterSheet> {
           label: Text(option),
           selected: isSelected,
           selectedColor: color,
+          // Màu nền khi chưa chọn
+          backgroundColor: isDark ? const Color(0xFF2C2C2C) : Colors.grey[100],
+          // Màu chữ
           labelStyle: TextStyle(
-            color: isSelected ? Colors.white : Colors.black87,
+            color: isSelected
+                ? Colors.white
+                : (isDark ? Colors.white70 : Colors.black87),
+          ),
+          // Sửa viền
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+            side: BorderSide(
+              color: isSelected
+                  ? color
+                  : (isDark ? Colors.grey[800]! : Colors.transparent),
+            ),
           ),
           onSelected: (bool s) {
             if (s) onSelect(option);

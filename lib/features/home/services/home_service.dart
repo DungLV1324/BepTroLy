@@ -37,19 +37,20 @@ class HomeService {
       photoUrl = user.photoURL;
 
       // Nếu Auth chưa có tên, tìm trong Firestore
-      if (name == 'My friend') {
-        try {
-          DocumentSnapshot doc = await _firestore.collection('users').doc(user.uid).get();
-          if (doc.exists) {
-            final data = doc.data() as Map<String, dynamic>;
-            name = data['fullName'] ?? data['name'] ?? 'My friend';
-            if (data.containsKey('avatarUrl')) {
-              photoUrl = data['avatarUrl'];
-            }
+      try {
+        DocumentSnapshot doc = await _firestore
+            .collection('users')
+            .doc(user.uid)
+            .get();
+        if (doc.exists) {
+          final data = doc.data() as Map<String, dynamic>;
+          name = data['displayName'] ?? 'My friend';
+          if (data.containsKey('photoUrl') && data['photoUrl'] != "") {
+            photoUrl = data['photoUrl'];
           }
-        } catch (e) {
-          print("Lỗi HomeService (User): $e");
         }
+      } catch (e) {
+        print("Lỗi HomeService (User): $e");
       }
     }
     return {'name': name, 'photoUrl': photoUrl};

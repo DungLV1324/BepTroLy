@@ -5,7 +5,7 @@ import '../../../../core/utils/dialog_helper.dart'; // Import dialog
 class PantryItemCard extends StatelessWidget {
   final Map<String, dynamic> itemMap; // Dữ liệu UI (màu, icon...)
   final Function(IngredientModel) onDelete; // Callback khi xóa
-  final Function(IngredientModel) onEdit;   // Callback khi sửa
+  final Function(IngredientModel) onEdit; // Callback khi sửa
 
   const PantryItemCard({
     super.key,
@@ -16,6 +16,7 @@ class PantryItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final IngredientModel model = itemMap['model'];
     bool hasImage = model.imageUrl != null && model.imageUrl!.isNotEmpty;
     return Dismissible(
@@ -28,7 +29,7 @@ class PantryItemCard extends StatelessWidget {
         padding: const EdgeInsets.only(right: 20),
         margin: const EdgeInsets.only(bottom: 14),
         decoration: BoxDecoration(
-          color: Colors.red[100],
+          color: isDark ? Colors.red.withOpacity(0.2) : Colors.red[100],
           borderRadius: BorderRadius.circular(16),
         ),
         child: const Icon(Icons.delete_outline, color: Colors.red, size: 28),
@@ -49,14 +50,14 @@ class PantryItemCard extends StatelessWidget {
           margin: const EdgeInsets.only(bottom: 14),
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withOpacity(isDark ? 0.2 : 0.05),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
-              )
+              ),
             ],
           ),
           child: IntrinsicHeight(
@@ -86,30 +87,40 @@ class PantryItemCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12), // Bo góc cho ảnh
                     child: hasImage
                         ? Image.network(
-                      model.imageUrl!,
-                      fit: BoxFit.cover, // Cắt ảnh cho vừa khung vuông 44x44
+                            model.imageUrl!,
+                            fit: BoxFit
+                                .cover, // Cắt ảnh cho vừa khung vuông 44x44
+                            // Xử lý khi ảnh loading
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Center(
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: itemMap['color'],
+                                ),
+                              );
+                            },
 
-                      // Xử lý khi ảnh loading
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return Center(
-                          child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: itemMap['color']
+                            // Xử lý khi ảnh bị lỗi (404, mất mạng) -> Hiện lại Icon cũ
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                color: (itemMap['color'] as Color).withOpacity(
+                                  0.1,
+                                ),
+                                child: Icon(
+                                  itemMap['icon'],
+                                  color: itemMap['color'],
+                                  size: 20,
+                                ),
+                              );
+                            },
+                          )
+                        // Nếu không có link ảnh ngay từ đầu -> Hiện Icon
+                        : Icon(
+                            itemMap['icon'],
+                            color: itemMap['color'],
+                            size: 20,
                           ),
-                        );
-                      },
-
-                      // Xử lý khi ảnh bị lỗi (404, mất mạng) -> Hiện lại Icon cũ
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          color: (itemMap['color'] as Color).withOpacity(0.1),
-                          child: Icon(itemMap['icon'], color: itemMap['color'], size: 20),
-                        );
-                      },
-                    )
-                    // Nếu không có link ảnh ngay từ đầu -> Hiện Icon
-                        : Icon(itemMap['icon'], color: itemMap['color'], size: 20),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -121,8 +132,10 @@ class PantryItemCard extends StatelessWidget {
                     children: [
                       Text(
                         itemMap['name'],
-                        style: const TextStyle(
-                          color: Color(0xFF1A1D26),
+                        style: TextStyle(
+                          color: isDark
+                              ? Colors.white
+                              : const Color(0xFF1A1D26),
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
                         ),
@@ -130,7 +143,12 @@ class PantryItemCard extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         itemMap['quantity'],
-                        style: const TextStyle(color: Color(0xFF9FA2B4), fontSize: 12),
+                        style: TextStyle(
+                          color: isDark
+                              ? Colors.grey[400]
+                              : const Color(0xFF9FA2B4),
+                          fontSize: 12,
+                        ),
                       ),
                     ],
                   ),
