@@ -33,7 +33,10 @@ class RecommendedRecipeList extends StatelessWidget {
               color: isDark ? const Color(0xFF2C2C2C) : Colors.grey[100],
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Text("No suitable suggestions found yet."),
+            child: Text(
+              "No suitable suggestions found yet.",
+              style: TextStyle(color: isDark ? Colors.white70 : Colors.black54),
+            ),
           );
         }
 
@@ -67,11 +70,11 @@ class RecommendedRecipeList extends StatelessWidget {
                 child: Container(
                   width: 220,
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.08),
+                        color: Colors.black.withOpacity(isDark ? 0.3 : 0.08),
                         blurRadius: 12,
                         offset: const Offset(0, 6),
                       ),
@@ -104,9 +107,10 @@ class RecommendedRecipeList extends StatelessWidget {
                             children: [
                               Text(
                                 item.name,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
+                                  color: isDark ? Colors.white : Colors.black87,
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -150,7 +154,6 @@ class RecommendedRecipeList extends StatelessWidget {
                                             )
                                             .toList();
 
-                                        // Điều hướng sang màn hình Shopping (trong folder kế hoạch)
                                         context.push(
                                           '/shopping',
                                           extra: missed,

@@ -18,7 +18,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
   // Xóa 1 cái (khi vuốt)
   void _handleDeleteOne(String docId) {
     _notificationViewModel.deleteNotification(docId);
-    if (mounted) AppToast.show(context, ActionType.delete, "expiration notification.");
+    if (mounted)
+      AppToast.show(context, ActionType.delete, "expiration notification.");
   }
 
   // Đọc 1 cái (khi bấm vào)
@@ -30,7 +31,6 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
   // Xóa tất cả
   void _handleDeleteAll() async {
-    // Dùng DialogHelper chung
     final bool? confirm = await DialogHelper.showConfirmDialog(
       context: context,
       title: "Clear all?",
@@ -41,52 +41,64 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
     if (confirm == true) {
       await _notificationViewModel.deleteAllNotifications();
-      if (mounted) AppToast.show(context, ActionType.delete, "All notifications");
+      if (mounted)
+        AppToast.show(context, ActionType.delete, "All notifications");
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFB),
+      backgroundColor: isDark
+          ? const Color(0xFF121212)
+          : const Color(0xFFF9FAFB),
       appBar: AppBar(
-        title: const Text("Expiration notification", style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(
+          "Expiration notification",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: isDark ? Colors.white : Colors.black,
+          ),
+        ),
         centerTitle: true,
-        backgroundColor: Colors.white,
+        backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
         elevation: 0,
+        iconTheme: IconThemeData(color: isDark ? Colors.white : Colors.black),
         actions: [
           StreamBuilder<List<Map<String, dynamic>>>(
             stream: _notificationViewModel.notificationStream,
             builder: (context, snapshot) {
               if (snapshot.hasData && snapshot.data!.isNotEmpty) {
                 return IconButton(
-                  icon: const Icon(Icons.delete_sweep_outlined, color: Colors.red),
+                  icon: const Icon(
+                    Icons.delete_sweep_outlined,
+                    color: Colors.red,
+                  ),
                   tooltip: "Clear all",
                   onPressed: _handleDeleteAll,
                 );
               }
-              return const SizedBox.shrink(); // Ẩn nếu rỗng
+              return const SizedBox.shrink();
             },
-          )
+          ),
         ],
       ),
 
       body: StreamBuilder<List<Map<String, dynamic>>>(
         stream: _notificationViewModel.notificationStream,
         builder: (context, snapshot) {
-          // 1. Loading
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          // 2. Empty State
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return _buildEmptyState();
           }
 
           final notifications = snapshot.data!;
 
-          // 3. List Data
           return ListView.separated(
             padding: const EdgeInsets.all(12),
             itemCount: notifications.length,
@@ -103,23 +115,38 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
               final bool isFuture = scheduledTime.isAfter(DateTime.now());
 
-              // Format text
-              final String timeString = DateFormat('HH:mm').format(scheduledTime);
-              final String dateString = DateFormat('dd/MM').format(scheduledTime);
+              final String timeString = DateFormat(
+                'HH:mm',
+              ).format(scheduledTime);
+              final String dateString = DateFormat(
+                'dd/MM',
+              ).format(scheduledTime);
               final String itemName = notif['title'] ?? "Dish";
 
               String displayText;
               if (isFuture) {
-                displayText = "I will remind you later $timeString - $itemName expiring soon";
+                displayText =
+                    "I will remind you later $timeString - $itemName expiring soon";
               } else {
-                displayText = "I mentioned it at the time. $timeString ($dateString) - $itemName";
+                displayText =
+                    "I mentioned it at the time. $timeString ($dateString) - $itemName";
+              }
+              Color bgColor;
+              if (isDark) {
+                bgColor = isFuture
+                    ? const Color(0xFF2C2C2C)
+                    : const Color(0xFF1E1E1E);
+              } else {
+                bgColor = isFuture ? Colors.grey.shade50 : Colors.white;
               }
 
-              // Màu sắc & Style
-              final Color bgColor = isFuture ? Colors.grey.shade50 : Colors.white;
               final Color iconColor = isFuture ? Colors.orange : Colors.green;
-              final IconData iconData = isFuture ? Icons.access_time_filled : Icons.check_circle;
-              final FontWeight textWeight = isFuture ? FontWeight.normal : FontWeight.w500;
+              final IconData iconData = isFuture
+                  ? Icons.access_time_filled
+                  : Icons.check_circle;
+              final FontWeight textWeight = isFuture
+                  ? FontWeight.normal
+                  : FontWeight.w500;
 
               return Dismissible(
                 key: Key(docId),
@@ -128,10 +155,16 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   alignment: Alignment.centerRight,
                   padding: const EdgeInsets.only(right: 20),
                   decoration: BoxDecoration(
-                    color: Colors.red[100],
+                    color: isDark
+                        ? Colors.red.withOpacity(0.2)
+                        : Colors.red[100],
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.delete_outline, color: Colors.red, size: 28),
+                  child: const Icon(
+                    Icons.delete_outline,
+                    color: Colors.red,
+                    size: 28,
+                  ),
                 ),
                 onDismissed: (direction) => _handleDeleteOne(docId),
 
@@ -140,12 +173,21 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   color: bgColor,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
-                    side: isFuture ? BorderSide(color: Colors.grey.shade300) : BorderSide.none,
+                    side: BorderSide(
+                      color: isDark
+                          ? Colors.grey.shade800
+                          : Colors.grey.shade300,
+                      width: isFuture ? 1 : 0,
+                    ),
                   ),
                   child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
                     onTap: () => _handleMarkAsRead(docId, isRead),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 16,
+                      ),
                       child: Row(
                         children: [
                           Icon(iconData, color: iconColor, size: 24),
@@ -158,17 +200,25 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                   displayText,
                                   style: TextStyle(
                                     fontSize: 15,
-                                    color: Colors.black87,
-                                    fontWeight: isRead ? FontWeight.normal : textWeight,
+                                    color: isDark
+                                        ? Colors.white
+                                        : Colors.black87,
+                                    fontWeight: isRead
+                                        ? FontWeight.normal
+                                        : textWeight,
                                   ),
                                 ),
                                 if (!isRead && !isFuture) ...[
                                   const SizedBox(height: 4),
                                   const Text(
                                     "New",
-                                    style: TextStyle(color: Colors.red, fontSize: 10, fontWeight: FontWeight.bold),
-                                  )
-                                ]
+                                    style: TextStyle(
+                                      color: Colors.redAccent,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
                               ],
                             ),
                           ),

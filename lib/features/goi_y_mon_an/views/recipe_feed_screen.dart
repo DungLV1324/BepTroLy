@@ -71,7 +71,6 @@ class _RecipeFeedScreenState extends State<RecipeFeedScreen> {
     final type = _filters[index]['type'];
 
     if (type == 'pantry') {
-      // ĐÃ SỬA: Lấy dữ liệu từ PantryViewModel thay vì list giả
       viewModel.fetchSuggestedRecipes(_getCurrentPantryNames());
     } else if (type == 'time') {
       viewModel.fetchRecipesWithFilter(query: '', time: '< 20 mins');
@@ -80,7 +79,6 @@ class _RecipeFeedScreenState extends State<RecipeFeedScreen> {
     }
   }
 
-  // --- HÀM CHECK THẬT TRONG TỦ LẠNH ---
   bool _checkInPantry(String name) {
     final pantryVM = context.read<PantryViewModel>();
     return pantryVM.ingredients.any(
@@ -294,7 +292,7 @@ class _RecipeFeedScreenState extends State<RecipeFeedScreen> {
                           ),
                           hasAllIngredients: isFull,
                           onBuyIngredients: () =>
-                              context.push('/shopping', extra: actualMissed),
+                              context.go('/shopping', extra: actualMissed),
                         ),
                       );
                     },
@@ -309,7 +307,6 @@ class _RecipeFeedScreenState extends State<RecipeFeedScreen> {
   }
 }
 
-// _RecipeCard giữ nguyên cấu trúc cũ của bạn
 class _RecipeCard extends StatelessWidget {
   final String title;
   final String imageUrl;

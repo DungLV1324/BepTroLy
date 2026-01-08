@@ -130,9 +130,12 @@ final appRouter = GoRouter(
             GoRoute(
               path: '/shopping',
               builder: (context, state) => const ShoppingListScreen(),
-              routes: [GoRoute(
-                path: 'history',
-                builder: (context, state) => const ShoppingHistoryScreen())]
+              routes: [
+                GoRoute(
+                  path: 'history',
+                  builder: (context, state) => const ShoppingHistoryScreen(),
+                ),
+              ],
             ),
           ],
         ),
