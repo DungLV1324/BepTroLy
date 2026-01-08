@@ -3,9 +3,9 @@ import '../../models/ingredient_model.dart';
 import '../../../../core/utils/dialog_helper.dart'; // Import dialog
 
 class PantryItemCard extends StatelessWidget {
-  final Map<String, dynamic> itemMap; // Dữ liệu UI (màu, icon...)
-  final Function(IngredientModel) onDelete; // Callback khi xóa
-  final Function(IngredientModel) onEdit; // Callback khi sửa
+  final Map<String, dynamic> itemMap;
+  final Function(IngredientModel) onDelete;
+  final Function(IngredientModel) onEdit;
 
   const PantryItemCard({
     super.key,
@@ -35,12 +35,11 @@ class PantryItemCard extends StatelessWidget {
         child: const Icon(Icons.delete_outline, color: Colors.red, size: 28),
       ),
 
-      // Logic xác nhận xóa
+      //Xác nhận xóa
       confirmDismiss: (direction) async {
         return await DialogHelper.showDeleteConfirmation(context, model.name);
       },
 
-      // Logic khi đã xác nhận xóa
       onDismissed: (_) => onDelete(model),
 
       // UI Thẻ món ăn
@@ -88,8 +87,7 @@ class PantryItemCard extends StatelessWidget {
                     child: hasImage
                         ? Image.network(
                             model.imageUrl!,
-                            fit: BoxFit
-                                .cover, // Cắt ảnh cho vừa khung vuông 44x44
+                            fit: BoxFit.cover,
                             // Xử lý khi ảnh loading
                             loadingBuilder: (context, child, loadingProgress) {
                               if (loadingProgress == null) return child;
@@ -101,7 +99,7 @@ class PantryItemCard extends StatelessWidget {
                               );
                             },
 
-                            // Xử lý khi ảnh bị lỗi (404, mất mạng) -> Hiện lại Icon cũ
+                            // Xử lý khi ảnh bị lỗi
                             errorBuilder: (context, error, stackTrace) {
                               return Container(
                                 color: (itemMap['color'] as Color).withOpacity(

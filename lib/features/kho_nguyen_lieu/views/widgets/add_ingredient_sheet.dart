@@ -1,10 +1,17 @@
+import 'package:beptroly/features/kho_nguyen_lieu/views/widgets/receipt_scanner_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import '../../../../core/constants/app_enums.dart';
 import '../../../../core/utils/dialog_helper.dart';
 import '../../models/ingredient_model.dart';
+import '../../services/receipt_service.dart';
 import '../../services/spoonacular_service.dart';
+import '../../view_models/pantry_view_model.dart';
+import 'add/ingredient_name_field.dart';
+import 'add/quantity_unit_row.dart';
+import 'add/scan_option_buttons.dart';
 import 'barcode_scanner_page.dart';
 
 class AddIngredientSheet extends StatefulWidget {
@@ -17,6 +24,8 @@ class AddIngredientSheet extends StatefulWidget {
 
 class _AddIngredientSheetState extends State<AddIngredientSheet> {
   final SpoonacularService _apiService = SpoonacularService();
+  final ReceiptService _receiptService = ReceiptService();
+
   final _formKey = GlobalKey<FormState>();
 
   // Controllers
@@ -54,7 +63,9 @@ class _AddIngredientSheetState extends State<AddIngredientSheet> {
   Future<void> _onScanBarcode() async {
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const BarcodeScannerPage()),
+      MaterialPageRoute(
+        builder: (context) => const BarcodeScannerPage(),
+      ),
     );
 
     if (result != null && result is String) {
@@ -104,13 +115,49 @@ class _AddIngredientSheetState extends State<AddIngredientSheet> {
     }
   }
 
-  //QUÉT HÓA ĐƠN
-  void _onScanReceipt() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("The receipt scanning feature is under development!"),
-      ),
+  Future<void> _onScanReceiptCamera() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const ReceiptScannerPage()),
     );
+
+    if (result != null && result is List<String> && result.isNotEmpty) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Processing receipt..."),
+          duration: Duration(seconds: 1),
+        ),
+      );
+
+      final int successCount = await context.read<PantryViewModel>().addBatchIngredients(result);
+
+      if (mounted) {
+        if (successCount > 0) {
+          DialogHelper.showScanResultDialog(
+            context: context,
+            title: "Success!",
+            content: "Added $successCount Food. Default shelf life: 7 days.",
+            isSuccess: true,
+          );
+          if (mounted) Navigator.pop(context);
+        } else {
+          DialogHelper.showScanResultDialog(
+            context: context,
+            title: "Error",
+            content: "No dishes could be added. Please check your network connection or error logs.",
+            isSuccess: false,
+          );
+        }
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _receiptService.dispose();
+    super.dispose();
   }
 
   void _saveIngredient() {
@@ -153,55 +200,45 @@ class _AddIngredientSheetState extends State<AddIngredientSheet> {
             ),
             const SizedBox(height: 20),
 
-            // Nút Scan (Chỉ hiện khi thêm mới)
+            // Nút Scan
             if (!isEditing) ...[
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildScanButton(
-                      icon: Icons.qr_code_scanner,
-                      label: "Scan Barcode",
-                      color: const Color(0xFFFFE0B2),
-                      textColor: Colors.orange[900]!,
-                      onTap: _onScanBarcode,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildScanButton(
-                      icon: Icons.receipt_long,
-                      label: "Scan Receipt",
-                      color: const Color(0xFFFFEBEE),
-                      textColor: Colors.red[900]!,
-                      onTap: _onScanReceipt,
-                    ),
-                  ),
-                ],
+              ScanOptionButtons(
+                onScanBarcode: _onScanBarcode,
+                onScanReceipt: _onScanReceiptCamera,
               ),
               const SizedBox(height: 20),
             ],
-
-            // Input Tên (TypeAhead + Validator)
-            _buildNameInputSection(),
+            // 3.Name Input
+            IngredientNameField(
+              controller: _nameController,
+              apiService: _apiService,
+              onSuggestionSelected: (suggestion) {
+                _nameController.text = suggestion.name;
+                setState(() {
+                  _imageUrl = suggestion.imageUrl;
+                  _aisle = suggestion.aisle;
+                });
+              },
+            ),
             const SizedBox(height: 16),
 
-            // Số lượng & Đơn vị
-            _buildQuantityAndUnitSection(),
+            //Quantity & Unit
+            QuantityUnitRow(
+              qtyController: _qtyController,
+              selectedUnit: _selectedUnit,
+              onUnitChanged: (val) => setState(() => _selectedUnit = val!),
+            ),
             const SizedBox(height: 16),
 
-            // Ngày hết hạn
+            //Date Input
             _buildDateInputSection(),
             const SizedBox(height: 24),
 
-            // Nút Lưu
+            //Save Button
             _buildSaveButton(isEditing ? "Save changes" : "Add to pantry"),
 
             // Padding bàn phím
-            Padding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom,
-              ),
-            ),
+            Padding(padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom)),
           ],
         ),
       ),
@@ -233,151 +270,10 @@ class _AddIngredientSheetState extends State<AddIngredientSheet> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          title,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
+        Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         IconButton(
           icon: const Icon(Icons.close),
           onPressed: () => Navigator.pop(context),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildScanButton({
-    required IconData icon,
-    required String label,
-    required Color color,
-    required Color textColor,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 20, color: textColor),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: TextStyle(
-                color: textColor,
-                fontWeight: FontWeight.bold,
-                fontSize: 13,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNameInputSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          "Ingredient name",
-          style: TextStyle(fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 8),
-
-        TypeAheadField<IngredientModel>(
-          controller: _nameController,
-
-          builder: (context, controller, focusNode) {
-            return TextFormField(
-              controller: controller,
-              focusNode: focusNode,
-              decoration: _inputDecoration("Rice, Gạo..."),
-              validator: (value) => (value == null || value.trim().isEmpty)
-                  ? "Please enter ingredient name"
-                  : null,
-            );
-          },
-          suggestionsCallback: (search) async {
-            if (search.isEmpty) return [];
-            return await _apiService.searchIngredients(search);
-          },
-          itemBuilder: (context, suggestion) {
-            return ListTile(
-              leading: suggestion.imageUrl != null
-                  ? Image.network(
-                      suggestion.imageUrl!,
-                      width: 30,
-                      errorBuilder: (_, _, _) => const Icon(Icons.image),
-                    )
-                  : const Icon(Icons.food_bank),
-              title: Text(suggestion.name),
-              subtitle: Text(suggestion.aisle ?? 'Unknown'),
-            );
-          },
-          onSelected: (suggestion) {
-            _nameController.text = suggestion.name;
-            setState(() {
-              _imageUrl = suggestion.imageUrl;
-              _aisle = suggestion.aisle;
-            });
-          },
-          emptyBuilder: (context) => const Padding(
-            padding: EdgeInsets.all(8.0),
-            child: Text('Item not found'),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildQuantityAndUnitSection() {
-    return Row(
-      children: [
-        Expanded(
-          flex: 1,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                "Quantity",
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _qtyController,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                decoration: _inputDecoration("e.g., 500"),
-                validator: (value) => value!.isEmpty ? "Enter quantity" : null,
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          flex: 1,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text("Unit", style: TextStyle(fontWeight: FontWeight.w600)),
-              const SizedBox(height: 8),
-              DropdownButtonFormField<MeasureUnit>(
-                value: _selectedUnit,
-                decoration: _inputDecoration(""),
-                items: MeasureUnit.values.map((unit) {
-                  return DropdownMenuItem(value: unit, child: Text(unit.name));
-                }).toList(),
-                onChanged: (val) => setState(() => _selectedUnit = val!),
-              ),
-            ],
-          ),
         ),
       ],
     );

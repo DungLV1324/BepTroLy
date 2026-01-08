@@ -120,4 +120,129 @@ class DialogHelper {
       ),
     );
   }
-}
+
+  static Future<List<String>?> showReceiptReviewDialog(
+      BuildContext context, List<String> scannedItems) {
+
+    // Biến tạm lưu danh sách đang chọn
+    List<String> selectedItems = List.from(scannedItems);
+
+    return showDialog<List<String>>(
+      context: context,
+      barrierDismissible: false, // Bắt buộc user phải chọn Hủy hoặc Thêm
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Dialog(
+              backgroundColor: const Color(0xFFFFF2F2),
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      "Kết quả quét hóa đơn",
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+
+                    Text(
+                      "Vui lòng bỏ chọn các dòng rác:",
+                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 20),
+
+                    Container(
+                      constraints: const BoxConstraints(maxHeight: 350), // Chiều cao tối đa
+                      child: SingleChildScrollView(
+                        child: Column(
+                          children: scannedItems.map((item) {
+                            final isSelected = selectedItems.contains(item);
+                            return Container(
+                              margin: const EdgeInsets.only(bottom: 8),
+                              // (Tùy chọn) Thêm nền trắng nhẹ cho từng dòng nếu muốn nổi bật hơn
+                              // decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
+                              child: CheckboxListTile(
+                                contentPadding: EdgeInsets.zero,
+                                controlAffinity: ListTileControlAffinity.trailing,
+                                activeColor: const Color(0xFF4CAF50), // Màu xanh lá khi check
+                                checkColor: Colors.white,
+                                dense: true,
+
+                                title: Text(
+                                  item,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.black87,
+                                    decoration: isSelected ? null : TextDecoration.lineThrough,
+                                  ),
+                                ),
+                                value: isSelected,
+                                onChanged: (bool? checked) {
+                                  setState(() {
+                                    if (checked == true) {
+                                      selectedItems.add(item);
+                                    } else {
+                                      selectedItems.remove(item);
+                                    }
+                                  });
+                                },
+                                checkboxShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween, // Căn 2 đầu
+                      children: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(ctx),
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.grey,
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          ),
+                          child: const Text("Hủy", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                        ),
+
+                        ElevatedButton(
+                          onPressed: () => Navigator.pop(ctx, selectedItems),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF4CAF50),
+                            foregroundColor: Colors.white,
+                            elevation: 4,
+                            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                          ),
+                          child: Text(
+                            "Thêm ${selectedItems.length} món",
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+  }

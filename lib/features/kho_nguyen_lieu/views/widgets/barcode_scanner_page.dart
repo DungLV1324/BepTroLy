@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 class BarcodeScannerPage extends StatefulWidget {
@@ -35,6 +36,8 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
   // Logic Delay 3s
   void _handleBarcodeDetected(String code) async {
     if (_isProcessing) return;
+
+    HapticFeedback.mediumImpact();
 
     setState(() {
       _isProcessing = true;
@@ -193,12 +196,12 @@ class ScannerOverlayPainter extends CustomPainter {
     );
 
     final backgroundPaint = Paint()
-      ..color = Colors.black.withOpacity(0.5) // Màu đen mờ 50%
+      ..color = Colors.black.withOpacity(0.5)
       ..style = PaintingStyle.fill;
 
     canvas.drawPath(backgroundWithCutout, backgroundPaint);
 
-    // 6. Vẽ viền cam bao quanh lỗ khoét
+    //Vẽ viền cam bao quanh lỗ khoét
     final borderPaint = Paint()
       ..color = Colors.orangeAccent
       ..style = PaintingStyle.stroke

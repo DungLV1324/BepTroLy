@@ -30,7 +30,7 @@ class PantryViewModel extends ChangeNotifier {
     );
   }
 
-  // 2. Hàm kiểm tra tổng quát cho cả Recipe (dùng cho màn Home/Feed)
+  // 2. Hàm kiểm tra tổng quát cho cả Recipe
   bool isRecipeReady(List<String> recipeIngredients) {
     if (recipeIngredients.isEmpty) return false;
     // Nếu có bất kỳ nguyên liệu nào TRONG danh sách món ăn mà KHÔNG có trong kho -> Trả về false
@@ -52,7 +52,7 @@ class PantryViewModel extends ChangeNotifier {
     _pantryService.getIngredientsStream().listen((items) {
       _allItems = items;
       _applyFilterAndEmit();
-      notifyListeners(); // Mỗi khi data gốc đổi -> Lọc lại -> Đẩy ra UI
+      notifyListeners();
     });
   }
 
@@ -80,16 +80,13 @@ class PantryViewModel extends ChangeNotifier {
     _uiStreamController.add(grouped);
   }
 
-  // Hàm logic: Gom nhóm các món ăn theo 'aisle' (ngành hàng)
   List<Map<String, dynamic>> _groupItemsByCategory(
     List<IngredientModel> items,
   ) {
     if (items.isEmpty) return [];
 
-    // 1. Tạo Map tạm để gom nhóm
     Map<String, List<IngredientModel>> grouped = {};
     for (var item in items) {
-      // Nếu không có aisle, xếp vào nhóm "Khác"
       String category = item.aisle ?? "Other Items";
       if (!grouped.containsKey(category)) {
         grouped[category] = [];
@@ -97,7 +94,6 @@ class PantryViewModel extends ChangeNotifier {
       grouped[category]!.add(item);
     }
 
-    // 2. Chuyển đổi sang cấu trúc List<Map> cho UI
     List<Map<String, dynamic>> result = [];
     grouped.forEach((category, listItems) {
       result.add({
@@ -113,7 +109,7 @@ class PantryViewModel extends ChangeNotifier {
 
   Map<String, dynamic> _mapModelToUi(IngredientModel item, String category) {
     return {
-      "model": item, // Giữ model gốc để truyền vào các hàm sửa/xóa
+      "model": item,
       "id": item.id,
       "name": item.name,
       "quantity": "${_formatQuantity(item.quantity)} ${item.unit.name}",
@@ -124,7 +120,6 @@ class PantryViewModel extends ChangeNotifier {
     };
   }
 
-  // Helper: Chọn màu dựa trên ExpiryStatus (Dùng getter trong model của bạn)
   Color _getColorStatus(ExpiryStatus status) {
     switch (status) {
       case ExpiryStatus.expired:
@@ -145,17 +140,22 @@ class PantryViewModel extends ChangeNotifier {
 
   IconData _getIconForCategory(String category) {
     final catLower = category.toLowerCase();
-    if (catLower.contains("dairy") || catLower.contains("egg"))
+    if (catLower.contains("dairy") || catLower.contains("egg")) {
       return Icons.egg_alt;
-    if (catLower.contains("fruit") || catLower.contains("vegetable"))
+    }
+    if (catLower.contains("fruit") || catLower.contains("vegetable")) {
       return Icons.eco;
-    if (catLower.contains("meat") || catLower.contains("fish"))
+    }
+    if (catLower.contains("meat") || catLower.contains("fish")) {
       return Icons.set_meal;
-    if (catLower.contains("beverage") || catLower.contains("drink"))
+    }
+    if (catLower.contains("beverage") || catLower.contains("drink")) {
       return Icons.local_drink;
-    if (catLower.contains("grain") || catLower.contains("bread"))
+    }
+    if (catLower.contains("grain") || catLower.contains("bread")) {
       return Icons.breakfast_dining;
-    return Icons.kitchen; // Icon mặc định
+    }
+    return Icons.kitchen;
   }
 
   String _formatQuantity(double qty) {
@@ -203,11 +203,51 @@ class PantryViewModel extends ChangeNotifier {
 
     if (newItem.expiryDate != null) {
       _notificationService.scheduleExpiryNotification(
-        id: newItem.name.hashCode, // Lưu ý: Nếu user đổi tên, ID này sẽ đổi
-        title: 'Sắp hết hạn! ⚠️',
-        body: 'Món ${newItem.name} sắp hết hạn.',
+        id: newItem.name.hashCode,
+        title: 'Expiring soon! ⚠️',
+        body: 'Dish ${newItem.name} it is about to expire.',
         expiryDate: newItem.expiryDate!,
       );
     }
   }
-}
+
+  Future<int> addBatchIngredients(List<String> itemNames) async {
+    int successCount = 0;
+    final DateTime defaultExpiry = DateTime.now().add(const Duration(days: 7));
+    final DateTime now = DateTime.now();
+
+    try {
+      for (String name in itemNames) {
+        String newId = "${now.millisecondsSinceEpoch}_${name.hashCode}";
+
+        final newItem = IngredientModel(
+          id: newId,
+          name: name,
+          quantity: 1.0,
+          unit: MeasureUnit.values.first,
+          expiryDate: defaultExpiry,
+          addedDate: now,
+          imageUrl: "",
+          aisle: "Other Items",
+        );
+
+        await _pantryService.addIngredient(newItem);
+
+        // Đặt lịch thông báo
+        await _notificationService.scheduleExpiryNotification(
+          id: name.hashCode,
+          title: 'Expiring soon ⚠️',
+          body: 'Dish $name it is about to expire.',
+          expiryDate: defaultExpiry,
+        );
+        successCount++;
+      }
+
+      notifyListeners();
+
+    } catch (e) {
+      print("ViewModel Error when adding batch: $e");
+    }
+
+    return successCount;
+  }}
