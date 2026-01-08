@@ -65,10 +65,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // 1. Header
-                    HomeHeader(
-                      userName: viewModel.userName,
-                      photoUrl: viewModel.photoUrl,
-                    ),
+                    const HomeHeader(),
                     const SizedBox(height: 20),
 
                     // 2. Search

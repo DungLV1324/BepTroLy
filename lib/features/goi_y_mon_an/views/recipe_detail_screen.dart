@@ -45,7 +45,6 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
     }
   }
 
-  // Hàm check đồ trong kho thật
   bool _checkInPantry(BuildContext context, String ingredientName) {
     final pantryVM = context.read<PantryViewModel>();
     return pantryVM.ingredients.any(
@@ -60,7 +59,6 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
     if (unitStr.toLowerCase() == 'unknown') {
       return "";
     }
-
     return unitStr;
   }
 
@@ -73,6 +71,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
       backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
       body: Stack(
         children: [
+          // 1. Ảnh món ăn
           Positioned(
             top: 0,
             left: 0,
@@ -81,7 +80,10 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
             child: Image.network(
               _fullRecipe.imageUrl,
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(color: Colors.grey[300]),
+              errorBuilder: (_, __, ___) => Container(
+                color: isDark ? Colors.grey[900] : Colors.grey[300],
+                child: const Icon(Icons.broken_image, size: 50),
+              ),
             ),
           ),
 
@@ -105,19 +107,21 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
             ),
           ),
 
-          // 3. SHEET NỘI DUNG (CÓ THỂ KÉO LÊN/XUỐNG)
+          // 3. SHEET NỘI DUNG
           DraggableScrollableSheet(
             initialChildSize: 0.65,
             minChildSize: 0.6,
             maxChildSize: 0.95,
             builder: (context, scrollController) {
               return Container(
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(32),
+                  ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black12,
+                      color: isDark ? Colors.black54 : Colors.black12,
                       blurRadius: 10,
                       spreadRadius: 2,
                     ),
@@ -145,9 +149,10 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
                             Text(
                               _fullRecipe.name,
                               textAlign: TextAlign.center,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
+                                color: isDark ? Colors.white : Colors.black87,
                               ),
                             ),
                             const SizedBox(height: 24),
@@ -166,18 +171,21 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
                                         "${_fullRecipe.cookingTimeMinutes} mins",
                                         Colors.red.withOpacity(0.1),
                                         Colors.redAccent,
+                                        isDark,
                                       ),
                                       _buildInfoCircle(
                                         Icons.layers_outlined,
                                         "Easy",
                                         Colors.green.withOpacity(0.1),
                                         Colors.green,
+                                        isDark,
                                       ),
                                       _buildInfoCircle(
                                         Icons.people_outline,
                                         "2 people",
                                         Colors.orange.withOpacity(0.1),
                                         Colors.orange,
+                                        isDark,
                                       ),
                                     ],
                                   ),
@@ -185,7 +193,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
 
                             TabBar(
                               controller: _tabController,
-                              labelColor: isDark ? Colors.white : Colors.black,
+                              labelColor: isDark ? greenColor : Colors.black,
                               unselectedLabelColor: isDark
                                   ? Colors.white54
                                   : Colors.grey,
@@ -198,9 +206,9 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
                             ),
                             const SizedBox(height: 16),
 
-                            // NỘI DUNG TAB (Bọc trong SizedBox để không bị lỗi layout khi kéo)
+                            // NỘI DUNG TAB
                             SizedBox(
-                              height: 500,
+                              height: 600,
                               child: _isLoading
                                   ? const Center(
                                       child: CircularProgressIndicator(
@@ -210,8 +218,11 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
                                   : TabBarView(
                                       controller: _tabController,
                                       children: [
-                                        _buildIngredientsList(greenColor),
-                                        _buildStepsList(),
+                                        _buildIngredientsList(
+                                          greenColor,
+                                          isDark,
+                                        ),
+                                        _buildStepsList(isDark),
                                       ],
                                     ),
                             ),
@@ -234,6 +245,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
     String label,
     Color color,
     Color iconColor,
+    bool isDark,
   ) {
     return Column(
       children: [
@@ -246,9 +258,9 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
         const SizedBox(height: 8),
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
-            color: Colors.grey,
+            color: isDark ? Colors.white70 : Colors.grey[600],
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -256,11 +268,15 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
     );
   }
 
-  Widget _buildIngredientsList(Color greenColor) {
+  Widget _buildIngredientsList(Color greenColor, bool isDark) {
     if (_fullRecipe.ingredients.isEmpty) {
-      return const Center(child: Text("Không có thông tin nguyên liệu."));
+      return Center(
+        child: Text(
+          "Không có thông tin nguyên liệu.",
+          style: TextStyle(color: isDark ? Colors.white70 : Colors.black54),
+        ),
+      );
     }
-    final pantryVM = context.watch<PantryViewModel>();
 
     return ListView.builder(
       padding: EdgeInsets.zero,
@@ -269,14 +285,13 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
       itemBuilder: (context, index) {
         final item = _fullRecipe.ingredients[index];
         final bool isHave = _checkInPantry(context, item.name);
-        final isDark = Theme.of(context).brightness == Brightness.dark;
 
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
           decoration: BoxDecoration(
             color: isHave
-                ? greenColor.withOpacity(0.05)
+                ? greenColor.withOpacity(0.15)
                 : (isDark ? const Color(0xFF2C2C2C) : Colors.grey[50]),
             borderRadius: BorderRadius.circular(12),
           ),
@@ -285,7 +300,9 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
               Icon(
                 Icons.check_circle,
                 size: 20,
-                color: isHave ? greenColor : Colors.grey[300],
+                color: isHave
+                    ? greenColor
+                    : (isDark ? Colors.grey[700] : Colors.grey[300]),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -294,6 +311,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: isHave ? FontWeight.bold : FontWeight.w500,
+                    color: isDark ? Colors.white : Colors.black87,
                   ),
                 ),
               ),
@@ -304,9 +322,14 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
     );
   }
 
-  Widget _buildStepsList() {
+  Widget _buildStepsList(bool isDark) {
     if (_fullRecipe.instructions.isEmpty) {
-      return const Center(child: Text("Chưa có hướng dẫn chi tiết."));
+      return Center(
+        child: Text(
+          "Chưa có hướng dẫn chi tiết.",
+          style: TextStyle(color: isDark ? Colors.white70 : Colors.black54),
+        ),
+      );
     }
     return ListView.builder(
       padding: const EdgeInsets.only(top: 10),
@@ -330,7 +353,11 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
               Expanded(
                 child: Text(
                   _fullRecipe.instructions[index],
-                  style: const TextStyle(fontSize: 15, height: 1.5),
+                  style: TextStyle(
+                    fontSize: 15,
+                    height: 1.5,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
                 ),
               ),
             ],

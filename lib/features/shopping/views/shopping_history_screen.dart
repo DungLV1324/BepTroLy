@@ -9,26 +9,37 @@ class ShoppingHistoryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = Provider.of<ShoppingListViewModel>(context, listen: false);
+    final viewModel = Provider.of<ShoppingListViewModel>(
+      context,
+      listen: false,
+    );
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
+          icon: Icon(
+            Icons.arrow_back_ios,
+            color: isDark ? Colors.white : Colors.black,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Shopping history',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: isDark ? Colors.white : Colors.black,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: viewModel.shoppingHistoryStream,
         builder: (context, snapshot) {
-          if (snapshot.hasError) return const Center(child: Text('An error has occurred.'));
+          if (snapshot.hasError)
+            return const Center(child: Text('An error has occurred.'));
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
@@ -48,7 +59,9 @@ class ShoppingHistoryScreen extends StatelessWidget {
 
               return Card(
                 margin: const EdgeInsets.only(bottom: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 elevation: 2,
                 child: ExpansionTile(
                   title: Text(
@@ -69,14 +82,16 @@ class ShoppingHistoryScreen extends StatelessWidget {
                                 Text(item['name'] ?? ''),
                                 Text(
                                   '${item['quantity']} ${item['unit']}',
-                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ],
                             ),
                           );
                         }).toList(),
                       ),
-                    )
+                    ),
                   ],
                 ),
               );

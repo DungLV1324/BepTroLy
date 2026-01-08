@@ -8,10 +8,14 @@ import '../../../core/constants/app_enums.dart';
 class ShoppingListScreen extends StatelessWidget {
   const ShoppingListScreen({super.key});
 
-  // Xử lý khi nhấn nút hoàn tất mua sắm
   void _onCompletePressed(BuildContext context) async {
-    final viewModel = Provider.of<ShoppingListViewModel>(context, listen: false);
-    final unboughtItems = viewModel.items.where((item) => !item.isBought).toList();
+    final viewModel = Provider.of<ShoppingListViewModel>(
+      context,
+      listen: false,
+    );
+    final unboughtItems = viewModel.items
+        .where((item) => !item.isBought)
+        .toList();
 
     bool? shouldProceed = true;
 
@@ -19,10 +23,13 @@ class ShoppingListScreen extends StatelessWidget {
       shouldProceed = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           title: const Text('I haven\'t finished buying everything yet?'),
           content: Text(
-              'You still have ${unboughtItems.length} items not marked as purchased. Do you want to finalize and save your selected items?'),
+            'You still have ${unboughtItems.length} items not marked as purchased. Do you want to finalize and save your selected items?',
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
@@ -30,10 +37,14 @@ class ShoppingListScreen extends StatelessWidget {
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange, elevation: 0),
+                backgroundColor: Colors.orange,
+                elevation: 0,
+              ),
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Still complete',
-                  style: TextStyle(color: Colors.white)),
+              child: const Text(
+                'Still complete',
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           ],
         ),
@@ -50,7 +61,6 @@ class ShoppingListScreen extends StatelessWidget {
     }
   }
 
-  // Hiển thị Form thêm món mới dưới dạng BottomSheet
   void _showAddItemsForm(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -63,20 +73,28 @@ class ShoppingListScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.history, color: Color(0xFF1A1D26)),
+          icon: Icon(
+            Icons.history,
+            color: isDark ? Colors.white : const Color(0xFF1A1D26),
+          ),
           onPressed: () {
             context.go('/shopping/history');
           },
         ),
-        title: const Text('Shopping List',
-            style: TextStyle(
-                color: Color(0xFF1A1D26), fontWeight: FontWeight.bold)),
+        title: Text(
+          'Shopping List',
+          style: TextStyle(
+            color: isDark ? Colors.white : const Color(0xFF1A1D26),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 8, top: 10, bottom: 10),
@@ -90,8 +108,10 @@ class ShoppingListScreen extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 shape: const StadiumBorder(),
               ),
-              child: const Text('COMPLETE',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900)),
+              child: const Text(
+                'COMPLETE',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900),
+              ),
             ),
           ),
           const SizedBox(width: 8),
@@ -102,8 +122,10 @@ class ShoppingListScreen extends StatelessWidget {
         onPressed: () => _showAddItemsForm(context),
         backgroundColor: const Color(0xFF2BEE79),
         icon: const Icon(Icons.add_shopping_cart, color: Colors.white),
-        label: const Text('Add Items ',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        label: const Text(
+          'Add Items ',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
       ),
     );
   }
@@ -112,38 +134,47 @@ class ShoppingListScreen extends StatelessWidget {
 class _ShoppingListBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Consumer<ShoppingListViewModel>(
       builder: (context, viewModel, child) {
         final allItems = viewModel.items;
 
         if (allItems.isEmpty) {
-          return const Center(
-            child: Text('The list is empty. Please add items to buy!'),
+          return Center(
+            child: Text(
+              'The list is empty. Please add items to buy!',
+              style: TextStyle(color: isDark ? Colors.white70 : Colors.black54),
+            ),
           );
         }
 
         return ListView(
           padding: const EdgeInsets.symmetric(horizontal: 24),
           children: [
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
               child: Text(
                 'THINGS TO BUY',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1.2,
-                  color: Colors.blueGrey,
+                  color: isDark ? Colors.grey[400] : Colors.blueGrey,
                 ),
               ),
             ),
-            const Divider(height: 1),
-            ...allItems.map((item) => _ShoppingListItem(
-                  item: item,
-                  onToggle: () =>
-                      viewModel.toggleBoughtStatus(item.id, item.isBought),
-                )),
-            const SizedBox(height: 120), // Tạo khoảng trống cho FAB và BottomBar
+            Divider(
+              height: 1,
+              color: isDark ? Colors.grey[800] : Colors.grey.shade200,
+            ),
+            ...allItems.map(
+              (item) => _ShoppingListItem(
+                item: item,
+                onToggle: () =>
+                    viewModel.toggleBoughtStatus(item.id, item.isBought),
+              ),
+            ),
+            const SizedBox(height: 120),
           ],
         );
       },
@@ -159,16 +190,23 @@ class _ShoppingListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: Colors.grey.shade100)),
+        border: Border(
+          bottom: BorderSide(
+            color: isDark ? Colors.grey[800]! : Colors.grey.shade100,
+          ),
+        ),
       ),
       child: ListTile(
         contentPadding: EdgeInsets.zero,
         onTap: onToggle,
         leading: Icon(
           item.isBought ? Icons.check_box : Icons.check_box_outline_blank,
-          color: item.isBought ? const Color(0xFF34C759) : Colors.grey,
+          color: item.isBought
+              ? const Color(0xFF34C759)
+              : (isDark ? Colors.grey[600] : Colors.grey),
         ),
         title: Text(
           item.name,
@@ -176,13 +214,17 @@ class _ShoppingListItem extends StatelessWidget {
             fontSize: 16,
             fontWeight: FontWeight.w500,
             decoration: item.isBought ? TextDecoration.lineThrough : null,
-            color: item.isBought ? Colors.grey : Colors.black87,
+            color: item.isBought
+                ? Colors.grey
+                : (isDark ? Colors.white : Colors.black87),
           ),
         ),
         trailing: Text(
           "${item.quantity} ${item.unit.name}",
           style: TextStyle(
-            color: item.isBought ? Colors.grey : Colors.blueGrey,
+            color: item.isBought
+                ? Colors.grey
+                : (isDark ? Colors.grey[400] : Colors.blueGrey),
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -202,7 +244,11 @@ class _AddItemsFormSheetState extends State<_AddItemsFormSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = Provider.of<ShoppingListViewModel>(context, listen: false);
+    final viewModel = Provider.of<ShoppingListViewModel>(
+      context,
+      listen: false,
+    );
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       padding: EdgeInsets.only(
@@ -211,19 +257,26 @@ class _AddItemsFormSheetState extends State<_AddItemsFormSheet> {
         right: 20,
         top: 24,
       ),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text('New Items',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          Text(
+            'New Items',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : Colors.black,
+            ),
+          ),
           const SizedBox(height: 16),
           ConstrainedBox(
             constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.4),
+              maxHeight: MediaQuery.of(context).size.height * 0.4,
+            ),
             child: ListView.separated(
               shrinkWrap: true,
               itemCount: _draftItems.length,
@@ -244,8 +297,10 @@ class _AddItemsFormSheetState extends State<_AddItemsFormSheet> {
           TextButton.icon(
             onPressed: () => setState(() => _draftItems.add(_DraftItem())),
             icon: const Icon(Icons.add, color: Color(0xFF2BEE79)),
-            label: const Text('New Line',
-                style: TextStyle(color: Color(0xFF2BEE79))),
+            label: const Text(
+              'New Line',
+              style: TextStyle(color: Color(0xFF2BEE79)),
+            ),
           ),
           const SizedBox(height: 16),
           SizedBox(
@@ -255,7 +310,8 @@ class _AddItemsFormSheetState extends State<_AddItemsFormSheet> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF2BEE79),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               onPressed: () {
                 for (var draft in _draftItems) {
@@ -270,9 +326,13 @@ class _AddItemsFormSheetState extends State<_AddItemsFormSheet> {
                 }
                 Navigator.pop(context);
               },
-              child: const Text('SAVE TO LIST',
-                  style: TextStyle(
-                      color: Colors.white, fontWeight: FontWeight.bold)),
+              child: const Text(
+                'SAVE TO LIST',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
           ),
         ],
@@ -293,17 +353,29 @@ class _ItemInputRow extends StatefulWidget {
 class _ItemInputRowState extends State<_ItemInputRow> {
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Row(
       children: [
         Expanded(
           flex: 3,
           child: TextField(
             controller: widget.item.nameController,
+            style: TextStyle(color: isDark ? Colors.white : Colors.black),
             decoration: InputDecoration(
               hintText: 'Name Item',
+              hintStyle: TextStyle(
+                color: isDark ? Colors.grey[500] : Colors.grey,
+              ),
               contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-              border:
-              OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(
+                  color: isDark ? Colors.grey[700]! : Colors.grey.shade400,
+                ),
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
           ),
         ),
@@ -314,10 +386,21 @@ class _ItemInputRowState extends State<_ItemInputRow> {
             controller: widget.item.qtyController,
             keyboardType: TextInputType.number,
             textAlign: TextAlign.center,
+            style: TextStyle(color: isDark ? Colors.white : Colors.black),
             decoration: InputDecoration(
               hintText: 'SL',
-              border:
-              OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+              hintStyle: TextStyle(
+                color: isDark ? Colors.grey[500] : Colors.grey,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(
+                  color: isDark ? Colors.grey[700]! : Colors.grey.shade400,
+                ),
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
           ),
         ),
@@ -327,13 +410,16 @@ class _ItemInputRowState extends State<_ItemInputRow> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 8),
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade400),
+              border: Border.all(
+                color: isDark ? Colors.grey[700]! : Colors.grey.shade400,
+              ),
               borderRadius: BorderRadius.circular(8),
             ),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<MeasureUnit>(
                 value: widget.item.selectedUnit,
                 isExpanded: true,
+                dropdownColor: isDark ? const Color(0xFF2C2C2C) : Colors.white,
                 onChanged: (val) {
                   if (val != null) {
                     setState(() => widget.item.selectedUnit = val);
@@ -342,8 +428,13 @@ class _ItemInputRowState extends State<_ItemInputRow> {
                 items: MeasureUnit.values.map((unit) {
                   return DropdownMenuItem(
                     value: unit,
-                    child:
-                    Text(unit.name, style: const TextStyle(fontSize: 13)),
+                    child: Text(
+                      unit.name,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: isDark ? Colors.white : Colors.black,
+                      ),
+                    ),
                   );
                 }).toList(),
               ),
@@ -353,7 +444,7 @@ class _ItemInputRowState extends State<_ItemInputRow> {
         IconButton(
           onPressed: widget.onRemove,
           icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-        )
+        ),
       ],
     );
   }
