@@ -29,8 +29,6 @@ class PantryService {
 
   // 2. Thêm món mới
   Future<void> addIngredient(IngredientModel item) async {
-    // Dùng toJson() có sẵn trong model của bạn
-    // Lưu ý: Remove 'id' vì Firestore sẽ tự sinh ID mới hoặc dùng .doc().set()
     final data = item.toJson();
     data.remove('id');
 
@@ -43,7 +41,6 @@ class PantryService {
   }
 
   Future<void> updateIngredient(IngredientModel item) async {
-    // item.id bắt buộc phải có để biết sửa document nào
     await _pantryRef.doc(item.id).update(item.toJson());
   }
 }

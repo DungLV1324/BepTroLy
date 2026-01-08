@@ -40,7 +40,7 @@ class IngredientModel {
 
   /// Trả về số ngày còn lại
   int get daysRemaining {
-    if (expiryDate == null) return 999; // Giá trị mặc định lớn
+    if (expiryDate == null) return 999;
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final expiration = DateTime(expiryDate!.year, expiryDate!.month, expiryDate!.day);

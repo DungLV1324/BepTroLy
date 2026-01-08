@@ -12,7 +12,7 @@ enum MeasureUnit {
   piece, // cái/quả
   bunch, // bó/chùm
   clove, // tép (tỏi)
-  unknown,
+  unknown, item,
 }
 
 // Trạng thái nguyên liệu (Dùng cho logic hiển thị màu sắc FR3)
