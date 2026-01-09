@@ -1,3 +1,4 @@
+import 'package:beptroly/features/home/views/widgets/home_search_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -55,6 +56,10 @@ class _HomeScreenState extends State<HomeScreen> {
               );
             }
 
+            if (viewModel.isLoading) {
+              return const Center(child: CircularProgressIndicator(color: Colors.orange));
+            }
+
             return RefreshIndicator(
               onRefresh: () async => viewModel.loadHomeData(),
               color: Colors.orange,
@@ -71,7 +76,19 @@ class _HomeScreenState extends State<HomeScreen> {
                     // 2. Search
                     const HomeSearchBar(),
                     const SizedBox(height: 30),
+                    if (viewModel.isSearching)
+                      buildSearchResults(viewModel)
 
+                    // Nếu không -> Hiện trang chủ bình thường
+                    else ...[
+                      SectionHeader(title: 'Expiring Soon', onSeeAll: () => context.go('/pantry')),
+                      const SizedBox(height: 15),
+                      ExpiringList(ingredients: viewModel.expiringIngredients),
+                      const SizedBox(height: 30),
+                      SectionHeader(title: 'Recommended for you', onSeeAll: () => context.push('/recipes')),
+                      const SizedBox(height: 15),
+                      const RecommendedRecipeList(),
+                    ],
                     // 3. Expiring Section
                     SectionHeader(
                       title: 'Expiring Soon',
