@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_enums.dart';
+import '../../goi_y_mon_an/models/recipe_model.dart';
 
 class Meal {
   final String id;
@@ -16,6 +17,19 @@ class Meal {
     required this.preparationTimeMinutes,
     this.kcal = 0,
   });
+
+
+  RecipeModel toRecipeModel() {
+    return RecipeModel(
+      id: id.replaceFirst('sp_', ''),
+      name: name,
+      imageUrl: imageUrl,
+      cookingTimeMinutes: preparationTimeMinutes,
+      description: '',
+      instructions: [],
+      ingredients: [],
+    );
+  }
 
   // Map từ Firebase (Dữ liệu Local)
   factory Meal.fromMap(Map<String, dynamic> map) {
@@ -34,7 +48,6 @@ class Meal {
     int calories = 0;
     if (json['nutrition'] != null) {
       final nutrients = json['nutrition']['nutrients'] as List;
-      // Tìm lượng Calories trong mảng dinh dưỡng của Spoonacular
       calories = nutrients.firstWhere(
               (n) => n['name'] == 'Calories',
           orElse: () => {'amount': 0}
@@ -42,7 +55,7 @@ class Meal {
     }
 
     return Meal(
-      id: 'sp_${json['id']}', // Thêm tiền tố sp_ để tránh trùng ID với Firebase
+      id: 'sp_${json['id']}',
       name: json['title'] ?? '',
       imageUrl: json['image'] ?? '',
       preparationTimeMinutes: json['readyInMinutes'] ?? 0,
