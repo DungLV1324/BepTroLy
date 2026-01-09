@@ -4,7 +4,7 @@ import '../../../core/constants/app_enums.dart';
 import '../models/ingredient_model.dart';
 
 class SpoonacularService {
-  final String _apiKey = "506a39440242421f930ca2fd8fcbf5d0";
+  final String _apiKey = "9f3e046ef6874a95b7a55a1a9c4cc58f";
   final String _baseUrl = "https://api.spoonacular.com/food/ingredients";
   final String _baseUrlProducts = 'https://api.spoonacular.com/food/products/upc';
 

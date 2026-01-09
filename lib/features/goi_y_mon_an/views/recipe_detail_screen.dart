@@ -276,7 +276,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
     if (_fullRecipe.instructions.isEmpty) {
       return Center(
         child: Text(
-          "Chưa có hướng dẫn chi tiết.",
+          "There are no detailed instructions yet.",
           style: TextStyle(color: isDark ? Colors.white70 : Colors.black54),
         ),
       );

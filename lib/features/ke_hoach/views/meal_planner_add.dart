@@ -92,7 +92,7 @@ class MealPlannerList extends StatelessWidget {
     if (viewModel.weeklyPlans.isEmpty) {
       return Center(
         child: Text(
-          'Chưa có kế hoạch nào trong database.',
+          'There are no plans in the database yet.',
           style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600]),
         ),
       );
