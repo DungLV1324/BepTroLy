@@ -61,7 +61,6 @@ class SettingViewModel extends ChangeNotifier {
       Map<String, dynamic> updateData = {'displayName': name};
 
       if (imageFile != null) {
-        // Tạo đường dẫn chuẩn: avatars/uid.jpg
         final String fileName = '$uid.jpg';
         final Reference ref = _storage.ref().child('avatars').child(fileName);
 
@@ -73,7 +72,6 @@ class SettingViewModel extends ChangeNotifier {
           SettableMetadata(contentType: 'image/jpeg'),
         );
 
-        // Đợi upload hoàn tất 100%
         TaskSnapshot snapshot = await uploadTask.whenComplete(() => null);
 
         if (snapshot.state == TaskState.success) {
@@ -97,7 +95,7 @@ class SettingViewModel extends ChangeNotifier {
     }
   }
 
-  // --- 3. ĐĂNG XUẤT ---
+  //Đăng xuất
   Future<void> logout(BuildContext context) async {
     try {
       await _auth.signOut();
@@ -117,7 +115,7 @@ class SettingViewModel extends ChangeNotifier {
     }
   }
 
-  // --- 4. CẬP NHẬT DARK MODE / THÔNG BÁO ---
+  //Cập nhật dark mode
   Future<void> updateToggleSetting({
     required String field,
     required bool value,

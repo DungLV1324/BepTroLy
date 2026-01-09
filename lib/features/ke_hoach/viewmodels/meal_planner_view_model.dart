@@ -12,8 +12,6 @@ class MealPlannerViewModel with ChangeNotifier {
 
   List<Meal> _availableMeals = [];
   List<Meal> _searchResultMeals = [];
-
-  // Getter hiển thị danh sách món ăn (Ưu tiên kết quả tìm kiếm)
   List<Meal> get availableMeals => _searchResultMeals.isNotEmpty ? _searchResultMeals : _availableMeals;
 
   bool _isLoading = false;
@@ -22,17 +20,10 @@ class MealPlannerViewModel with ChangeNotifier {
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
-  // --- PHẦN SỬA LỖI CHO SCREEN ---
-
-  // 1. Dữ liệu kế hoạch (Phải có getter 'plan')
   MealPlanModel _plan;
   MealPlanModel get plan => _plan;
-
-  // 2. Danh sách món ăn đã chọn (Phải có getter 'selectedMeals')
   final List<Meal> _selectedMeals = [];
   List<Meal> get selectedMeals => _selectedMeals;
-
-  // -------------------------------
 
   MealPlannerViewModel({MealPlanModel? initialPlan})
       : _plan = initialPlan ?? MealPlanModel(
@@ -42,7 +33,7 @@ class MealPlannerViewModel with ChangeNotifier {
     fetchRecipesFromFirebase();
   }
 
-  // --- 1. TÌM KIẾM MÓN ĂN (ONLINE & LOCAL) ---
+  //Tìm kiếm món ăn
   Future<void> searchMeals(String query) async {
     if (query.isEmpty) {
       _searchResultMeals = [];
@@ -58,14 +49,13 @@ class MealPlannerViewModel with ChangeNotifier {
       _searchResultMeals = await _spoonApi.searchRecipes(query);
     } catch (e) {
       _errorMessage = 'Lỗi tìm kiếm online: $e';
-      // Nếu API lỗi, bạn có thể lọc tạm trên danh sách local tại đây nếu muốn
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  // --- 2. LẤY DỮ LIỆU LOCAL TỪ FIREBASE ---
+  //Lấy dữ liệu local từ firebase
   Future<void> fetchRecipesFromFirebase() async {
     _isLoading = true;
     notifyListeners();
@@ -90,7 +80,6 @@ class MealPlannerViewModel with ChangeNotifier {
     }
   }
 
-  // --- 3. LƯU KẾ HOẠCH LÊN FIRESTORE ---
   Future<bool> saveMealPlan() async {
     final User? user = _auth.currentUser;
     if (user == null || _selectedMeals.isEmpty) {
@@ -135,7 +124,6 @@ class MealPlannerViewModel with ChangeNotifier {
     }
   }
 
-  // --- CÁC HÀM CẬP NHẬT TRẠNG THÁI ---
   void selectMeal(Meal meal) {
     if (!_selectedMeals.any((item) => item.id == meal.id)) {
       _selectedMeals.add(meal);

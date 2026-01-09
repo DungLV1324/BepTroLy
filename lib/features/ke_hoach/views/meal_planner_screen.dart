@@ -1,4 +1,3 @@
-// lib/views/meal_planner_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
@@ -77,7 +76,7 @@ class _AddMealPlanScreenContentState extends State<AddMealPlanScreenContent> {
               cleanPath,
               width: size, height: size,
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
+              errorBuilder: (_, _, _) => Container(
                 width: size, height: size, color: Colors.grey[200],
                 child: const Icon(Icons.fastfood, color: Colors.grey),
               ),
@@ -105,7 +104,7 @@ class _AddMealPlanScreenContentState extends State<AddMealPlanScreenContent> {
                 children: [
                   const Text('Select a Meal', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 12),
-                  // THANH TÌM KIẾM ONLINE (SPOONACULAR)
+                  // Thanh tìm kiếm
                   TextField(
                     controller: searchController,
                     decoration: InputDecoration(
@@ -410,14 +409,6 @@ class _AddMealPlanScreenContentState extends State<AddMealPlanScreenContent> {
     );
   }
 
-  Widget _buildMissingIngredientsBanner() {
-    return Container(
-      margin: const EdgeInsets.only(top: 16),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(color: AppColors.lightOrange, borderRadius: BorderRadius.circular(16)),
-      child: const Text('Missing some ingredients for the reduced servings', style: TextStyle(color: AppColors.primaryOrange, fontSize: 13)),
-    );
-  }
 
   Widget _buildTimeSection(BuildContext context, MealPlannerViewModel viewModel) {
     return Column(
@@ -462,8 +453,7 @@ class _AddMealPlanScreenContentState extends State<AddMealPlanScreenContent> {
       case MealType.lunch: return 'Lunch';
       case MealType.dinner: return 'Dinner';
       case MealType.snack: return 'Snack';
-      default: return '';
-    }
+      }
   }
 
   Widget _buildMealTypeSegmentedControl(BuildContext context, MealPlannerViewModel viewModel) {

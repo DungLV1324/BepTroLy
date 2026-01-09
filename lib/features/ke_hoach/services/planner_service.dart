@@ -17,7 +17,6 @@ class PlannerService {
         'specificTime': '${plan.specificTime.hour}:${plan.specificTime.minute}',
         'notes': plan.notes,
         'repeatDays': plan.repeatDays,
-        // Lưu toàn bộ đối tượng món ăn vào mảng meals để hiển thị offline/nhanh hơn
         'meals': plan.selectedMeals.map((m) => {
           'mealId': m.id,
           'name': m.name,
@@ -33,7 +32,6 @@ class PlannerService {
           .doc(userId)
           .collection('meal_plans')
           .add(planData);
-
       return true;
     } catch (e) {
       return false;

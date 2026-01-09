@@ -59,7 +59,7 @@ class ShoppingListViewModel extends ChangeNotifier {
       name: name,
       quantity: quantity,
       unit: unit,
-      category: category, // Lưu category vào model
+      category: category,
       updatedAt: DateTime.now(),
       isBought: false,
     );
@@ -79,7 +79,6 @@ class ShoppingListViewModel extends ChangeNotifier {
   Future<void> completeShoppingAndSaveHistory() async {
     if (_uid == null || _items.isEmpty || _itemsRef == null || _historyRef == null) return;
 
-    // Chỉ lấy những món đã được tích chọn (isBought = true)
     final boughtItems = _items.where((item) => item.isBought).toList();
     if (boughtItems.isEmpty) return;
 

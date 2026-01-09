@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/ingredient_model.dart';
-import '../../../../core/utils/dialog_helper.dart'; // Import dialog
+import '../../../../core/utils/dialog_helper.dart';
 
 class PantryItemCard extends StatelessWidget {
   final Map<String, dynamic> itemMap;

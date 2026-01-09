@@ -26,7 +26,6 @@ class LoginViewModel with ChangeNotifier {
       _setLoading(false);
       return loggedInUser != null;
     } catch (e) {
-      // e ở đây là chuỗi tiếng Việt trả về từ _handleFirebaseAuthError trong AuthService
       _errorMessage = e.toString();
       _setLoading(false);
       return false;

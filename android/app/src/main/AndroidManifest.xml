@@ -9,7 +9,7 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.CAMERA"/>
     <application
-        android:label="beptroly"
+        android:label="Kitchen Assistant"
         android:name="${applicationName}"
         android:icon="@drawable/icon_app">
         <activity

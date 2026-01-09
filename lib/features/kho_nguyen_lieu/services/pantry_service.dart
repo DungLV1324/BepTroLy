@@ -19,7 +19,6 @@ class PantryService {
   Stream<List<IngredientModel>> getIngredientsStream() {
     return _pantryRef.snapshots().map((snapshot) {
       return snapshot.docs.map((doc) {
-        // Lấy data và gán ID thực từ Firestore vào Model
         final data = doc.data() as Map<String, dynamic>;
         data['id'] = doc.id;
         return IngredientModel.fromJson(data);

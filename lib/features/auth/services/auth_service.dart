@@ -104,13 +104,12 @@ class AuthService {
       await userDocRef.set({
         'uid': firebaseUser.uid,
         'email': firebaseUser.email,
-        'displayName': manualName ?? firebaseUser.displayName ?? 'Người dùng',
+        'displayName': manualName ?? firebaseUser.displayName ?? 'My friends',
         'photoUrl': firebaseUser.photoURL ?? '',
         'lastLogin': FieldValue.serverTimestamp(),
         'createdAt': FieldValue.serverTimestamp(),
       });
     } else {
-      // Cập nhật lastLogin và tên nếu có thay đổi từ manualName
       Map<String, dynamic> updateData = {
         'lastLogin': FieldValue.serverTimestamp(),
       };
@@ -157,7 +156,7 @@ class AuthService {
     return app_model.UserModel(
       uid: firebaseUser.uid,
       email: firebaseUser.email ?? '',
-      displayName: firebaseUser.displayName ?? 'Người dùng',
+      displayName: firebaseUser.displayName ?? 'My friends',
       photoUrl: firebaseUser.photoURL ?? '',
     );
   }
@@ -165,25 +164,25 @@ class AuthService {
   String _handleFirebaseAuthError(FirebaseAuthException e) {
     switch (e.code) {
       case 'invalid-credential':
-        return 'Thông tin đăng nhập không chính xác hoặc đã hết hạn.';
+        return 'The login information is incorrect or has expired.';
       case 'user-not-found':
-        return 'Tài khoản chưa được đăng ký.';
+        return 'The account is not found.';
       case 'wrong-password':
-        return 'Mật khẩu không chính xác.';
+        return 'Incorrect password.';
       case 'email-already-in-use':
-        return 'Email này đã được sử dụng.';
+        return 'This email is already in use.';
       case 'network-request-failed':
-        return 'Lỗi kết nối mạng.';
+        return 'Network connection error.';
       case 'user-disabled':
-        return 'Tài khoản này đã bị khóa.';
+        return 'This account is locked.';
       case 'invalid-email':
-        return 'Email không hợp lệ.';
+        return 'Invalid email.';
       case 'operation-not-allowed':
-        return 'Phương thức đăng nhập này chưa được cho phép.';
+        return 'This login method is not allowed.';
       case 'weak-password':
-        return 'Mật khẩu quá yếu (tối thiểu 6 ký tự).';
+        return 'Password is too weak (minimum 6 characters).';
       default:
-        return 'Lỗi hệ thống: ${e.message}';
+        return 'System error: ${e.message}';
     }
   }
 }

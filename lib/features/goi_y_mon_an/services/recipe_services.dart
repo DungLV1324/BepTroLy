@@ -78,7 +78,6 @@ class RecipeServices {
     if (query != null && query.isNotEmpty) queryParams['query'] = query;
     if (type != null && type.isNotEmpty) queryParams['type'] = type;
 
-    // Xử lý diet
     if (diet != null && diet.isNotEmpty && diet != 'None') {
       queryParams['diet'] = diet.toLowerCase();
     }
@@ -93,7 +92,7 @@ class RecipeServices {
 
     if (includeIngredients != null && includeIngredients.isNotEmpty) {
       queryParams['includeIngredients'] = includeIngredients.join(',');
-      queryParams['sort'] = 'min-missing-ingredients'; // Ưu tiên món đủ nguyên liệu
+      queryParams['sort'] = 'min-missing-ingredients';
     }
 
     try {

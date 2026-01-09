@@ -8,12 +8,9 @@ class RecipeModel {
   final List<String> instructions;
   final List<IngredientModel> ingredients;
   final String imageUrl;
-
-  // --- CÁC TRƯỜNG HỖ TRỢ LOGIC GỢI Ý ---
   final int missedIngredientCount; // Số lượng món thiếu
   final int usedIngredientCount; // Số lượng món đã có
-  final List<String>
-  missedIngredients; // [MỚI] Tên các món thiếu (VD: ["hành tây", "tỏi"])
+  final List<String> missedIngredients;
 
   RecipeModel({
     required this.id,
@@ -25,7 +22,7 @@ class RecipeModel {
     required this.imageUrl,
     this.missedIngredientCount = 0,
     this.usedIngredientCount = 0,
-    this.missedIngredients = const [], // Mặc định là rỗng
+    this.missedIngredients = const [],
   });
 
   /// 1. Convert từ JSON (Lưu trong máy) -> Object
@@ -69,7 +66,7 @@ class RecipeModel {
       'imageUrl': imageUrl,
       'missedIngredientCount': missedIngredientCount,
       'usedIngredientCount': usedIngredientCount,
-      'missedIngredients': missedIngredients, // Lưu danh sách món thiếu
+      'missedIngredients': missedIngredients,
     };
   }
 
@@ -87,16 +84,13 @@ class RecipeModel {
       id: json['id'].toString(),
       name: json['title'] ?? 'No Name',
       description: '',
-      cookingTimeMinutes:
-          0, // API Search thường không trả về time, phải gọi Detail sau
+      cookingTimeMinutes: 0,
       instructions: [],
       ingredients: [],
       imageUrl: json['image'] ?? '',
-
-      // Gán dữ liệu gợi ý
       missedIngredientCount: json['missedIngredientCount'] ?? 0,
       usedIngredientCount: json['usedIngredientCount'] ?? 0,
-      missedIngredients: missingList, // <--- Đã thêm
+      missedIngredients: missingList,
     );
   }
 
@@ -131,9 +125,6 @@ class RecipeModel {
       instructions: steps,
       ingredients: ingrList,
       imageUrl: json['image'] ?? '',
-
-      // Khi xem chi tiết, ta thường không quan tâm thiếu đủ (hoặc đã có từ màn trước)
-      // nên để mặc định hoặc giữ nguyên logic cũ
       missedIngredientCount: 0,
       usedIngredientCount: 0,
       missedIngredients: [],

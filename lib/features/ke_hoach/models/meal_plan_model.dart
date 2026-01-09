@@ -31,19 +31,17 @@ class Meal {
     );
   }
 
-  // Map từ Firebase (Dữ liệu Local)
+  // Map từ Firebase
   factory Meal.fromMap(Map<String, dynamic> map) {
     return Meal(
       id: map['mealId']?.toString() ?? '',
       name: map['name'] ?? '',
-      // Chuẩn hóa dấu gạch chéo cho asset local
       imageUrl: (map['imageUrl'] ?? '').replaceAll(r'\', '/'),
       preparationTimeMinutes: map['preparationTimeMinutes'] ?? 0,
       kcal: map['kcal'] ?? 0,
     );
   }
 
-  // MỚI: Map dữ liệu từ Spoonacular API
   factory Meal.fromSpoonacular(Map<String, dynamic> json) {
     int calories = 0;
     if (json['nutrition'] != null) {

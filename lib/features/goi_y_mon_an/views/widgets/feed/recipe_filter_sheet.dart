@@ -145,8 +145,6 @@ class _RecipeFilterSheetState extends State<RecipeFilterSheet> {
     );
   }
 
-  // --- WIDGET
-
   Widget _buildSectionTitle(String title, bool isDark) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0),

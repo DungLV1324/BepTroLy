@@ -17,7 +17,7 @@ class RecipeViewModel extends ChangeNotifier {
   String _errorMessage = '';
   String get errorMessage => _errorMessage;
 
-  // 1. Hàm gợi ý theo nguyên liệu (Dành cho filter "Have Ingredients")
+  // 1. Hàm gợi ý theo nguyên liệu
   Future<void> fetchSuggestedRecipes(List<String> ingredients) async {
     _setState(RecipeViewState.loading);
     try {
@@ -51,13 +51,11 @@ class RecipeViewModel extends ChangeNotifier {
         maxReadyTime = int.tryParse(digits);
       }
 
-      // --- XỬ LÝ LOGIC SORT ---
       String? sortParam;
       if (maxReadyTime == null && (query == null || query.isEmpty)) {
         sortParam = 'popularity';
       }
 
-      // --- GỌI SERVICE ---
       _recipes = await _dataSource.searchRecipes(
         query: query ?? '',
         maxReadyTime: maxReadyTime,

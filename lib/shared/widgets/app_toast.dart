@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-// 1. Định nghĩa Enum ngay tại đây để dùng chung
 enum ActionType { add, edit, delete }
 
 class AppToast {
@@ -23,23 +22,22 @@ class AppToast {
         break;
 
       case ActionType.edit:
-        bgColor = const Color(0xFFE3F2FD); // Xanh dương nhạt
+        bgColor = const Color(0xFFE3F2FD);
         borderColor = const Color(0xFF2196F3);
-        primaryColor = const Color(0xFF1565C0); // Xanh dương đậm
+        primaryColor = const Color(0xFF1565C0);
         icon = Icons.edit;
         message = 'Updated successfully $itemName!';
         break;
 
       case ActionType.delete:
-        bgColor = const Color(0xFFFFEBEE); // Đỏ nhạt
+        bgColor = const Color(0xFFFFEBEE);
         borderColor = const Color(0xFFEF5350);
-        primaryColor = const Color(0xFFC62828); // Đỏ đậm
+        primaryColor = const Color(0xFFC62828);
         icon = Icons.delete_outline;
         message = 'Deleted successfully $itemName!';
         break;
     }
 
-    // Xóa các snackbar cũ để hiện cái mới ngay lập tức
     ScaffoldMessenger.of(context).clearSnackBars();
 
     final height = MediaQuery.of(context).size.height;
@@ -53,7 +51,6 @@ class AppToast {
           borderRadius: BorderRadius.circular(16),
           side: BorderSide(color: borderColor, width: 1),
         ),
-        // Giữ nguyên vị trí hiển thị bạn mong muốn (hơi cao lên trên)
         margin: EdgeInsets.only(
           bottom: height * 0.70,
           left: 40,
@@ -69,7 +66,7 @@ class AppToast {
               child: Text(
                 message,
                 style: TextStyle(
-                  color: primaryColor, // Chữ cùng tông màu với Icon
+                  color: primaryColor,
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
                 ),

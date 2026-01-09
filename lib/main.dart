@@ -42,7 +42,7 @@ class BepTroLyApp extends StatelessWidget {
       child: Consumer<SettingViewModel>(
         builder: (context, settingVM, child) {
           return MaterialApp.router(
-            title: 'Bếp Trợ Lý',
+            title: 'Kitchen Assistant',
             debugShowCheckedModeBanner: false,
             theme: ThemeData(
               useMaterial3: true,
