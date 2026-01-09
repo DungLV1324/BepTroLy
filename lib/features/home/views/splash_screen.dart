@@ -1,4 +1,3 @@
-// lib/views/splash_screen.dart
 import '../viewmodels/splash_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';

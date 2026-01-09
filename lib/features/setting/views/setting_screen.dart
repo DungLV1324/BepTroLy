@@ -45,11 +45,11 @@ class SettingScreen extends StatelessWidget {
                   decoration: _boxDecoration(context),
                   child: Row(
                     children: [
-                      const CircleAvatar(
-                        radius: 30,
-                        backgroundImage: NetworkImage(
-                          'https://i.pravatar.cc/150?img=5',
-                        ),
+                      Image.asset(
+                        'assets/images/icon_app.png',
+                        width: 48,
+                        height: 48,
+                        fit: BoxFit.cover,
                       ),
                       const SizedBox(width: 16),
                       Expanded(

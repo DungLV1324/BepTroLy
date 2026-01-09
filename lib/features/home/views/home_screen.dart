@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import '../../goi_y_mon_an/viewmodels/recipe_view_model.dart';
 import '../viewmodels/home_view_model.dart';
 import 'widgets/home_header.dart';
-import 'widgets/home_search_bar.dart';
 import 'widgets/section_header.dart';
 import 'widgets/expiring_list.dart';
 import 'widgets/recommended_recipe_list.dart';
@@ -69,43 +68,33 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // 1. Header
+                    // Header
                     const HomeHeader(),
                     const SizedBox(height: 20),
 
-                    // 2. Search
+                    // Search
                     const HomeSearchBar(),
                     const SizedBox(height: 30),
+
                     if (viewModel.isSearching)
                       buildSearchResults(viewModel)
-
                     else ...[
-                      SectionHeader(title: 'Expiring Soon', onSeeAll: () => context.go('/pantry')),
+                      SectionHeader(
+                          title: 'Expiring Soon',
+                          onSeeAll: () => context.go('/pantry')
+                      ),
                       const SizedBox(height: 15),
                       ExpiringList(ingredients: viewModel.expiringIngredients),
+
                       const SizedBox(height: 30),
-                      SectionHeader(title: 'Recommended for you', onSeeAll: () => context.push('/recipes')),
+
+                      SectionHeader(
+                          title: 'Recommended for you',
+                          onSeeAll: () => context.push('/recipes')
+                      ),
                       const SizedBox(height: 15),
                       const RecommendedRecipeList(),
                     ],
-                    // 3. Expiring Section
-                    SectionHeader(
-                      title: 'Expiring Soon',
-                      onSeeAll: () => context.go('/pantry'),
-                    ),
-                    const SizedBox(height: 15),
-                    ExpiringList(ingredients: viewModel.expiringIngredients),
-
-                    const SizedBox(height: 30),
-
-                    // 4. Recipe Section
-                    SectionHeader(
-                      title: 'Recommended for you',
-                      onSeeAll: () => context.push('/recipes'),
-                    ),
-                    const SizedBox(height: 15),
-                    const RecommendedRecipeList(),
-
                     const SizedBox(height: 20),
                   ],
                 ),
