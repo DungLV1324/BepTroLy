@@ -17,7 +17,6 @@ class SpoonacularClient {
     return keys[_currentKeyIndex];
   }
 
-  // --- HÀM GET (Public để bên ngoài gọi) ---
   Future<http.Response> get(String endpoint, {Map<String, String>? params}) async {
     final uri = Uri.parse('${ApiConstants.baseUrl}$endpoint').replace(
       queryParameters: {

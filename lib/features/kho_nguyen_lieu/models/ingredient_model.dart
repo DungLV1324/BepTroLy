@@ -114,9 +114,8 @@ class IngredientModel {
       quantity: (json['amount'] as num?)?.toDouble() ?? 0.0,
       unit: _parseUnitString(json['unit']),
       aisle: json['aisle'],
-      // Spoonacular không trả về expiryDate, user phải tự nhập khi thêm vào kho
       expiryDate: null,
-      addedDate: DateTime.now(), // Mặc định là lúc gọi API
+      addedDate: DateTime.now(),
       imageUrl: imgUrl,
     );
   }
