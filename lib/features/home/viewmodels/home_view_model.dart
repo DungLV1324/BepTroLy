@@ -1,11 +1,23 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../../goi_y_mon_an/models/recipe_model.dart';
+import '../../goi_y_mon_an/services/recipe_services.dart';
 import '../../kho_nguyen_lieu/models/ingredient_model.dart';
 import '../services/home_service.dart';
 
 class HomeViewModel extends ChangeNotifier {
   final HomeService _homeService = HomeService();
+  final RecipeServices _recipeService = RecipeServices();
 
+  List<RecipeModel> _searchResults = [];
+  bool _isSearching = false;
+  bool _isLoadingSearch = false;
+  Timer? _debounce;
+
+  // Getters
+  List<RecipeModel> get searchResults => _searchResults;
+  bool get isSearching => _isSearching;
+  bool get isLoadingSearch => _isLoadingSearch;
   // State
   bool _isLoading = false;
   List<IngredientModel> _expiringIngredients = [];
@@ -61,5 +73,43 @@ class HomeViewModel extends ChangeNotifier {
   void dispose() {
     _pantrySubscription?.cancel();
     super.dispose();
+  }
+
+  void onSearchQueryChanged(String query) {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+
+    if (query.trim().isEmpty) {
+      clearSearch();
+      return;
+    }
+
+    // Debounce 600ms
+    _debounce = Timer(const Duration(milliseconds: 600), () {
+      performSearch(query);
+    });
+  }
+
+  Future<void> performSearch(String query) async {
+    _isSearching = true;
+    _isLoadingSearch = true;
+    notifyListeners();
+
+    try {
+      final results = await _recipeService.searchRecipes(query: query);
+      _searchResults = results;
+    } catch (e) {
+      print("ViewModel Search Error: $e");
+      _searchResults = [];
+    } finally {
+      _isLoadingSearch = false;
+      notifyListeners();
+    }
+  }
+
+  void clearSearch() {
+    _isSearching = false;
+    _searchResults = [];
+    _isLoadingSearch = false;
+    notifyListeners();
   }
 }
