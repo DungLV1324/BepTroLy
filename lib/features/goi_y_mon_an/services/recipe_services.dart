@@ -1,47 +1,31 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import '../../../core/utils/spoonacular_client.dart';
 import '../models/recipe_model.dart';
 
 class RecipeServices {
-  final String _apiKey = dotenv.env['SPOONACULAR_API_KEY'] ?? '';
-  final String _baseUrl =
-      dotenv.env['BASE_URL'] ?? 'https://api.spoonacular.com';
+  final SpoonacularClient _client = SpoonacularClient();
 
-  // 1. Tìm kiếm món ăn theo nguyên liệu (Dùng cho nút "Have Ingredients")
+  // 1. Tìm kiếm món ăn theo nguyên liệu
   Future<List<RecipeModel>> findRecipesByIngredients(
-    List<String> ingredients,
-  ) async {
-    if (_apiKey.isEmpty)
-      throw Exception('Chưa cấu hình API Key trong file .env');
+      List<String> ingredients,
+      ) async {
     if (ingredients.isEmpty) return [];
 
-    final String ingredientsString = ingredients.join(',').toLowerCase();
-
-    final Uri uri = Uri.parse(
-      '$_baseUrl/recipes/findByIngredients?ingredients=$ingredientsString&number=10&ranking=2&ignorePantry=true&apiKey=$_apiKey',
-    );
-
     try {
-      print('🌐 Đang gọi API Search By Ingredients: $uri');
-
-      final response = await http.get(uri);
+      final response = await _client.get(
+        '/recipes/findByIngredients',
+        params: {
+          'ingredients': ingredients.join(',').toLowerCase(),
+          'number': '10',
+          'ranking': '2',
+          'ignorePantry': 'true',
+        },
+      );
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         print('✅ API Search trả về ${data.length} món ăn');
-
-        return data
-            .map((json) => RecipeModel.fromSpoonacularSearch(json))
-            .toList();
-      } else if (response.statusCode == 401) {
-        throw Exception(
-          'Lỗi API Key không hợp lệ (401). Kiểm tra lại file .env',
-        );
-      } else if (response.statusCode == 402) {
-        throw Exception(
-          'Hết lượt gọi API trong ngày (402). Cần nâng cấp gói hoặc đổi Key.',
-        );
+        return data.map((json) => RecipeModel.fromSpoonacularSearch(json)).toList();
       } else {
         throw Exception('Lỗi Server: ${response.statusCode}');
       }
@@ -51,25 +35,20 @@ class RecipeServices {
     }
   }
 
-  // 2. Lấy chi tiết món ăn (Dùng cho màn hình Chi tiết - Tab Steps/Ingredients)
+  // 2. Lấy chi tiết món ăn
   Future<RecipeModel> getRecipeDetails(String id) async {
-    if (_apiKey.isEmpty) throw Exception('Chưa cấu hình API Key');
-
-    final Uri uri = Uri.parse(
-      '$_baseUrl/recipes/$id/information?includeNutrition=false&apiKey=$_apiKey',
-    );
-
     try {
-      print('🌐 Đang gọi API Detail cho ID: $id');
-      final response = await http.get(uri);
+      final response = await _client.get(
+        '/recipes/$id/information',
+        params: {
+          'includeNutrition': 'false',
+        },
+      );
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
         print('✅ Đã lấy được chi tiết món: ${data['title']}');
-
         return RecipeModel.fromSpoonacularDetail(data);
-      } else if (response.statusCode == 402) {
-        throw Exception('Hết lượt gọi API (402).');
       } else {
         throw Exception('Lỗi lấy chi tiết: ${response.statusCode}');
       }
@@ -79,7 +58,7 @@ class RecipeServices {
     }
   }
 
-  // 3. Tìm kiếm nâng cao (Complex Search) - Kết nối bộ lọc Filter
+  // 3. Tìm kiếm nâng cao (Complex Search)
   Future<List<RecipeModel>> searchRecipes({
     String? query,
     String? type,
@@ -88,42 +67,49 @@ class RecipeServices {
     String? sort,
     List<String>? includeIngredients,
   }) async {
-    if (_apiKey.isEmpty) throw Exception('API Key is missing');
+    // Tạo Map chứa các tham số cơ bản
+    final Map<String, String> queryParams = {
+      'number': '10',
+      'addRecipeInformation': 'true',
+      'fillIngredients': 'true',
+    };
 
-    // Khởi tạo URL cơ bản
-    String url =
-        '$_baseUrl/recipes/complexSearch?apiKey=$_apiKey&number=10&addRecipeInformation=true&fillIngredients=true';
+    // Thêm các tham số tùy chọn nếu có
+    if (query != null && query.isNotEmpty) queryParams['query'] = query;
+    if (type != null && type.isNotEmpty) queryParams['type'] = type;
 
-    if (query != null && query.isNotEmpty) url += '&query=$query';
-    if (type != null && type.isNotEmpty) url += '&type=$type';
-
-    // Xử lý diet: Chỉ thêm vào API nếu giá trị khác 'None' và không rỗng
+    // Xử lý diet
     if (diet != null && diet.isNotEmpty && diet != 'None') {
-      url += '&diet=${diet.toLowerCase()}';
+      queryParams['diet'] = diet.toLowerCase();
     }
 
-    if (maxReadyTime != null) url += '&maxReadyTime=$maxReadyTime';
-    if (sort != null && sort.isNotEmpty) url += '&sort=$sort';
+    if (maxReadyTime != null) {
+      queryParams['maxReadyTime'] = maxReadyTime.toString();
+    }
+
+    if (sort != null && sort.isNotEmpty) {
+      queryParams['sort'] = sort;
+    }
+
     if (includeIngredients != null && includeIngredients.isNotEmpty) {
-      url += '&includeIngredients=${includeIngredients.join(',')}';
-      url += '&sort=min-missing-ingredients';
+      queryParams['includeIngredients'] = includeIngredients.join(',');
+      queryParams['sort'] = 'min-missing-ingredients'; // Ưu tiên món đủ nguyên liệu
     }
 
     try {
-      print('🌐 Đang gọi API Complex Search (Filter): $url');
-      final response = await http.get(Uri.parse(url));
+      print('🌐 Đang gọi API Complex Search...');
+
+      final response = await _client.get(
+        '/recipes/complexSearch',
+        params: queryParams,
+      );
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final List<dynamic> results = data['results'];
+        print('✅ Complex Search tìm thấy ${results.length} món');
 
-        print(
-          '✅ Complex Search tìm thấy ${results.length} món khớp với bộ lọc',
-        );
-
-        return results
-            .map((e) => RecipeModel.fromSpoonacularDetail(e))
-            .toList();
+        return results.map((e) => RecipeModel.fromSpoonacularDetail(e)).toList();
       } else {
         throw Exception('Lỗi API Complex Search: ${response.statusCode}');
       }
