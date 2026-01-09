@@ -6,7 +6,6 @@ class SpoonacularClient {
   factory SpoonacularClient() => _instance;
   SpoonacularClient._internal();
 
-  // Biến theo dõi key (Static để giữ giá trị xuyên suốt app)
   static int _currentKeyIndex = 0;
 
   // Getter lấy key hiện tại

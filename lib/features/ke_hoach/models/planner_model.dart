@@ -38,7 +38,6 @@ class PlannerService {
         'specificTime': '${plan.specificTime.hour}:${plan.specificTime.minute}',
         'notes': plan.notes,
         'repeatDays': plan.repeatDays,
-        // Lưu danh sách ID các món đã chọn
         'mealIds': selectedMeals.map((m) => m.id).toList(),
         'createdAt': FieldValue.serverTimestamp(),
       };
@@ -46,7 +45,7 @@ class PlannerService {
       await _db
           .collection('users')
           .doc(userId)
-          .collection('meal_plans') // Collection riêng bên trong User
+          .collection('meal_plans')
           .add(planData);
 
       return true;

@@ -60,7 +60,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
             return SafeArea(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-                // Đã thêm: Bọc trong widget Form
                 child: Form(
                   key: _formKey,
                   child: Column(
@@ -71,7 +70,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       const Text('Create an account to get started.', style: TextStyle(color: Color(0xFF6C707A), fontSize: 14)),
                       const SizedBox(height: 32),
 
-                      // Đã sửa: Sử dụng TextFormField với validation
                       _buildLabel('Full name'),
                       TextFormField(
                         controller: _nameController,
@@ -127,7 +125,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         width: double.infinity,
                         height: 50,
                         child: ElevatedButton(
-                          // Đã sửa: Gọi hàm _handleSignUp
                           onPressed: viewModel.isLoading ? null : () => _handleSignUp(context),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF4CAF50),

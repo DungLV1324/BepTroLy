@@ -26,7 +26,6 @@ class _Login_EmailState extends State<Login_Email> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  // Đã thêm: Hàm xử lý logic đăng nhập
   Future<void> _handleLogin(BuildContext context) async {
     final viewModel = context.read<LoginViewModel>();
     final email = _emailController.text.trim();
@@ -43,7 +42,6 @@ class _Login_EmailState extends State<Login_Email> {
     if (success && context.mounted) {
       context.go('/home');
     }
-    // Nếu thất bại, errorMessage sẽ tự động hiển thị
   }
 
   @override
@@ -108,12 +106,11 @@ class _Login_EmailState extends State<Login_Email> {
               width: double.infinity,
               height: 55,
               child: ElevatedButton(
-                // Đã sửa: Kích hoạt nút và thêm logic
                 onPressed: viewModel.isLoading ? null : () => _handleLogin(context),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                  disabledBackgroundColor: Colors.white70, // Màu khi nút bị vô hiệu hóa
+                  disabledBackgroundColor: Colors.white70,
                 ),
                 child: viewModel.isLoading
                     ? const CircularProgressIndicator(color: Color(0xFF66BB6A))

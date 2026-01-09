@@ -28,7 +28,7 @@ class ShoppingItemModel {
       'id': id,
       'name': name,
       'quantity': quantity,
-      'unit': unit.name, // Lưu tên enum (ví dụ: 'kg', 'g')
+      'unit': unit.name,
       'isBought': isBought,
       'note': note,
       'category': category,

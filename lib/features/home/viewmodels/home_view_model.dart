@@ -33,7 +33,6 @@ class HomeViewModel extends ChangeNotifier {
   String get userName => _userName;
   String? get photoUrl => _photoUrl;
 
-  // Hàm khởi tạo dữ liệu
   void loadHomeData() {
     _isLoading = true;
     notifyListeners();
@@ -44,14 +43,14 @@ class HomeViewModel extends ChangeNotifier {
   }
 
   void _listenToExpiringItems() {
-    _pantrySubscription?.cancel(); // Hủy đăng ký cũ nếu có
+    _pantrySubscription?.cancel();
 
     // Gọi Stream đã được xử lý từ Service
     _pantrySubscription = _homeService.getExpiringIngredientsStream().listen(
           (processedList) {
         _expiringIngredients = processedList;
         _isLoading = false;
-        notifyListeners(); // Cập nhật UI ngay khi có thay đổi
+        notifyListeners();
       },
       onError: (error) {
         print("Lỗi ViewModel: $error");

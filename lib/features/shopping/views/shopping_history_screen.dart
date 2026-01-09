@@ -38,8 +38,9 @@ class ShoppingHistoryScreen extends StatelessWidget {
       body: StreamBuilder<QuerySnapshot>(
         stream: viewModel.shoppingHistoryStream,
         builder: (context, snapshot) {
-          if (snapshot.hasError)
+          if (snapshot.hasError) {
             return const Center(child: Text('An error has occurred.'));
+          }
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }

@@ -14,9 +14,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    // Bắt đầu timer để chuyển màn hình ngay khi Widget được xây dựng xong
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Đảm bảo ViewModel đã sẵn sàng
       if (mounted) {
         context.read<SplashViewModel>().startTimer(context);
       }
@@ -25,9 +23,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Loại bỏ Material để tránh lỗi Double Material
     return Container(
-      // Dùng Container này để đặt Gradient full-screen
       clipBehavior: Clip.antiAlias,
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -36,13 +32,9 @@ class _SplashScreenState extends State<SplashScreen> {
           colors: [Color(0xFF66BB6A), Color(0xFF43A047)],
         ),
       ),
-      // Dùng Stack để dễ dàng chồng lớp Pattern và Content Center
       child: const Stack(
-        // Không cần alignment: Alignment.center ở đây vì chúng ta dùng Widget Center
         fit: StackFit.expand,
         children: [
-          // === 1. Background Patterns (Giữ nguyên các Positioned) ===
-          // *LƯU Ý: Đã thay thế Font Awesome bằng Material Icons tương ứng*
           Positioned(left: -30, top: -10, child: _PatternItem(icon: Icons.restaurant_menu, size: 100, rotate: -0.26)),
           Positioned(left: 23, top: 180, child: _PatternItem(icon: Icons.restaurant_menu, size: 100, rotate: -0.26)),
           Positioned(right: -20, bottom: 210, child: _PatternItem(icon: Icons.restaurant_menu, size: 100, rotate: -0.26)),
@@ -53,17 +45,15 @@ class _SplashScreenState extends State<SplashScreen> {
           Positioned(right: 20, bottom: 30, child: _PatternItem(icon: Icons.set_meal, size: 90, rotate: -0.26)),
           Positioned(left: -20, bottom: 60, child: _PatternItem(icon: Icons.set_meal, size: 90, rotate: -0.26)),
 
-          // === 2. Center Content (Đã căn giữa) ===
           Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _LogoIcon(), // Logo
+                _LogoIcon(),
                 const SizedBox(height: 24),
 
-                // Tiêu đề
                 const Text(
-                  'Bếp Trợ Lý',
+                  'Kitchen Assistant',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 32,
@@ -78,7 +68,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 const Opacity(
                   opacity: 0.90,
                   child: Text(
-                    'Quản lý thực phẩm thông minh',
+                    'Smart food management',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 14,
@@ -105,7 +95,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 const Opacity(
                   opacity: 0.80,
                   child: Text(
-                    'Đang tải...',
+                    'Loading...',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 12,

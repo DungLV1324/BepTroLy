@@ -107,8 +107,6 @@ class _RecipeFeedScreenState extends State<RecipeFeedScreen> {
     return 'Hard';
   }
 
-  // --- GIAO DIỆN CHÍNH ---
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -166,7 +164,6 @@ class _RecipeFeedScreenState extends State<RecipeFeedScreen> {
           ),
           const SizedBox(height: 20),
 
-          // Sử dụng Widget đã tách
           RecipeSearchBar(
             onChanged: (value) {
               if (_debounce?.isActive ?? false) _debounce!.cancel();
@@ -194,14 +191,17 @@ class _RecipeFeedScreenState extends State<RecipeFeedScreen> {
   }
 
   Widget _buildRecipeList(RecipeViewModel recipeVM) {
-    if (recipeVM.state == RecipeViewState.loading)
+    if (recipeVM.state == RecipeViewState.loading) {
       return const Center(
         child: CircularProgressIndicator(color: Colors.orange),
       );
-    if (recipeVM.state == RecipeViewState.error)
+    }
+    if (recipeVM.state == RecipeViewState.error) {
       return Center(child: Text('Error: ${recipeVM.errorMessage}'));
-    if (recipeVM.recipes.isEmpty)
+    }
+    if (recipeVM.recipes.isEmpty) {
       return const Center(child: Text("No recipes found!"));
+    }
 
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 20),

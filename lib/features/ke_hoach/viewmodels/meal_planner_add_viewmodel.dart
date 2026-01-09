@@ -35,7 +35,6 @@ class WeeklyMealPlannerViewModel with ChangeNotifier {
       debugPrint("Lỗi tải Recipes: $e");
     }
 
-    // 2. Lắng nghe kế hoạch bữa ăn
     _db.collection('users')
         .doc(user.uid)
         .collection('meal_plans')
@@ -46,7 +45,6 @@ class WeeklyMealPlannerViewModel with ChangeNotifier {
       final allPlans = snapshot.docs.map((doc) {
         final plan = MealPlanModel.fromFirestore(doc);
 
-        // 3. THAM CHIẾU KCAL TỪ RECIPES
         final updatedMeals = plan.selectedMeals.map((meal) {
           final recipeData = recipeMap[meal.id];
           if (recipeData != null) {

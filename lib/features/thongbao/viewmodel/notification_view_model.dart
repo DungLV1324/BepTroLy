@@ -4,7 +4,6 @@ import '../services/notification_service.dart';
 class NotificationViewModel extends ChangeNotifier {
   final NotificationService _service = NotificationService();
 
-  // 1. Stream dữ liệu để UI lắng nghe
   Stream<List<Map<String, dynamic>>> get notificationStream => _service.getNotificationStream();
 
   // Đánh dấu đã đọc

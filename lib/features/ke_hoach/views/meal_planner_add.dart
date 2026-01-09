@@ -129,13 +129,11 @@ class MealPlannerList extends StatelessWidget {
                 ],
               ),
             ),
-            // mealPlans đã được tham chiếu dữ liệu từ Recipes
             ...dayPlan.mealPlans
                 .map(
                   (mealPlan) =>
                       _buildDismissibleMealCard(context, viewModel, mealPlan),
-                )
-                .toList(),
+                ).toList(),
           ],
         );
       },
@@ -236,14 +234,14 @@ class MealPlannerList extends StatelessWidget {
               width: 40,
               height: 40,
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => const Icon(Icons.broken_image),
+              errorBuilder: (_, _, _) => const Icon(Icons.broken_image),
             )
           : Image.asset(
               cleanPath,
               width: 40,
               height: 40,
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
+              errorBuilder: (_, _, _) => Container(
                 width: 40,
                 height: 40,
                 color: Colors.grey[200],
@@ -259,7 +257,7 @@ class MealPlannerList extends StatelessWidget {
       context,
       listen: false,
     );
-    final screen = const WeeklyMealPlannerScreen(); // Để gọi hàm helper
+    final screen = const WeeklyMealPlannerScreen();
 
     showModalBottomSheet(
       context: context,

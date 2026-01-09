@@ -79,7 +79,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     if (viewModel.isSearching)
                       buildSearchResults(viewModel)
 
-                    // Nếu không -> Hiện trang chủ bình thường
                     else ...[
                       SectionHeader(title: 'Expiring Soon', onSeeAll: () => context.go('/pantry')),
                       const SizedBox(height: 15),

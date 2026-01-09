@@ -75,7 +75,7 @@ class IngredientModel {
       'id': id,
       'name': name,
       'quantity': quantity,
-      'unit': unit.toString().split('.').last, // Lưu "kg" thay vì "MeasureUnit.kg"
+      'unit': unit.toString().split('.').last,
       'expiryDate': expiryDate?.toIso8601String(),
       'addedDate': addedDate?.toIso8601String(),
       'imageUrl': imageUrl,
@@ -98,7 +98,6 @@ class IngredientModel {
 
   /// Factory đặc biệt để parse dữ liệu từ Spoonacular API
   factory IngredientModel.fromSpoonacularJson(Map<String, dynamic> json) {
-    // Spoonacular trả về ID là int, convert sang String
     final String apiId = json['id']?.toString() ?? DateTime.now().millisecondsSinceEpoch.toString();
 
     final String apiName = json['nameClean'] ?? json['name'] ?? 'Unknown Ingredient';

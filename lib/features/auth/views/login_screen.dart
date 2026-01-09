@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/login_view_model.dart';
 
-// Đã sửa: Chuyển thành StatelessWidget
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
 
@@ -64,7 +63,7 @@ class _LoginScreenUI extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     const Text(
-                      'Bếp Trợ Lý',
+                      'Kitchen Assistant',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 28,
@@ -73,7 +72,7 @@ class _LoginScreenUI extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     const Text(
-                      'Quản lý thực phẩm thông minh',
+                      'Smart food management',
                       style: TextStyle(
                         color: Colors.white70,
                         fontSize: 14,
@@ -113,7 +112,7 @@ class _LoginScreenUI extends StatelessWidget {
                             )
                           ],
                         ),
-                        child: const Icon(Icons.person, size: 60, color: Color(0xFF66BB6A)),
+                        child: Image.asset('assets/images/icon_app.png'),
                       ),
                       const SizedBox(height: 24),
                       const Text(

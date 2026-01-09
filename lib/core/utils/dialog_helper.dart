@@ -129,7 +129,7 @@ class DialogHelper {
 
     return showDialog<List<String>>(
       context: context,
-      barrierDismissible: false, // Bắt buộc user phải chọn Hủy hoặc Thêm
+      barrierDismissible: false,
       builder: (ctx) {
         return StatefulBuilder(
           builder: (context, setState) {
@@ -144,7 +144,7 @@ class DialogHelper {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const Text(
-                      "Kết quả quét hóa đơn",
+                      "Single scan results",
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -155,26 +155,24 @@ class DialogHelper {
                     const SizedBox(height: 8),
 
                     Text(
-                      "Vui lòng bỏ chọn các dòng rác:",
+                      "Please deselect the following junk entries:",
                       style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 20),
 
                     Container(
-                      constraints: const BoxConstraints(maxHeight: 350), // Chiều cao tối đa
+                      constraints: const BoxConstraints(maxHeight: 350),
                       child: SingleChildScrollView(
                         child: Column(
                           children: scannedItems.map((item) {
                             final isSelected = selectedItems.contains(item);
                             return Container(
                               margin: const EdgeInsets.only(bottom: 8),
-                              // (Tùy chọn) Thêm nền trắng nhẹ cho từng dòng nếu muốn nổi bật hơn
-                              // decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
                               child: CheckboxListTile(
                                 contentPadding: EdgeInsets.zero,
                                 controlAffinity: ListTileControlAffinity.trailing,
-                                activeColor: const Color(0xFF4CAF50), // Màu xanh lá khi check
+                                activeColor: const Color(0xFF4CAF50),
                                 checkColor: Colors.white,
                                 dense: true,
 
@@ -207,7 +205,7 @@ class DialogHelper {
                     const SizedBox(height: 24),
 
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween, // Căn 2 đầu
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         TextButton(
                           onPressed: () => Navigator.pop(ctx),
@@ -215,7 +213,7 @@ class DialogHelper {
                             foregroundColor: Colors.grey,
                             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                           ),
-                          child: const Text("Hủy", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                          child: const Text("Cancel", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
                         ),
 
                         ElevatedButton(
@@ -230,7 +228,7 @@ class DialogHelper {
                             ),
                           ),
                           child: Text(
-                            "Thêm ${selectedItems.length} món",
+                            "More ${selectedItems.length} dish",
                             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                           ),
                         ),

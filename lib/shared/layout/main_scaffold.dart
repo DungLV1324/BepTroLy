@@ -35,18 +35,18 @@ class MainScaffold extends StatelessWidget {
           NavigationDestination(
             icon: Icon(Icons.kitchen_outlined),
             selectedIcon: Icon(Icons.kitchen,color: Colors.deepOrange),
-            label: 'Tủ lạnh',
+            label: 'Pantry',
           ),
 
           NavigationDestination(
             icon: Icon(Icons.calendar_month_outlined),
             selectedIcon: Icon(Icons.calendar_month,color: Colors.deepOrange),
-            label: 'Lên lịch',
+            label: 'Planner',
           ),
           NavigationDestination(
             icon: Icon(Icons.shopping_cart_outlined),
             selectedIcon: Icon(Icons.shopping_cart,color: Colors.deepOrange),
-            label: 'Mua sắm',
+            label: 'Shopping',
           ),
         ],
       ),

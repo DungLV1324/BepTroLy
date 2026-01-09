@@ -18,8 +18,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
   // Xóa 1 cái (khi vuốt)
   void _handleDeleteOne(String docId) {
     _notificationViewModel.deleteNotification(docId);
-    if (mounted)
+    if (mounted) {
       AppToast.show(context, ActionType.delete, "expiration notification.");
+    }
   }
 
   // Đọc 1 cái (khi bấm vào)
@@ -41,8 +42,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
     if (confirm == true) {
       await _notificationViewModel.deleteAllNotifications();
-      if (mounted)
+      if (mounted) {
         AppToast.show(context, ActionType.delete, "All notifications");
+      }
     }
   }
 
