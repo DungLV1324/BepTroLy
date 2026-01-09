@@ -1,22 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-// import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
+import '../viewmodels/login_view_model.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
 
-  // Hàm xử lý đăng nhập Google (Placeholder)
+  @override
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (_) => LoginViewModel(),
+      child: const _LoginScreenUI(),
+    );
+  }
+}
+
+class _LoginScreenUI extends StatelessWidget {
+  const _LoginScreenUI();
+
   Future<void> _handleGoogleSignIn(BuildContext context) async {
-    // TODO: Thêm logic Google Sign In vào đây
-    // await FirebaseAuth.instance.signInWithCredential(...);
-    context.go('/home');
+    final viewModel = Provider.of<LoginViewModel>(context, listen: false);
+
+    final bool success = await viewModel.loginWithGoogle();
+
+    if (success && context.mounted) {
+      context.go('/home');
+    } else if (context.mounted && viewModel.errorMessage != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(viewModel.errorMessage!)),
+      );
+    }
   }
 
-  // Hàm xử lý đăng nhập Email (Placeholder)
   void _handleEmailSignIn(BuildContext context) {
-    // Điều hướng sang màn hình nhập email/password nếu có
-    // context.push('/email-login');
-    context.go('/home');
+    context.push('/login/email');
   }
 
   @override
@@ -46,17 +63,16 @@ class LoginScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     const Text(
-                      'Bếp Trợ Lý',
+                      'Kitchen Assistant',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
-                        fontFamily: 'Inter',
                       ),
                     ),
                     const SizedBox(height: 8),
                     const Text(
-                      'Quản lý thực phẩm thông minh',
+                      'Smart food management',
                       style: TextStyle(
                         color: Colors.white70,
                         fontSize: 14,
@@ -66,7 +82,6 @@ class LoginScreen extends StatelessWidget {
                 ),
               ),
             ),
-
             Expanded(
               flex: 7,
               child: Container(
@@ -83,7 +98,6 @@ class LoginScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // Avatar đầu bếp
                       Container(
                         height: 120,
                         width: 120,
@@ -98,57 +112,46 @@ class LoginScreen extends StatelessWidget {
                             )
                           ],
                         ),
-                        child: const Icon(Icons.person, size: 60, color: Color(0xFF66BB6A)),
+                        child: Image.asset('assets/images/icon_app.png'),
                       ),
-
                       const SizedBox(height: 24),
-
                       const Text(
-                        'Chào mừng trở lại! 👋',
+                        'Welcome Back!',
                         style: TextStyle(
                           color: Color(0xFF1F2937),
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-
                       const SizedBox(height: 40),
-
                       _buildSocialButton(
-                        icon: Icons.g_mobiledata, // Hoặc dùng Image.asset logo google
+                        icon: Icons.g_mobiledata,
                         iconColor: const Color(0xFFDB4437),
-                        text: 'Tiếp tục với Google',
+                        text: 'Login with Google',
                         onTap: () => _handleGoogleSignIn(context),
                       ),
-
                       const SizedBox(height: 20),
-
                       Row(
                         children: [
                           const Expanded(child: Divider(color: Color(0xFFE5E7EB))),
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 12),
                             child: Text(
-                              'hoặc',
+                              'Or',
                               style: TextStyle(color: Colors.grey[400], fontSize: 12),
                             ),
                           ),
                           const Expanded(child: Divider(color: Color(0xFFE5E7EB))),
                         ],
                       ),
-
                       const SizedBox(height: 20),
-
                       _buildSocialButton(
                         icon: Icons.email_outlined,
                         iconColor: const Color(0xFF374151),
-                        text: 'Đăng nhập với Email',
+                        text: 'Login With Email',
                         onTap: () => _handleEmailSignIn(context),
                       ),
-
                       const SizedBox(height: 30),
-
-                      // Link Đăng ký
                       GestureDetector(
                         onTap: () {
                           context.push('/register');
@@ -157,14 +160,14 @@ class LoginScreen extends StatelessWidget {
                           text: const TextSpan(
                             children: [
                               TextSpan(
-                                text: 'Chưa có tài khoản? ',
+                                text: 'No account yet. ',
                                 style: TextStyle(
                                   color: Color(0xFF9CA3AF),
                                   fontSize: 14,
                                 ),
                               ),
                               TextSpan(
-                                text: 'Đăng ký ngay',
+                                text: 'Resgister',
                                 style: TextStyle(
                                   color: Color(0xFF66BB6A),
                                   fontSize: 14,

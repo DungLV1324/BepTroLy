@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/recipe_model.dart';
 import '../services/recipe_services.dart';
 
+// Các trạng thái của màn hình
 enum RecipeViewState { idle, loading, success, error }
 
 class RecipeViewModel extends ChangeNotifier {
@@ -16,30 +17,63 @@ class RecipeViewModel extends ChangeNotifier {
   String _errorMessage = '';
   String get errorMessage => _errorMessage;
 
-  // 2. Hàm gọi API
+  // 1. Hàm gợi ý theo nguyên liệu
   Future<void> fetchSuggestedRecipes(List<String> ingredients) async {
-    _state = RecipeViewState.loading;
-    _errorMessage = '';
-    notifyListeners();
-
+    _setState(RecipeViewState.loading);
     try {
       if (ingredients.isEmpty) {
         _recipes = [];
-        _state = RecipeViewState.idle;
-        notifyListeners();
+        _setState(RecipeViewState.idle);
         return;
       }
-
       final result = await _dataSource.findRecipesByIngredients(ingredients);
-
       _recipes = result;
-      _state = RecipeViewState.success;
-
+      _setState(RecipeViewState.success);
     } catch (e) {
+      debugPrint("Error in fetchSuggestedRecipes: $e");
       _errorMessage = e.toString();
-      _state = RecipeViewState.error;
-    } finally {
-      notifyListeners();
+      _setState(RecipeViewState.error);
     }
+  }
+
+  // 2. Hàm Lọc & Tìm kiếm nâng cao (Đã thêm tham số DIET)
+  Future<void> fetchRecipesWithFilter({
+    String? query,
+    String? time,
+    String? diet,
+  }) async {
+    _setState(RecipeViewState.loading);
+    try {
+      // --- XỬ LÝ THÔNG SỐ THỜI GIAN ---
+      int? maxReadyTime;
+      if (time != null && time != 'All') {
+        final digits = time.replaceAll(RegExp(r'[^0-9]'), '');
+        maxReadyTime = int.tryParse(digits);
+      }
+
+      String? sortParam;
+      if (maxReadyTime == null && (query == null || query.isEmpty)) {
+        sortParam = 'popularity';
+      }
+
+      _recipes = await _dataSource.searchRecipes(
+        query: query ?? '',
+        maxReadyTime: maxReadyTime,
+        diet: (diet == 'None' || diet == null) ? null : diet,
+        sort: sortParam,
+      );
+
+      _setState(RecipeViewState.success);
+    } catch (e) {
+      debugPrint("Error in fetchRecipesWithFilter: $e");
+      _errorMessage = e.toString();
+      _setState(RecipeViewState.error);
+    }
+  }
+
+  // Hàm cập nhật trạng thái và báo cho giao diện vẽ lại
+  void _setState(RecipeViewState state) {
+    _state = state;
+    notifyListeners();
   }
 }

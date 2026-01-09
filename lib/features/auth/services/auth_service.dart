@@ -1,90 +1,188 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import '../models/user_model.dart' as app_model; // Alias để tránh trùng tên User của Firebase
+import 'package:google_sign_in/google_sign_in.dart';
+import '../models/user_model.dart' as app_model;
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AuthService {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Lấy user hiện tại
+  static const String _userCollection = 'users';
+
   app_model.UserModel? get currentUser {
-    final user = _firebaseAuth.currentUser;
-    if (user == null) return null;
-    return _mapFirebaseUser(user);
+    final firebaseUser = _firebaseAuth.currentUser;
+    return _mapFirebaseUser(firebaseUser);
   }
 
-  // Stream lắng nghe trạng thái đăng nhập (Dùng để auto-login)
   Stream<app_model.UserModel?> get authStateChanges {
     return _firebaseAuth.authStateChanges().map(_mapFirebaseUser);
   }
 
-  // Đăng ký Email/Password
+  /// ĐĂNG KÝ TÀI KHOẢN
   Future<app_model.UserModel?> signUp(String email, String password, String name) async {
     try {
       final credential = await _firebaseAuth.createUserWithEmailAndPassword(
-        email: email,
+        email: email.trim(),
         password: password,
       );
 
-      // Cập nhật tên hiển thị ngay sau khi tạo
       if (credential.user != null) {
+        // 1. Cập nhật Display Name lên Firebase Auth Profile
         await credential.user!.updateDisplayName(name);
-        await credential.user!.reload(); // Reload để lấy thông tin mới
-        return _mapFirebaseUser(_firebaseAuth.currentUser); // Lấy user đã update
+
+        // 2. Reload để đồng bộ dữ liệu local của Auth
+        await credential.user!.reload();
+
+        // 3. Lưu vào Firestore (Truyền name trực tiếp để đảm bảo không bị null)
+        await _saveUserToFirestore(credential.user!, manualName: name);
+
+        // Lấy user đã được cập nhật sau khi reload
+        final updatedUser = _firebaseAuth.currentUser;
+        return _mapFirebaseUser(updatedUser);
       }
       return null;
-    } catch (e) {
+    } on FirebaseAuthException catch (e) {
       throw _handleFirebaseAuthError(e);
+    } catch (e) {
+      throw 'Đã xảy ra lỗi không xác định trong quá trình đăng ký.';
     }
   }
 
-  // Đăng nhập Email/Password
+  /// ĐĂNG NHẬP EMAIL/PASSWORD
   Future<app_model.UserModel?> signIn(String email, String password) async {
     try {
       final credential = await _firebaseAuth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
+          email: email.trim(),
+          password: password
       );
+      if (credential.user != null) {
+        await _saveUserToFirestore(credential.user!);
+      }
       return _mapFirebaseUser(credential.user);
-    } catch (e) {
+    } on FirebaseAuthException catch (e) {
       throw _handleFirebaseAuthError(e);
     }
   }
 
-  // Đăng xuất
-  Future<void> signOut() async {
-    await _firebaseAuth.signOut();
+  /// ĐĂNG NHẬP GOOGLE
+  Future<app_model.UserModel?> signInWithGoogle() async {
+    try {
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) return null;
+
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      final UserCredential userCredential = await _firebaseAuth.signInWithCredential(credential);
+      final User? firebaseUser = userCredential.user;
+
+      if (firebaseUser != null) {
+        await _saveUserToFirestore(firebaseUser);
+        return _mapFirebaseUser(firebaseUser);
+      }
+      return null;
+
+    } on FirebaseAuthException catch (e) {
+      throw _handleFirebaseAuthError(e);
+    } catch (e) {
+      print('Google Sign-In Error: $e');
+      throw 'Lỗi kết nối với Google.';
+    }
   }
 
-  // --- Helper Methods ---
+  /// LƯU THÔNG TIN USER VÀO FIRESTORE
+  /// [manualName] dùng để ưu tiên lưu tên khi đăng ký mới
+  Future<void> _saveUserToFirestore(User firebaseUser, {String? manualName}) async {
+    final userDocRef = _firestore.collection(_userCollection).doc(firebaseUser.uid);
+    final doc = await userDocRef.get();
 
-  // Chuyển đổi từ Firebase User -> App User Model
+    if (!doc.exists) {
+      await userDocRef.set({
+        'uid': firebaseUser.uid,
+        'email': firebaseUser.email,
+        'displayName': manualName ?? firebaseUser.displayName ?? 'My friends',
+        'photoUrl': firebaseUser.photoURL ?? '',
+        'lastLogin': FieldValue.serverTimestamp(),
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+    } else {
+      Map<String, dynamic> updateData = {
+        'lastLogin': FieldValue.serverTimestamp(),
+      };
+      if (manualName != null) updateData['displayName'] = manualName;
+
+      await userDocRef.update(updateData);
+    }
+  }
+
+  /// CẬP NHẬT PROFILE (Tên, Ảnh)
+  Future<void> updateProfile({String? name, String? photoUrl}) async {
+    try {
+      final firebaseUser = _firebaseAuth.currentUser;
+      if (firebaseUser != null) {
+        if (name != null) await firebaseUser.updateDisplayName(name);
+        if (photoUrl != null) await firebaseUser.updatePhotoURL(photoUrl);
+
+        await _firestore.collection(_userCollection).doc(firebaseUser.uid).update({
+          if (name != null) 'displayName': name,
+          if (photoUrl != null) 'photoUrl': photoUrl,
+        });
+
+        await firebaseUser.reload();
+      }
+    } catch (e) {
+      throw 'Không thể cập nhật thông tin profile.';
+    }
+  }
+
+  /// ĐĂNG XUẤT
+  Future<void> signOut() async {
+    try {
+      if (await _googleSignIn.isSignedIn()) {
+        await _googleSignIn.signOut();
+      }
+      await _firebaseAuth.signOut();
+    } catch (e) {
+      throw 'Lỗi khi đăng xuất.';
+    }
+  }
+
   app_model.UserModel? _mapFirebaseUser(User? firebaseUser) {
     if (firebaseUser == null) return null;
     return app_model.UserModel(
       uid: firebaseUser.uid,
       email: firebaseUser.email ?? '',
-      displayName: firebaseUser.displayName ?? 'Người dùng',
-      photoUrl: firebaseUser.photoURL,
+      displayName: firebaseUser.displayName ?? 'My friends',
+      photoUrl: firebaseUser.photoURL ?? '',
     );
   }
 
-  // Xử lý lỗi Firebase trả về thông báo tiếng Việt dễ hiểu
-  String _handleFirebaseAuthError(dynamic e) {
-    if (e is FirebaseAuthException) {
-      switch (e.code) {
-        case 'user-not-found':
-          return 'Không tìm thấy tài khoản này.';
-        case 'wrong-password':
-          return 'Sai mật khẩu.';
-        case 'email-already-in-use':
-          return 'Email này đã được đăng ký.';
-        case 'invalid-email':
-          return 'Email không hợp lệ.';
-        case 'weak-password':
-          return 'Mật khẩu quá yếu (cần > 6 ký tự).';
-        default:
-          return 'Lỗi đăng nhập: ${e.message}';
-      }
+  String _handleFirebaseAuthError(FirebaseAuthException e) {
+    switch (e.code) {
+      case 'invalid-credential':
+        return 'The login information is incorrect or has expired.';
+      case 'user-not-found':
+        return 'The account is not found.';
+      case 'wrong-password':
+        return 'Incorrect password.';
+      case 'email-already-in-use':
+        return 'This email is already in use.';
+      case 'network-request-failed':
+        return 'Network connection error.';
+      case 'user-disabled':
+        return 'This account is locked.';
+      case 'invalid-email':
+        return 'Invalid email.';
+      case 'operation-not-allowed':
+        return 'This login method is not allowed.';
+      case 'weak-password':
+        return 'Password is too weak (minimum 6 characters).';
+      default:
+        return 'System error: ${e.message}';
     }
-    return 'Đã có lỗi xảy ra. Vui lòng thử lại.';
   }
 }

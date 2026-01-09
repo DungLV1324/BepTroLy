@@ -3,7 +3,16 @@ enum MealType { breakfast, lunch, dinner, snack }
 
 // Đơn vị đo lường (Chuẩn hóa để tính toán FR1.3 - Quản lý số lượng)
 enum MeasureUnit {
-  g, kg, ml, l, spoon, cup, piece, unknown
+  g,
+  kg,
+  ml,
+  l,
+  spoon, // thìa
+  cup,
+  piece, // cái/quả
+  bunch, // bó/chùm
+  clove, // tép (tỏi)
+  unknown, item,
 }
 
 // Trạng thái nguyên liệu (Dùng cho logic hiển thị màu sắc FR3)

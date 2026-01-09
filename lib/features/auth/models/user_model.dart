@@ -17,7 +17,7 @@ class UserModel {
     return UserModel(
       uid: '',
       email: '',
-      displayName: 'Khách',
+      displayName: 'My friends',
       photoUrl: null,
     );
   }
@@ -39,7 +39,7 @@ class UserModel {
     return UserModel(
       uid: json['uid'] ?? '', // <-- Đọc key 'uid'
       email: json['email'] ?? '',
-      displayName: json['displayName'] ?? 'Người dùng',
+      displayName: json['displayName'] ?? 'My friends',
       photoUrl: json['photoUrl'],
       dietaryPreferences: json['dietaryPreferences'] != null
           ? List<String>.from(json['dietaryPreferences'])

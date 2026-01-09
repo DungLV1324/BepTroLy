@@ -1,21 +1,42 @@
+# Miscellaneous
+@@ -1,47 +1,67 @@
 # Built application files
 *.apk
 *.ap_
 *.aab
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.buildlog/
+.history
+.svn/
 
 # Files for the dex VM
 *.dex
+# IntelliJ / Android Studio
+*.iml
+*.ipr
+*.iws
+.idea/
+!.idea/copyright
+!.idea/codeStyles/
 
-# Java class files
-*.class
+# Visual Studio Code
+.vscode/
 
 # Generated files
 bin/
 gen/
 out/
 build/
+# Flutter / Dart
 .dart_tool/
 
+# IntelliJ / Android Studio
 # Flutter/Dart
 .packages
 .pub/
@@ -26,22 +47,44 @@ pubspec.lock  # hoặc *.lock nếu muốn ignore tất cả
 
 # Local configuration
 local.properties
+# Android
+android/local.properties
+android/.gradle
+android/app/release/
+android/key.properties
+**/*.jks
+**/*.keystore
 
-# IDE
-*.iml
-.idea/
-!.idea/copyright
-!.idea/codeStyles/
+# iOS (Rất quan trọng)
+ios/Flutter/App.framework
+ios/Flutter/Flutter.framework
+ios/Flutter/Generated.xcconfig
+ios/Flutter/app.flx
+ios/Flutter/app.zip
+ios/ServiceDefinitions.json
+ios/Runner/GeneratedPluginRegistrant.*
 
-# Gradle
-.gradle/
+# iOS - CocoaPods (Thư viện bên iOS)
+ios/Pods/
+ios/Podfile.lock
 
-# Misc
-.DS_Store
-_sandbox/
-captures/
+# macOS
+macos/Flutter/ephemeral/
+macos/Pods/
+macos/Podfile.lock
+macos/GeneratedPluginRegistrant.swift
+macos/.symlinks/
+
+# Web
+web/build/
+
+# Windows
+windows/flutter/ephemeral/
+
+# Linux
+linux/flutter/ephemeral/
+
+# Environment variables (Bảo mật)
 .env
 
-# Android/Kotlin
-android/.kotlin/
-android/app/release/
+macos/**
