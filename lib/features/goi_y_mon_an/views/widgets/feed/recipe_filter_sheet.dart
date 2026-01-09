@@ -11,7 +11,6 @@ class RecipeFilterSheet extends StatefulWidget {
 class _RecipeFilterSheetState extends State<RecipeFilterSheet> {
   String _selectedTime = 'All';
   String _selectedDifficulty = 'All';
-  String _selectedDiet = 'None';
 
   final List<String> _timeOptions = [
     'All',
@@ -20,13 +19,6 @@ class _RecipeFilterSheetState extends State<RecipeFilterSheet> {
     '< 60 mins',
   ];
   final List<String> _difficultyOptions = ['All', 'Easy', 'Medium', 'Hard'];
-  final List<String> _dietOptions = [
-    'None',
-    'Vegetarian',
-    'Vegan',
-    'Gluten Free',
-    'Ketogenic',
-  ];
 
   @override
   void initState() {
@@ -34,7 +26,6 @@ class _RecipeFilterSheetState extends State<RecipeFilterSheet> {
     if (widget.currentFilters != null) {
       _selectedTime = widget.currentFilters!['maxReadyTime'] ?? 'All';
       _selectedDifficulty = widget.currentFilters!['difficulty'] ?? 'All';
-      _selectedDiet = widget.currentFilters!['diet'] ?? 'None';
     }
   }
 
@@ -42,20 +33,17 @@ class _RecipeFilterSheetState extends State<RecipeFilterSheet> {
     setState(() {
       _selectedTime = 'All';
       _selectedDifficulty = 'All';
-      _selectedDiet = 'None';
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    // 1. Xác định chế độ tối/sáng
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.75,
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       decoration: BoxDecoration(
-        // Đã bỏ const
         color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -74,6 +62,7 @@ class _RecipeFilterSheetState extends State<RecipeFilterSheet> {
               ),
             ),
           ),
+
           // HEADER
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -83,7 +72,7 @@ class _RecipeFilterSheetState extends State<RecipeFilterSheet> {
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : Colors.black, // Màu tiêu đề
+                  color: isDark ? Colors.white : Colors.black,
                 ),
               ),
               TextButton(
@@ -119,18 +108,10 @@ class _RecipeFilterSheetState extends State<RecipeFilterSheet> {
                   Colors.blue,
                   isDark,
                 ),
-                const SizedBox(height: 24),
-                _buildSectionTitle('Dietary Preference', isDark),
-                _buildChipGroup(
-                  _dietOptions,
-                  _selectedDiet,
-                  (val) => setState(() => _selectedDiet = val),
-                  Colors.green,
-                  isDark,
-                ),
               ],
             ),
           ),
+
           // NÚT ÁP DỤNG
           SizedBox(
             width: double.infinity,
@@ -146,7 +127,6 @@ class _RecipeFilterSheetState extends State<RecipeFilterSheet> {
                 Navigator.pop(context, {
                   'maxReadyTime': _selectedTime,
                   'difficulty': _selectedDifficulty,
-                  'diet': _selectedDiet,
                 });
               },
               child: const Text(
@@ -165,13 +145,14 @@ class _RecipeFilterSheetState extends State<RecipeFilterSheet> {
     );
   }
 
+  // --- WIDGET
+
   Widget _buildSectionTitle(String title, bool isDark) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0),
       child: Text(
         title,
         style: TextStyle(
-          // Đã bỏ const
           fontSize: 16,
           fontWeight: FontWeight.w600,
           color: isDark ? Colors.white : Colors.black,
@@ -185,7 +166,7 @@ class _RecipeFilterSheetState extends State<RecipeFilterSheet> {
     String selected,
     Function(String) onSelect,
     Color color,
-    bool isDark, // Đã thêm tham số
+    bool isDark,
   ) {
     return Wrap(
       spacing: 10,
@@ -196,15 +177,12 @@ class _RecipeFilterSheetState extends State<RecipeFilterSheet> {
           label: Text(option),
           selected: isSelected,
           selectedColor: color,
-          // Màu nền khi chưa chọn
           backgroundColor: isDark ? const Color(0xFF2C2C2C) : Colors.grey[100],
-          // Màu chữ
           labelStyle: TextStyle(
             color: isSelected
                 ? Colors.white
                 : (isDark ? Colors.white70 : Colors.black87),
           ),
-          // Sửa viền
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
             side: BorderSide(
