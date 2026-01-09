@@ -4,6 +4,10 @@ import '../../kho_nguyen_lieu/view_models/pantry_view_model.dart';
 import '../models/recipe_model.dart';
 import '../services/recipe_services.dart';
 
+import 'widgets/detail/recipe_info_circle.dart';
+import 'widgets/detail/ingredient_item_tile.dart';
+import 'widgets/detail/instruction_step_tile.dart';
+
 class RecipeDetailScreen extends StatefulWidget {
   final RecipeModel recipe;
 
@@ -28,6 +32,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
     _loadFullDetails();
   }
 
+  // Logic tải dữ liệu chi tiết từ API
   Future<void> _loadFullDetails() async {
     try {
       final detailedRecipe = await _recipeService.getRecipeDetails(
@@ -45,6 +50,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
     }
   }
 
+  // Logic kiểm tra nguyên liệu trong kho
   bool _checkInPantry(BuildContext context, String ingredientName) {
     final pantryVM = context.read<PantryViewModel>();
     return pantryVM.ingredients.any(
@@ -56,10 +62,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
 
   String _formatUnit(dynamic unit) {
     String unitStr = unit.toString().split('.').last;
-    if (unitStr.toLowerCase() == 'unknown') {
-      return "";
-    }
-    return unitStr;
+    return unitStr.toLowerCase() == 'unknown' ? "" : unitStr;
   }
 
   @override
@@ -87,7 +90,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
             ),
           ),
 
-          // 2. NÚT BACK
+          // 2. Nút quay lại (Back Button)
           Positioned(
             top: MediaQuery.of(context).padding.top + 10,
             left: 20,
@@ -107,7 +110,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
             ),
           ),
 
-          // 3. SHEET NỘI DUNG
+          // 3. Nội dung chi tiết (Draggable Sheet)
           DraggableScrollableSheet(
             initialChildSize: 0.65,
             minChildSize: 0.6,
@@ -131,101 +134,18 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
                   controller: scrollController,
                   child: Column(
                     children: [
-                      const SizedBox(height: 12),
-                      Container(
-                        width: 40,
-                        height: 5,
-                        decoration: BoxDecoration(
-                          color: isDark ? Colors.grey[700] : Colors.grey[300],
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-
+                      _buildHandleBar(isDark),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 24),
                         child: Column(
                           children: [
-                            Text(
-                              _fullRecipe.name,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: isDark ? Colors.white : Colors.black87,
-                              ),
-                            ),
+                            _buildTitle(isDark),
                             const SizedBox(height: 24),
-
-                            // Thông tin tròn
-                            _isLoading
-                                ? const LinearProgressIndicator(
-                                    color: greenColor,
-                                  )
-                                : Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceEvenly,
-                                    children: [
-                                      _buildInfoCircle(
-                                        Icons.access_time,
-                                        "${_fullRecipe.cookingTimeMinutes} mins",
-                                        Colors.red.withOpacity(0.1),
-                                        Colors.redAccent,
-                                        isDark,
-                                      ),
-                                      _buildInfoCircle(
-                                        Icons.layers_outlined,
-                                        "Easy",
-                                        Colors.green.withOpacity(0.1),
-                                        Colors.green,
-                                        isDark,
-                                      ),
-                                      _buildInfoCircle(
-                                        Icons.people_outline,
-                                        "2 people",
-                                        Colors.orange.withOpacity(0.1),
-                                        Colors.orange,
-                                        isDark,
-                                      ),
-                                    ],
-                                  ),
+                            _buildQuickInfo(greenColor, isDark),
                             const SizedBox(height: 24),
-
-                            TabBar(
-                              controller: _tabController,
-                              labelColor: isDark ? greenColor : Colors.black,
-                              unselectedLabelColor: isDark
-                                  ? Colors.white54
-                                  : Colors.grey,
-                              indicatorColor: greenColor,
-                              indicatorWeight: 3,
-                              tabs: const [
-                                Tab(text: "Ingredients"),
-                                Tab(text: "Steps"),
-                              ],
-                            ),
+                            _buildTabBar(greenColor, isDark),
                             const SizedBox(height: 16),
-
-                            // NỘI DUNG TAB
-                            SizedBox(
-                              height: 600,
-                              child: _isLoading
-                                  ? const Center(
-                                      child: CircularProgressIndicator(
-                                        color: greenColor,
-                                      ),
-                                    )
-                                  : TabBarView(
-                                      controller: _tabController,
-                                      children: [
-                                        _buildIngredientsList(
-                                          greenColor,
-                                          isDark,
-                                        ),
-                                        _buildStepsList(isDark),
-                                      ],
-                                    ),
-                            ),
+                            _buildTabContent(greenColor, isDark),
                           ],
                         ),
                       ),
@@ -240,35 +160,94 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
     );
   }
 
-  Widget _buildInfoCircle(
-    IconData icon,
-    String label,
-    Color color,
-    Color iconColor,
-    bool isDark,
-  ) {
+  // --- Các Widget thành phần bổ trợ ---
+
+  Widget _buildHandleBar(bool isDark) {
     return Column(
       children: [
+        const SizedBox(height: 12),
         Container(
-          width: 50,
-          height: 50,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-          child: Icon(icon, color: iconColor, size: 24),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: isDark ? Colors.white70 : Colors.grey[600],
-            fontWeight: FontWeight.w500,
+          width: 40,
+          height: 5,
+          decoration: BoxDecoration(
+            color: isDark ? Colors.grey[700] : Colors.grey[300],
+            borderRadius: BorderRadius.circular(10),
           ),
+        ),
+        const SizedBox(height: 20),
+      ],
+    );
+  }
+
+  Widget _buildTitle(bool isDark) {
+    return Text(
+      _fullRecipe.name,
+      textAlign: TextAlign.center,
+      style: TextStyle(
+        fontSize: 24,
+        fontWeight: FontWeight.bold,
+        color: isDark ? Colors.white : Colors.black87,
+      ),
+    );
+  }
+
+  Widget _buildQuickInfo(Color greenColor, bool isDark) {
+    if (_isLoading) return LinearProgressIndicator(color: greenColor);
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        RecipeInfoCircle(
+          icon: Icons.access_time,
+          label: "${_fullRecipe.cookingTimeMinutes} mins",
+          backgroundColor: Colors.red.withOpacity(0.1),
+          iconColor: Colors.redAccent,
+        ),
+        RecipeInfoCircle(
+          icon: Icons.layers_outlined,
+          label: "Easy",
+          backgroundColor: Colors.green.withOpacity(0.1),
+          iconColor: Colors.green,
+        ),
+        RecipeInfoCircle(
+          icon: Icons.people_outline,
+          label: "2 people",
+          backgroundColor: Colors.orange.withOpacity(0.1),
+          iconColor: Colors.orange,
         ),
       ],
     );
   }
 
-  Widget _buildIngredientsList(Color greenColor, bool isDark) {
+  Widget _buildTabBar(Color greenColor, bool isDark) {
+    return TabBar(
+      controller: _tabController,
+      labelColor: isDark ? greenColor : Colors.black,
+      unselectedLabelColor: isDark ? Colors.white54 : Colors.grey,
+      indicatorColor: greenColor,
+      indicatorWeight: 3,
+      tabs: const [
+        Tab(text: "Ingredients"),
+        Tab(text: "Steps"),
+      ],
+    );
+  }
+
+  Widget _buildTabContent(Color greenColor, bool isDark) {
+    return SizedBox(
+      height: 600,
+      child: _isLoading
+          ? const Center(child: CircularProgressIndicator(color: Colors.green))
+          : TabBarView(
+              controller: _tabController,
+              children: [
+                _buildIngredientsTab(greenColor, isDark),
+                _buildStepsTab(isDark),
+              ],
+            ),
+    );
+  }
+
+  Widget _buildIngredientsTab(Color greenColor, bool isDark) {
     if (_fullRecipe.ingredients.isEmpty) {
       return Center(
         child: Text(
@@ -277,52 +256,23 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
         ),
       );
     }
-
     return ListView.builder(
       padding: EdgeInsets.zero,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: _fullRecipe.ingredients.length,
       itemBuilder: (context, index) {
         final item = _fullRecipe.ingredients[index];
-        final bool isHave = _checkInPantry(context, item.name);
-
-        return Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-          decoration: BoxDecoration(
-            color: isHave
-                ? greenColor.withOpacity(0.15)
-                : (isDark ? const Color(0xFF2C2C2C) : Colors.grey[50]),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Row(
-            children: [
-              Icon(
-                Icons.check_circle,
-                size: 20,
-                color: isHave
-                    ? greenColor
-                    : (isDark ? Colors.grey[700] : Colors.grey[300]),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Text(
-                  "${item.quantity.toStringAsFixed(1)} ${_formatUnit(item.unit)} ${item.name}",
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: isHave ? FontWeight.bold : FontWeight.w500,
-                    color: isDark ? Colors.white : Colors.black87,
-                  ),
-                ),
-              ),
-            ],
-          ),
+        return IngredientItemTile(
+          name: item.name,
+          quantity: item.quantity,
+          unit: _formatUnit(item.unit),
+          isHave: _checkInPantry(context, item.name),
         );
       },
     );
   }
 
-  Widget _buildStepsList(bool isDark) {
+  Widget _buildStepsTab(bool isDark) {
     if (_fullRecipe.instructions.isEmpty) {
       return Center(
         child: Text(
@@ -336,32 +286,9 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
       physics: const NeverScrollableScrollPhysics(),
       itemCount: _fullRecipe.instructions.length,
       itemBuilder: (context, index) {
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 24),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "${index + 1}.",
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF4CAF50),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Text(
-                  _fullRecipe.instructions[index],
-                  style: TextStyle(
-                    fontSize: 15,
-                    height: 1.5,
-                    color: isDark ? Colors.white : Colors.black87,
-                  ),
-                ),
-              ),
-            ],
-          ),
+        return InstructionStepTile(
+          stepNumber: index + 1,
+          instruction: _fullRecipe.instructions[index],
         );
       },
     );
