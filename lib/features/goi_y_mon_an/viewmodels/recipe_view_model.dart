@@ -36,11 +36,12 @@ class RecipeViewModel extends ChangeNotifier {
     }
   }
 
-  // 2. Hàm Lọc & Tìm kiếm nâng cao (Đã thêm tham số DIET)
+  // 2. Hàm Lọc & Tìm kiếm nâng cao
   Future<void> fetchRecipesWithFilter({
     String? query,
     String? time,
     String? diet,
+    String difficulty = '',
   }) async {
     _setState(RecipeViewState.loading);
     try {

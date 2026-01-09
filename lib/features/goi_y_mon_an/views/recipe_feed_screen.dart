@@ -73,21 +73,19 @@ class _RecipeFeedScreenState extends State<RecipeFeedScreen> {
     );
 
     if (result != null && mounted) {
-      int maxTime = 0;
+      int? maxTime;
       if (result['maxReadyTime'] != 'All') {
-        maxTime = int.parse(
+        maxTime = int.tryParse(
           result['maxReadyTime'].replaceAll(RegExp(r'[^0-9]'), ''),
         );
       }
-      String difficulty = result['difficulty'];
-      if (difficulty == 'Easy') {
-        if (maxTime == 0 || maxTime > 20) maxTime = 20;
-      } else if (difficulty == 'Medium') {
-        if (maxTime == 0 || maxTime > 45) maxTime = 45;
-      }
+      String difficulty = result['difficulty'] == 'All'
+          ? ''
+          : result['difficulty'];
       context.read<RecipeViewModel>().fetchRecipesWithFilter(
         query: '',
-        time: maxTime > 0 ? maxTime.toString() : '',
+        time: maxTime != null ? maxTime.toString() : '',
+        difficulty: difficulty,
       );
     }
   }
